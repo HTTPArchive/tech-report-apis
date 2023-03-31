@@ -1,0 +1,33 @@
+# IDES
+.vscode
+
+# Terraform
+.terraform
+*.tfstate
+*.tfstate.*
+*.terraform.lock.hcl
+secret.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+*tfplan*
+.terraformrc
+terraform.rc
+*.tfvars
+*.local.tfvars
+
+/terraform
+
+# env
+.envrc
+
+# CLI
+.DS_Store
+
+# asdf
+/.tool-versions
+
+# python
+__pycache__
+.pytest_cache
