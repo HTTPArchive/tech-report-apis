@@ -31,3 +31,5 @@ terraform.rc
 # python
 __pycache__
 .pytest_cache
+
+utils.txt
