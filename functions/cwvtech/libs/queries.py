@@ -17,7 +17,7 @@ def list_data(params):
   if 'geo' in params:
     query = query.where('geo', '==', params['geo'])
   if 'technology' in params:
-    params_array = json.loads(params['app'])
+    params_array = json.loads(params['technology'])
     query = query.where('technology', 'in', params_array)
   if 'rank' in params:
     query = query.where('rank', '==', params['rank'])
