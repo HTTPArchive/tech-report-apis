@@ -9,8 +9,8 @@ class Validator():
   def validate(self):
     result = Result(status="ok", result="()")
 
-    # if 'geo' not in self.params:
-    #   self.add_error("geo", "missing geo parameters")
+    if 'category' not in self.params:
+      self.add_error("category", "missing category parameter")
 
     return Result(errors=self.errors, result=self.params)
   
