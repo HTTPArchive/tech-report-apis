@@ -1,3 +1,12 @@
+################################################################################
+# Description: This script queries the BigQuery table "technologies" 
+# and inserts the result into 
+# the Firestore collection "technologies".
+#
+# Parameters: start_date (optional), end_date (optional)
+# Usage example: python scripts/script_technologies.py 2020-01-01 2020-12-31
+################################################################################
+
 import sys
 from google.cloud import bigquery
 from google.cloud import firestore
@@ -15,16 +24,6 @@ def execute_query_and_insert_result(start_date, end_date):
 
     # Set up Firestore client
     firestore_client = firestore.Client()
-
-    # Define the BigQuery query with optional parameters
-    # query = """
-    #     SELECT
-    #       *
-    #     FROM
-    #       `httparchive.core_web_vitals.technologies`
-    #     WHERE
-    #       1=1
-    # """
 
     query = """
         SELECT
@@ -44,7 +43,6 @@ def execute_query_and_insert_result(start_date, end_date):
             geo = 'ALL' AND
             rank = 'ALL'
     """
-
     # Construct the WHERE clause based on the provided parameters
     if start_date and end_date:
         query += f" AND date >= '{start_date}' AND date <= '{end_date}'"
@@ -56,12 +54,26 @@ def execute_query_and_insert_result(start_date, end_date):
     results = query_job.result()
 
     # Create a new Firestore document for each result and insert it into the "technologies" collection
-    collection_ref = firestore_client.collection('technologies')
-    print(results)
+    collection_ref = firestore_client.collection(u'technologies')
+    
+    tech_collection_ref = firestore_client.collection(u'technologies-list')
+
     for row in results:
 
         item = dict(row.items())
+
+        # Query the techonologies-list collection for the description
+        #
+        tech_query = tech_collection_ref.where('name', '==', row['technology'])
+        tech_query = tech_query.limit(1)
+        tech_results = tech_query.stream()
+        technology = {}
+        for tech in tech_results:
+            technology = tech.to_dict()
+
+        # overriding BQ fields
         item['date'] = str(row['date'])
+        item['description'] = technology.get('description','')
 
         print(item)
 
