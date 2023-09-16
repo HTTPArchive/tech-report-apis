@@ -15,15 +15,7 @@ APIs for the HTTP Archive Technology Report
 
 ## API
 
-### Endpoitns
-
-GitHub Copilot: Sure, here's an updated documentation for the `/list_data` endpoint that includes all possible parameters:
-
-# List Data Endpoint
-
-This endpoint returns a list of data from the `adoption` collection in Firestore.
-
-## Edndpointd
+## Endpoints
 
 ### `GET /adoption`
 
