@@ -17,7 +17,53 @@ APIs for the HTTP Archive Technology Report
 
 ### Endpoitns
 
-`GET /technologies`
+GitHub Copilot: Sure, here's an updated documentation for the `/list_data` endpoint that includes all possible parameters:
+
+# List Data Endpoint
+
+This endpoint returns a list of data from the `adoption` collection in Firestore.
+
+## Edndpointd
+
+### `GET /adoption`
+
+#### Parameters
+
+The following parameters can be used to filter the data:
+
+- `geo` (`required`): A string representing the geographic location.
+- `technology` (`required`): A comma-separated string representing the technology name(s).
+- `rank` (`required`): An string representing the rank.
+- `start` (optional): A string representing the start date in the format `YYYY-MM-DD`.
+- `end` (optional): A string representing the end date in the format `YYYY-MM-DD`.
+
+#### Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/adoption?start=2023-01-01&end=2023-09-01&geo=Mexico&technology=GoCache&rank=ALL'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+[
+	{
+		"technology": "GoCache",
+		"geo": "Mexico",
+		"date": "2023-06-01",
+		"rank": "ALL",
+		"adoption": {
+			"mobile": 19,
+			"desktop": 11
+		}
+	},
+  ...
+]
+```
+
+
+### `GET /technologies`
 
 #### Parameters
 
@@ -34,9 +80,8 @@ The following parameters can be used to filter the data:
 
 ```bash
 curl --request GET \
-  --url 'https://{HOST}/v1/technologies?start=2022-02-01&end=2022-04-01&technology=Smartsupp&client=mobile'
+  --url 'https://{{HOST}}/v1/technologies?start=2022-02-01&end=2022-04-01&category=Live%20chat%2C%20blog&technology=Smartsupp&client=mobile'
 ```
-
 
 Returns a JSON object with the following schema:
 

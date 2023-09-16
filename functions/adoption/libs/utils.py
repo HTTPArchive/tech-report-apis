@@ -11,3 +11,7 @@ def convert_to_hashes(arr):
         hash_dict = {inner_arr[0]: inner_arr[1]}
         hashes_arr.append(hash_dict)
     return hashes_arr
+
+def convert_to_array(data_string):
+    list = data_string.split(',')
+    return list
