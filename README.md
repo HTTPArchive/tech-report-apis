@@ -17,3 +17,40 @@ APIs for the HTTP Archive Technology Report
 
 ### Endpoitns
 
+`GET /technologies`
+
+#### Parameters
+
+The following parameters can be used to filter the data:
+
+- `technology` (`required`): A comma-separated string representing the technology name(s).
+- `start` (optional): A string representing the start date in the format `YYYY-MM-DD`.
+- `end` (optional): A string representing the end date in the format `YYYY-MM-DD`.
+- `geo` (optional): A string representing the geographic location.
+- `rank` (optional): An string representing the rank.
+- `category` (optional): A comma-separated string representing the category name(s).
+
+#### Response
+
+```bash
+curl --request GET \
+  --url 'https://{HOST}/v1/technologies?start=2022-02-01&end=2022-04-01&technology=Smartsupp&client=mobile'
+```
+
+
+Returns a JSON object with the following schema:
+
+```json
+[
+	{
+		"client": "mobile",
+		"similar_technologies": null,
+		"date": "2022-02-01",
+		"description": "Smartsupp is a live chat tool that offers visitor recording feature.",
+		"technology": "Smartsupp",
+		"category": "Live chat",
+		"origins": 16840
+	},
+  ...
+]
+```
