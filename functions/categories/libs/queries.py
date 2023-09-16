@@ -2,6 +2,7 @@ import os
 import json
 from google.cloud import firestore
 from .result import Result 
+from .utils import convert_to_array
 
 DB = firestore.Client(project=os.environ.get('PROJECT'))
 
@@ -10,13 +11,13 @@ def list_data(params):
 
   query = ref
 
+  if 'technology' in params:
+    params_array = convert_to_array(params['technology'])
+    query = query.where('technology', 'in', params_array)
+
   if 'category' in params:
-    category_array = json.loads(params['category'])
-    query = query.where('category', 'in', category_array)
-    
-  if 'technologies' in params:
-    params_array = json.loads(params['technologies'])
-    query = query.where('technologies', 'in', params_array)
+    params_array = convert_to_array(params['category'])
+    query = query.where('category', 'in', params_array)
 
   documents = query.stream()
 
