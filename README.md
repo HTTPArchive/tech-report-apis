@@ -69,7 +69,7 @@ The following parameters can be used to filter the data:
 
 ```bash
 curl --request GET \
-  --url 'https://dev-gw-2vzgiib6.uk.gateway.dev/v1/categories?category=Domain%20parking%2CCI'
+  --url 'https://d{{HOST}}/v1/categories?category=Domain%20parking%2CCI'
 ```
 
 ```json
@@ -94,7 +94,7 @@ curl --request GET \
 
 ```bash
 curl --request GET \
-  --url 'https://dev-gw-2vzgiib6.uk.gateway.dev/v1/categories?onlyname=true'
+  --url 'https://{{HOST}}/v1/categories?onlyname=true'
 ```
 
 ```json
@@ -126,7 +126,7 @@ The following parameters can be used to filter the data:
 
 ```bash
 curl --request GET \
-  --url 'https://dev-gw-2vzgiib6.uk.gateway.dev/v1/cwv?start=2023-01-01&end=2023-09-01&geo=Uruguay&technology=DomainFactory&rank=ALL'
+  --url 'https://{{HOST}}/v1/cwv?start=2023-01-01&end=2023-09-01&geo=Uruguay&technology=DomainFactory&rank=ALL'
 
 ```
 
@@ -154,6 +154,55 @@ curl --request GET \
 	}
 ]
 
+```
+
+### `GET /lighthouse`
+
+#### Parameters
+
+The following parameters can be used to filter the data:
+
+- `technology` (`required`): A comma-separated string representing the technology name(s).
+- `geo` (`required`): A string representing the geographic location.
+- `rank` (`required`): An string representing the rank.
+- `start` (optional): A string representing the start date in the format `YYYY-MM-DD`.
+- `end` (optional): A string representing the end date in the format `YYYY-MM-DD`.
+
+#### Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/lighthouse?start=2023-01-01&end=2023-09-01&geo=Maldives&technology=Oracle%20HTTP%20Server%2C%20Google%20Optimize%2C%20Searchanise&rank=ALL'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+[
+	{
+		"geo": "Maldives",
+		"date": "2023-06-01",
+		"rank": "ALL",
+		"technology": "Oracle HTTP Server",
+		"lighthouse": [
+			{
+				"mobile": {
+					"median_score": 0.945
+				},
+				"desktop": null,
+				"name": "accessibility"
+			},
+			{
+				"mobile": {
+					"median_score": 0.915
+				},
+				"desktop": null,
+				"name": "best_practices"
+			},
+			...
+		]
+	}
+]
 ```
 
 
