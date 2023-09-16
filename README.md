@@ -54,6 +54,61 @@ Returns a JSON object with the following schema:
 ]
 ```
 
+### `GET /categories`
+
+This endpoint can return a full list of categories names or a categories with all the associated technologies
+
+#### Parameters
+
+The following parameters can be used to filter the data:
+
+- `category` (`required`): A comma-separated string representing the category name(s).
+- `onlyname` (optional): A string 'true' or 'false'.
+
+#### Response
+
+```bash
+curl --request GET \
+  --url 'https://dev-gw-2vzgiib6.uk.gateway.dev/v1/categories?category=Domain%20parking%2CCI'
+```
+
+```json
+[
+	{
+		"technologies": [
+			"Arsys Domain Parking"
+		],
+		"origins": 11,
+		"category": "Domain parking"
+	},
+	{
+		"technologies": [
+			"Jenkins",
+			"TeamCity"
+		],
+		"origins": 20,
+		"category": "CI"
+	}
+]
+```
+
+```bash
+curl --request GET \
+  --url 'https://dev-gw-2vzgiib6.uk.gateway.dev/v1/categories?onlyname=true'
+```
+
+```json
+[
+	"Blogs",
+	"LMS",
+	"CI",
+	"Cross border ecommerce",
+	"Cart abandonment",
+	"Domain parking",
+  ...
+]
+
+```
 
 ### `GET /technologies`
 
