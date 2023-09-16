@@ -14,11 +14,11 @@ def list_data(params):
     query = query.where('date', '>=', params['start'])
   if 'end' in params:
     query = query.where('date', '<=', params['end'])
+    
   if 'geo' in params:
     query = query.where('geo', '==', params['geo'])
   if 'technology' in params:
-    params_array = json.loads(params['technology'])
-    query = query.where('technology', 'in', params_array)
+    query = query.where('technology', '==', params['technology'])
   if 'rank' in params:
     query = query.where('rank', '==', params['rank'])
 

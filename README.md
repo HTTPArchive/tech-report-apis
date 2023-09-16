@@ -110,6 +110,53 @@ curl --request GET \
 
 ```
 
+### `GET /cwv`
+
+#### Parameters
+
+The following parameters can be used to filter the data:
+
+- `geo` (`required`): A string representing the geographic location.
+- `technology` (`required`): A string representing the technology name.
+- `rank` (`required`): An string representing the rank.
+- `start` (optional): A string representing the start date in the format `YYYY-MM-DD`.
+- `end` (optional): A string representing the end date in the format `YYYY-MM-DD`.
+
+#### Response
+
+```bash
+curl --request GET \
+  --url 'https://dev-gw-2vzgiib6.uk.gateway.dev/v1/cwv?start=2023-01-01&end=2023-09-01&geo=Uruguay&technology=DomainFactory&rank=ALL'
+
+```
+
+```json
+[
+	{
+		"geo": "Uruguay",
+		"date": "2023-06-01",
+    "rank": "ALL",
+		"technology": "DomainFactory",
+		"vitals": [
+			{
+				"mobile": {
+					"good_number": 1,
+					"tested": 4
+				},
+				"desktop": {
+					"good_number": 0,
+					"tested": 2
+				},
+				"name": "overall"
+			},
+      ...
+		]
+	}
+]
+
+```
+
+
 ### `GET /technologies`
 
 #### Parameters
