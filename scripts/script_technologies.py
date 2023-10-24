@@ -27,22 +27,24 @@ def execute_query_and_insert_result(start_date, end_date):
 
     query = """
         SELECT
-            date,
             client,
             app AS technology,
-            # TODO
-            NULL AS description,
+            description,
             # CSV format
             category,
-            # TODO: other technologies within category?
             NULL AS similar_technologies,
             origins
         FROM
             `httparchive.core_web_vitals.technologies`
+        JOIN
+            `httparchive.core_web_vitals.technology_descriptions`
+        ON
+            app = technology
         WHERE
             geo = 'ALL' AND
             rank = 'ALL'
     """
+
     # Construct the WHERE clause based on the provided parameters
     if start_date and end_date:
         query += f" AND date >= '{start_date}' AND date <= '{end_date}'"
@@ -56,24 +58,10 @@ def execute_query_and_insert_result(start_date, end_date):
     # Create a new Firestore document for each result and insert it into the "technologies" collection
     collection_ref = firestore_client.collection(u'technologies')
     
-    tech_collection_ref = firestore_client.collection(u'technologies-list')
-
     for row in results:
-
         item = dict(row.items())
-
-        # Query the techonologies-list collection for the description
-        #
-        tech_query = tech_collection_ref.where('name', '==', row['technology'])
-        tech_query = tech_query.limit(1)
-        tech_results = tech_query.stream()
-        technology = {}
-        for tech in tech_results:
-            technology = tech.to_dict()
-
         # overriding BQ fields
         item['date'] = str(row['date'])
-        item['description'] = technology.get('description','')
 
         print(item)
 
