@@ -77,12 +77,13 @@ def execute_query_and_insert_result(start_date, end_date):
 
     # Create a new Firestore document for each result and insert it into the "technologies" collection
     collection_ref = firestore_client.collection('categories')
-    print(results)
+
+    print("Data inserted started.")
     for row in results:
 
         item = dict(row.items())
 
-        print(item)
+        #print(item)
 
         doc_ref = collection_ref.document()
         doc_ref.set(item)

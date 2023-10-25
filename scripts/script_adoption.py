@@ -42,12 +42,12 @@ def execute_query_and_insert_result(start_date, end_date):
             ))) AS adoption
         FROM
             `httparchive.core_web_vitals.technologies`
-        WHERE
+        
     """
     
     # Construct the WHERE clause based on the provided parameters
     if start_date and end_date:
-        query += f" date >= '{start_date}' AND date <= '{end_date}'"
+        query += f"WHERE date >= '{start_date}' AND date <= '{end_date}'"
 
     query += " GROUP BY date, app, rank, geo"
 

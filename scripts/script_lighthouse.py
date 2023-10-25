@@ -1,4 +1,5 @@
 import sys
+import uuid
 from google.cloud import bigquery
 from google.cloud import firestore
 from decimal import Decimal
@@ -97,21 +98,32 @@ def execute_query_and_insert_result(start_date, end_date):
     query_job = bq_client.query(query)
     results = query_job.result()
 
-    # Create a new Firestore document for each result and insert it into the "technologies" collection
     collection_ref = firestore_client.collection('lighthouse')
-    print(results)
-    for row in results:
 
+    idx = 0
+
+    print("Data insert process started.")
+
+    batch = collection_ref.batch()
+    for row in results:
+        # Convert date
+        #
         item = dict(row.items())
         item['date'] = str(row['date'])
-
         item = convert_decimal_to_float(item)
 
-        print(item)
+        record_ref = collection_ref.document(uuid.uuid4().hex)
+        batch.set(record_ref, row)
+        idx += 1
 
-        doc_ref = collection_ref.document()
-        doc_ref.set(item)
+        # Commit the batch at every 500th record.
+        if idx == 499:
+            batch.commit()
+            # Start a new batch for the next iteration.
+            batch = collection_ref.batch()
+            idx = 0
 
+    batch.commit()
     print("Data inserted into Firestore successfully.")
 
 # Get command-line arguments

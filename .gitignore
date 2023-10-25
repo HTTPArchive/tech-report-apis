@@ -33,3 +33,4 @@ __pycache__
 .pytest_cache
 
 utils.txt
+logs

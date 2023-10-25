@@ -95,12 +95,12 @@ def execute_query_and_insert_result(start_date, end_date):
             ))) AS vitals
         FROM
             `httparchive.core_web_vitals.technologies`
-        WHERE
+        
     """
 
     # Construct the WHERE clause based on the provided parameters
     if start_date and end_date:
-        query += f" date >= '{start_date}' AND date <= '{end_date}'"
+        query += f"WHERE date >= '{start_date}' AND date <= '{end_date}'"
 
     query += " GROUP BY date, app, rank, geo"
 
@@ -110,13 +110,15 @@ def execute_query_and_insert_result(start_date, end_date):
 
     # Create a new Firestore document for each result and insert it into the "technologies" collection
     collection_ref = firestore_client.collection('core_web_vitals')
-    print(results)
+    #print(results)
+    
+    print("Data inserted started.")
     for row in results:
 
         item = dict(row.items())
         item['date'] = str(row['date'])
 
-        print(item)
+        #print(item)
 
         doc_ref = collection_ref.document()
         doc_ref.set(item)
