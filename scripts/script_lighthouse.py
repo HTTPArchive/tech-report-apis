@@ -85,12 +85,12 @@ def execute_query_and_insert_result(start_date, end_date):
             ))) AS lighthouse
         FROM
             `httparchive.core_web_vitals.technologies`
-        WHERE
+        
     """
 
     # Construct the WHERE clause based on the provided parameters
     if start_date and end_date:
-        query += f" date >= '{start_date}' AND date <= '{end_date}'"
+        query += f"WHERE date >= '{start_date}' AND date <= '{end_date}'"
 
     query += " GROUP BY date, app, rank, geo"
 
@@ -101,10 +101,8 @@ def execute_query_and_insert_result(start_date, end_date):
     collection_ref = firestore_client.collection('lighthouse')
 
     idx = 0
-
+    batch = firestore_client.batch()
     print("Data insert process started.")
-
-    batch = collection_ref.batch()
     for row in results:
         # Convert date
         #
@@ -113,14 +111,14 @@ def execute_query_and_insert_result(start_date, end_date):
         item = convert_decimal_to_float(item)
 
         record_ref = collection_ref.document(uuid.uuid4().hex)
-        batch.set(record_ref, row)
+        batch.set(record_ref, item)
         idx += 1
 
         # Commit the batch at every 500th record.
         if idx == 499:
             batch.commit()
             # Start a new batch for the next iteration.
-            batch = collection_ref.batch()
+            batch = firestore_client.batch()
             idx = 0
 
     batch.commit()
