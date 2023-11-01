@@ -1,8 +1,25 @@
+#########################################################################################
+# This script retrieves Lighthouse scores for a given date range from BigQuery and inserts 
+# the results into Firestore. The script defines a temporary function GET_LIGHTHOUSE 
+# to extract the median Lighthouse scores for each client. The results are then converted 
+# to a JSON format and inserted into Firestore.
+#
+# How to consume the script:
+#
+# param1 (optional): start_date (YYYY-MM-DD)
+# param2 (optional): end_date (YYYY-MM-DD)
+#
+# Example:
+# python script_lighthouse.py 2020-01-01 2020-12-31
+#
+# If no parameters are provided, the script will retrieve all available data.
+#
 import sys
 import uuid
 from google.cloud import bigquery
 from google.cloud import firestore
 from decimal import Decimal
+from datetime import datetime
 
 def convert_decimal_to_float(data):
     if isinstance(data, Decimal):
@@ -70,7 +87,7 @@ def execute_query_and_insert_result(start_date, end_date):
         ''';
 
         SELECT
-            date,
+            STRING(DATE(date)) as date,
             app AS technology,
             rank,
             geo,
@@ -90,7 +107,7 @@ def execute_query_and_insert_result(start_date, end_date):
 
     # Construct the WHERE clause based on the provided parameters
     if start_date and end_date:
-        query += f"WHERE date >= '{start_date}' AND date <= '{end_date}'"
+        query += f"WHERE date >= '{start_date}' AND date <= '{end_date}' "
 
     query += " GROUP BY date, app, rank, geo"
 
@@ -107,7 +124,7 @@ def execute_query_and_insert_result(start_date, end_date):
         # Convert date
         #
         item = dict(row.items())
-        item['date'] = str(row['date'])
+        #item['date'] = str(row['date'])
         item = convert_decimal_to_float(item)
 
         record_ref = collection_ref.document(uuid.uuid4().hex)
@@ -119,10 +136,11 @@ def execute_query_and_insert_result(start_date, end_date):
             batch.commit()
             # Start a new batch for the next iteration.
             batch = firestore_client.batch()
+            print(datetime.now())
             idx = 0
 
     batch.commit()
-    print("Data inserted into Firestore successfully.")
+    print("Data insert finsihed successfully.")
 
 # Get command-line arguments
 start_date = sys.argv[1] if len(sys.argv) > 1 else None
