@@ -133,13 +133,13 @@ def execute_query_and_insert_result(start_date, end_date):
 
         # Commit the batch at every 500th record.
         if idx == 499:
-            batch.commit()
+            batch.commit(timeout=36000)
             # Start a new batch for the next iteration.
             batch = firestore_client.batch()
             print(datetime.now())
             idx = 0
 
-    batch.commit()
+    batch.commit(timeout=36000)
     print("Data insert finsihed successfully.")
 
 # Get command-line arguments
