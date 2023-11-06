@@ -27,4 +27,4 @@ def dispatcher(request):
   
   response = Result(result=RANKS)
 
- return output(response, headers)
+  return output(response, headers)

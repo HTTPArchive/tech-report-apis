@@ -34,4 +34,4 @@ def dispatcher(request):
   
   response = list_data(result.result)
 
- return output(response, headers)
+  return output(response, headers)

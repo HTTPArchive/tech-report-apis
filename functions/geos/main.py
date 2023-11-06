@@ -27,4 +27,4 @@ def dispatcher(request):
   
   response = Result(result=COUNTRIES)
 
- return output(response, headers)
+  return output(response, headers)
