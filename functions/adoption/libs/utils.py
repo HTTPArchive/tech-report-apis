@@ -1,9 +1,9 @@
 import json
 
-def output(result):
+def output(result, headers={}):
   status = 200 if result.success() else 400
   payload = result.result if result.success() else convert_to_hashes(result.errors)
-  return (json.dumps(payload), status)
+  return (json.dumps(payload), status, headers)
 
 def convert_to_hashes(arr):
     hashes_arr = []
