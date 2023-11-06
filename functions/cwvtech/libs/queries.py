@@ -16,7 +16,8 @@ def list_data(params):
     query = query.where('date', '<=', params['end'])
     
   if 'geo' in params:
-    query = query.where('geo', '==', params['geo'])
+    if params['geo'] != 'ALL':
+      query = query.where('geo', '==', params['geo'])
   if 'technology' in params:
     query = query.where('technology', '==', params['technology'])
   if 'rank' in params:
