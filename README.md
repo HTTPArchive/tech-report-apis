@@ -205,6 +205,42 @@ Returns a JSON object with the following schema:
 ]
 ```
 
+### `GET /page-weight`
+
+#### Parameters
+
+The following parameters can be used to filter the data:
+
+- `geo` (`required`): A string representing the geographic location.
+- `technology` (`required`): A comma-separated string representing the technology name(s).
+- `rank` (`required`): An string representing the rank.
+- `start` (optional): A string representing the start date in the format `YYYY-MM-DD`.
+- `end` (optional): A string representing the end date in the format `YYYY-MM-DD`.
+
+#### Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/page-weight?geo=ALL&technology=WordPress&rank=ALL'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+[
+	{
+		"client": "desktop",
+		"date": "2023-07-01",
+		"geo": "ALL",
+		"median_bytes_image": "1048110",
+		"technology": "WordPress",
+		"median_bytes_total": "2600099",
+		"median_bytes_js": "652651",
+		"rank": "ALL"
+	}
+	...
+]
+```
 
 ### `GET /technologies`
 
