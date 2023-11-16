@@ -3,7 +3,7 @@ import json
 from google.cloud import firestore
 from .result import Result 
 
-DB = firestore.Client(project=os.environ.get('PROJECT'))
+DB = firestore.Client(project=os.environ.get('PROJECT'), database=os.environ.get('DATABASE'))
 
 def list_data(params):
   ref = DB.collection(u'core_web_vitals')
