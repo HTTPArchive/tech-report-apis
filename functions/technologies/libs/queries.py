@@ -10,7 +10,6 @@ def list_data(params):
   ref = DB.collection(u'technologies')
 
   query = ref
-  print("params", params)
 
   if 'start' in params:
     query = query.where('date', '>=', params['start'])

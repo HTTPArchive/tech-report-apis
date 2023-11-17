@@ -10,7 +10,7 @@ def list_data(params):
   ref = DB.collection(u'adoption')
 
   query = ref
-  print("params", params)
+
   if 'start' in params:
     query = query.where('date', '>=', params['start'])
   if 'end' in params:

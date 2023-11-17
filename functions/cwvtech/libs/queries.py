@@ -9,7 +9,7 @@ def list_data(params):
   ref = DB.collection(u'core_web_vitals')
 
   query = ref
-  print("params", params)
+  
   if 'start' in params:
     query = query.where('date', '>=', params['start'])
   if 'end' in params:
