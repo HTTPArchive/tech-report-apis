@@ -4,13 +4,13 @@ from google.cloud import firestore
 from .result import Result 
 from .utils import convert_to_array
 
-DB = firestore.Client(project=os.environ.get('PROJECT'))
+DB = firestore.Client(project=os.environ.get('PROJECT'), database=os.environ.get('DATABASE'))
 
 def list_data(params):
   ref = DB.collection(u'adoption')
 
   query = ref
-  print("params", params)
+
   if 'start' in params:
     query = query.where('date', '>=', params['start'])
   if 'end' in params:

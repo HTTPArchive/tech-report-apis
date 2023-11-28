@@ -4,7 +4,7 @@ from google.cloud import firestore
 from .result import Result 
 from .utils import convert_to_array
 
-DB = firestore.Client(project=os.environ.get('PROJECT'))
+DB = firestore.Client(project=os.environ.get('PROJECT'), database=os.environ.get('DATABASE'))
 
 def list_data(params):
 
@@ -19,9 +19,7 @@ def list_data(params):
     if 'end' in params:
       query = query.where('date', '<=', params['end'])
 
-    if params['geo'] != 'ALL':
-      query = query.where('geo', '==', params['geo'])
-
+    query = query.where('geo', '==', params['geo'])
     query = query.where('rank', '==', params['rank'])
     query = query.where('technology', '==', technology)
 

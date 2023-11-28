@@ -1,4 +1,5 @@
 import json
+from urllib.parse import unquote
 
 def output(result, headers={}):
   status = 200 if result.success() else 400
@@ -13,5 +14,6 @@ def convert_to_hashes(arr):
     return hashes_arr
 
 def convert_to_array(data_string):
-    list = data_string.split(',')
+    decoded_data = unquote(data_string)
+    list = decoded_data.split(',')
     return list
