@@ -12,7 +12,7 @@ DB = firestore.Client(project=os.environ.get('PROJECT'), database=os.environ.get
 
 def list_data(params):
   onlyname = False
-  ref = DB.collection(u'technologies')
+  ref = DB.collection('technologies')
 
   query = ref
 
@@ -26,13 +26,19 @@ def list_data(params):
 
     query = query.where(filter=or_filter)
 
-
   if 'category' in params:
     params_array = convert_to_array(params['category'])
     query = query.where(filter=FieldFilter('category_obj', 'array_contains_any', params_array))
 
   if 'onlyname' in params:
     onlyname = True
+
+  if 'sort' not in params:
+    query = query.order_by('technology', direction=firestore.Query.ASCENDING)
+  else:
+    if params['sort'] == 'origins':
+      query = query.order_by('origins', direction=firestore.Query.DESCENDING)
+      
 
   documents = query.stream()
 
