@@ -16,8 +16,7 @@ override.tf.json
 terraform.rc
 *.tfvars
 *.local.tfvars
-
-/terraform
+spec.yaml
 
 # env
 .envrc
