@@ -27,8 +27,14 @@ def list_data(params):
       category_array = convert_to_array(params['category'])
 
       for category in category_array:
-        results = DB.collection(u'categories').where("category", "==", category).stream()
+        results = query.where("category", "==", category).stream()
         for doc in results:
           data.append(doc.to_dict())
+
+    else:
+      documents = query.stream()
+
+      for doc in documents:
+        data.append(doc.to_dict())
 
   return Result(result=data)
