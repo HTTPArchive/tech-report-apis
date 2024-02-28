@@ -1,20 +1,13 @@
 name: Tech Report API Pipeline
 
-on:
-  push:
-    branches:
-      - 'main'
-      - 'feature**'
-  delete:
-    branches:
-      - 'feature**'
+on: [push]
 
 # env:
-#   PIPELINE_USER_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#   PIPELINE_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+#   PIPELINE_SA_KEY: ${{ secrets.GCP_SA_KEY }}
 
 jobs:
   test:
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -31,3 +24,28 @@ jobs:
         run: |
           python -m pytest -W "ignore"
 
+  deploy_development:
+    if: github.ref == 'refs/heads/development'
+    runs-on: ubuntu-latest
+    needs: [test]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Google Cloud Auth
+        uses: 'google-github-actions/auth@v2'
+        # with:
+        #   project_id: ${{ env.PIPELINE_PROJECT_ID }}
+        #   credentials_json: ${{ env.PIPELINE_SA_KEY }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color
+        continue-on-error: true
+    
+    
