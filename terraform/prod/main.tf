@@ -7,7 +7,7 @@ provider "google" {
 
 terraform {
   backend "gcs" {
-    bucket = var.project_bucket
+    bucket = "tf-state-backingapi-20230314"
     prefix = "prod"
   }
 }
