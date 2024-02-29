@@ -5,6 +5,10 @@ on: [push]
 env:
   PIPELINE_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   PIPELINE_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+  PIPELINE_PROJECT_DATABASE_DEV: ${{ secrets.GCP_PROJECT_DATABASE_DEV }}
+  PIPELINE_PROJECT_DATABASE_PROD: ${{ secrets.GCP_PROJECT_DATABASE_PROD }}
+  PIPELINE_GOOGLE_SERVICE_ACCOUNT_CLOUD_FUNCTIONS: ${{ secrets.GCP_SERVICE_ACCOUNT_CLOUD_FUNCTIONS }}
+  PIPELINE_GOOGLE_SERVICE_ACCOUNT_API_GATEWAY: ${{ secrets.GCP_SERVICE_ACCOUNT_API_GATEWAY }}
 
 jobs:
   test:
@@ -56,5 +60,5 @@ jobs:
       
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color
+        run: terraform plan -no-color -var="google_service_account_cloud_functions=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_CLOUD_FUNCTIONS }}" -var="google_service_account_api_gateway=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_API_GATEWAY }}" -var="project_database=${{ env.PIPELINE_PROJECT_DATABASE_DEV }}"
         continue-on-error: true
