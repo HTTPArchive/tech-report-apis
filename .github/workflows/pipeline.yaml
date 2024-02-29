@@ -37,17 +37,22 @@ jobs:
           project_id: ${{ env.PIPELINE_PROJECT_ID }}
           credentials_json: ${{ env.PIPELINE_SA_KEY }}
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-
+      - uses: hashicorp/setup-terraform@v3
+      
+      - name: Terraform fmt
+        id: fmt
+        run: terraform fmt -check
+        continue-on-error: true
+      
       - name: Terraform Init
-        run: |
-          cd terraform/dev/
-          terraform init
-
+        id: init
+        run: terraform init
+      
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+      
       - name: Terraform Plan
         id: plan
-        run: |
-          cd terraform/dev/
-          terraform plan -no-color
+        run: terraform plan -no-color
         continue-on-error: true
