@@ -78,3 +78,54 @@ jobs:
                           -var="project_database=${{ env.PIPELINE_PROJECT_DATABASE_DEV }}" \
                           -auto-approve
         
+  deploy_production:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: [test]
+    defaults:
+      run:
+        working-directory: ./terraform/prod
+    steps:
+      - uses: actions/checkout@v4
+      - name: Google Cloud Auth
+        uses: 'google-github-actions/auth@v2'
+        with:
+          project_id: ${{ env.PIPELINE_PROJECT_ID }}
+          credentials_json: ${{ env.PIPELINE_SA_KEY }}
+
+      - uses: hashicorp/setup-terraform@v3
+      
+      - name: Terraform fmt
+        id: fmt
+        run: terraform fmt -check
+        continue-on-error: true
+      
+      - name: Terraform Init
+        id: init
+        run: terraform init
+      
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+      
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan -no-color -var="google_service_account_cloud_functions=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_CLOUD_FUNCTIONS }}" \
+                                    -var="google_service_account_api_gateway=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_API_GATEWAY }}" \
+                                    -var="project_database=${{ env.PIPELINE_PROJECT_DATABASE_PROD }}"
+        continue-on-error: true
+
+      - name: Terraform Plan status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+      - name: Terraform Apply
+        id: apply
+        run: |
+          terraform apply -var="google_service_account_cloud_functions=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_CLOUD_FUNCTIONS }}" \
+                          -var="google_service_account_api_gateway=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_API_GATEWAY }}" \
+                          -var="project_database=${{ env.PIPELINE_PROJECT_DATABASE_PROD }}" \
+                          -auto-approve
+                                
+                        
