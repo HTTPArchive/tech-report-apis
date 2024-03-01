@@ -21,7 +21,6 @@ def dispatcher(request):
 
       return ("", 204, headers)
 
-  # Set CORS headers for the main request
   headers = {"Access-Control-Allow-Origin": "*"}
   args = request.args.to_dict()
 
