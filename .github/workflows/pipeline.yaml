@@ -60,5 +60,21 @@ jobs:
       
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color -var="google_service_account_cloud_functions=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_CLOUD_FUNCTIONS }}" -var="google_service_account_api_gateway=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_API_GATEWAY }}" -var="project_database=${{ env.PIPELINE_PROJECT_DATABASE_DEV }}"
+        run: |
+          terraform plan -no-color -var="google_service_account_cloud_functions=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_CLOUD_FUNCTIONS }}" \
+                                   -var="google_service_account_api_gateway=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_API_GATEWAY }}" \
+                                   -var="project_database=${{ env.PIPELINE_PROJECT_DATABASE_DEV }}"
         continue-on-error: true
+
+      - name: Terraform Plan status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+      - name: Terraform Apply
+        id: apply
+        run: |
+          terraform apply -var="google_service_account_cloud_functions=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_CLOUD_FUNCTIONS }}" \
+                          -var="google_service_account_api_gateway=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_API_GATEWAY }}" \
+                          -var="project_database=${{ env.PIPELINE_PROJECT_DATABASE_DEV }}" \
+                          -auto-approve
+        
