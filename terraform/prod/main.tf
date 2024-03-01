@@ -7,17 +7,162 @@ provider "google" {
 
 terraform {
   backend "gcs" {
-    bucket = var.project_bucket
+    bucket = "tf-state-backingapi-20230314"
     prefix = "prod"
   }
 }
 
-module "backend-api" {
-  source = "./../modules/api-gateway"
-  environment = "prod"
-  project = "httparchive"
-  region = "us-east1"
-  service_account_email = var.google_service_account_api_gateway
+resource "google_api_gateway_api" "api" {
+  provider     = google-beta
+  api_id       = "api-gw-prod"
+  display_name = "The prod API Gateway"
+  project      = "httparchive"
+}
+
+resource "google_api_gateway_api_config" "api_config" {
+  provider             = google-beta 
+  api                  = google_api_gateway_api.api.api_id
+  api_config_id_prefix = "api"
+  project              = "httparchive"
+  display_name         = "The prod Config"
+  openapi_documents {
+    document {
+      path     = "spec.yaml" 
+      contents = base64encode(<<-EOF
+swagger: "2.0"
+info:
+  title: reports-backend-api
+  description: API tech report
+  version: 1.0.0
+schemes:
+  - https
+produces:
+  - application/json
+paths:
+  /v1/categories:
+    get:
+      summary: categories
+      operationId: getCategories
+      x-google-backend:
+        address: https://us-east1-httparchive.cloudfunctions.net/categories-prod
+        deadline: 60
+      # security:
+      #   - api_key: []
+      responses:
+        200:
+          description: String
+  /v1/adoption:
+    get:
+      summary: adoption
+      operationId: getadoptionReports
+      x-google-backend:
+        address: https://us-east1-httparchive.cloudfunctions.net/adoption-prod
+        deadline: 60
+      # security:
+      #   - api_key: []
+      responses:
+        200:
+          description: String
+  /v1/page-weight:
+    get:
+      summary: pageWeight
+      operationId: getpageWeight
+      x-google-backend:
+        address: https://us-east1-httparchive.cloudfunctions.net/page-weight-prod
+        deadline: 60
+      # security:
+      #   - api_key: []
+      responses:
+        200:
+          description: String
+  /v1/lighthouse:
+    get:
+      summary: lighthouse
+      operationId: getLighthouseReports
+      x-google-backend:
+        address: https://us-east1-httparchive.cloudfunctions.net/lighthouse-prod
+        deadline: 60
+      # security:
+      #   - api_key: []
+      responses:
+        200:
+          description: String
+  /v1/cwv:
+    get:
+      summary: cwv
+      operationId: getCwv
+      x-google-backend:
+        address: https://us-east1-httparchive.cloudfunctions.net/cwvtech-prod
+        deadline: 60
+      # security:
+      #   - api_key: []
+      responses:
+        200:
+          description: String
+  /v1/ranks:
+    get:
+      summary: ranks
+      operationId: getRanks
+      x-google-backend:
+        address: https://us-east1-httparchive.cloudfunctions.net/ranks-prod
+        deadline: 60
+      # security:
+      #   - api_key: []
+      responses:
+        200:
+          description: String
+  /v1/geos:
+    get:
+      summary: geos
+      operationId: getGeos
+      x-google-backend:
+        address: https://us-east1-httparchive.cloudfunctions.net/geos-prod
+        deadline: 60
+      # security:
+      #   - api_key: []
+      responses:
+        200:
+          description: String
+  /v1/technologies:
+    get:
+      summary: geos
+      operationId: getTechnologies
+      x-google-backend:
+        address: https://us-east1-httparchive.cloudfunctions.net/technologies-prod
+        deadline: 60
+      # security:
+      #   - api_key: []
+      responses:
+        200:
+          description: String
+EOF
+      )
+    }
+  }
+  gateway_config {
+    backend_config {
+      google_service_account = var.google_service_account_api_gateway
+    }
+  }
+}
+
+resource "google_api_gateway_gateway" "gateway" {
+  provider     = google-beta
+  project      = "httparchive"
+  region       = "us-east1"
+  api_config   = google_api_gateway_api_config.api_config.id
+  gateway_id   = "prod-gw"
+  display_name = "prod Api Gateway"
+  labels = {
+    owner       = "tech_report_api"
+    environment = "prod"
+  }
+  depends_on = [google_api_gateway_api_config.api_config]
+  lifecycle {
+    replace_triggered_by = [
+      google_api_gateway_api_config.api_config
+    ]
+  }
 }
 
 module "cwvtech" {

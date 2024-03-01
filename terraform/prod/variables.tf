@@ -13,8 +13,3 @@ variable "project_database" {
   description = "The database name"
   
 }
-
-variable "project_bucket" {
-  type        = string
-  description = "The project name"
-}

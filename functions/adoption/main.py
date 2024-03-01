@@ -10,7 +10,6 @@ def dispatcher(request):
   if request.method == "OPTIONS":
     return respond_cors()
 
-  # Set CORS headers for the main request
   headers = {"Access-Control-Allow-Origin": "*"}
   args = request.args.to_dict()
 
