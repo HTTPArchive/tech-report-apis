@@ -22,7 +22,10 @@ def dispatcher(request):
       return ("", 204, headers)
 
   # Set CORS headers for the main request
-  headers = {"Access-Control-Allow-Origin": "*"}
+  headers = {
+     "Access-Control-Allow-Origin": "*",
+     "cache-control": "public, max-age=31536000"
+     }
   args = request.args.to_dict()
 
   validator = Validator(params=args)
