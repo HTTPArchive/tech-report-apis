@@ -26,7 +26,7 @@ def dispatcher(request):
   headers = {
      "Access-Control-Allow-Origin": "*",
      "cache-control": "public, max-age=21600"
-     }
+    }
   
   response = Result(result=RANKS)
 

@@ -24,7 +24,7 @@ def dispatcher(request):
   # Set CORS headers for the main request
   headers = {
      "Access-Control-Allow-Origin": "*",
-     "cache-control": "public, max-age=31536000"
+     "cache-control": "public, max-age=21600"
      }
   args = request.args.to_dict()
 
