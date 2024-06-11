@@ -23,7 +23,10 @@ def dispatcher(request):
       return ("", 204, headers)
 
   # Set CORS headers for the main request
-  headers = {"Access-Control-Allow-Origin": "*"}
+  headers = {
+     "Access-Control-Allow-Origin": "*",
+     "cache-control": "public, max-age=21600"
+     }
   
   response = Result(result=COUNTRIES)
 
