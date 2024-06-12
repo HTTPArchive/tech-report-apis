@@ -21,7 +21,11 @@ def dispatcher(request):
 
       return ("", 204, headers)
 
-  headers = {"Access-Control-Allow-Origin": "*"}
+  headers = {
+     "Access-Control-Allow-Origin": "*",
+     "cache-control": "public, max-age=21600"
+    }
+  
   args = request.args.to_dict()
 
   validator = Validator(params=args)

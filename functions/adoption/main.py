@@ -10,7 +10,11 @@ def dispatcher(request):
   if request.method == "OPTIONS":
     return respond_cors()
 
-  headers = {"Access-Control-Allow-Origin": "*"}
+  headers = {
+     "Access-Control-Allow-Origin": "*",
+     "cache-control": "public, max-age=21600"
+    }
+  
   args = request.args.to_dict()
 
   validator = Validator(params=args)
