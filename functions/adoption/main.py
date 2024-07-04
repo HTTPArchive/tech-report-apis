@@ -1,8 +1,9 @@
 import functions_framework
+
 from .libs.validator import Validator
 from .libs.utils import output
 from .libs.queries import list_data
-from .libs.network import respond_cors, respond
+from .libs.network import respond_cors
 
 @functions_framework.http
 def dispatcher(request):
