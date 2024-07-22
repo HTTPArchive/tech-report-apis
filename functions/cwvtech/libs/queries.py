@@ -15,12 +15,12 @@ def list_data(params):
     query = DB.collection(TABLE)
 
     if 'start' in params:
-      query = query.where('date', '>=', params['start'])
+      query = query.where(filter=FieldFilter('date', '>=', params['start']))
     if 'end' in params:
-      query = query.where('date', '<=', params['end'])
+      query = query.where(filter=FieldFilter('date', '<=', params['end']))
 
-    query = query.where('geo', '==', params['geo'])
-    query = query.where('rank', '==', params['rank'])
+    query = query.where(filter=FieldFilter('geo', '==', params['geo']))
+    query = query.where(filter=FieldFilter('rank', '==', params['rank']))
     query = query.where(filter=FieldFilter('technology', '==', technology))
 
     documents = query.stream()
