@@ -12,22 +12,21 @@ def list_data(params):
   technology_array = convert_to_array(params['technology'])
   data = []
 
-  query = DB.collection(TABLE)
-
-  if 'start' in params:
-    query = query.where(filter=FieldFilter('date', '>=', params['start']))
-  if 'end' in params:
-    query = query.where(filter=FieldFilter('date', '<=', params['end']))
-
-  query = query.where(filter=FieldFilter('geo', '==', params['geo']))
-  query = query.where(filter=FieldFilter('rank', '==', params['rank']))
-  
   for technology in technology_array:
+    query = DB.collection(TABLE)
+
+    if 'start' in params:
+      query = query.where(filter=FieldFilter('date', '>=', params['start']))
+    if 'end' in params:
+      query = query.where(filter=FieldFilter('date', '<=', params['end']))
+
+    query = query.where(filter=FieldFilter('geo', '==', params['geo']))
+    query = query.where(filter=FieldFilter('rank', '==', params['rank']))
     query = query.where(filter=FieldFilter('technology', '==', technology))
 
-  documents = query.stream()
+    documents = query.stream()
 
-  for doc in documents:
-      data.append(doc.to_dict())
+    for doc in documents:
+        data.append(doc.to_dict())
 
   return Result(result=data)
