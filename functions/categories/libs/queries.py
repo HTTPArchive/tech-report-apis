@@ -1,13 +1,14 @@
 import os
-import json
 from google.cloud import firestore
+from google.cloud.firestore_v1.base_query import FieldFilter
 from .result import Result 
 from .utils import convert_to_array
 
 DB = firestore.Client(project=os.environ.get('PROJECT'), database=os.environ.get('DATABASE'))
+TABLE = 'categories'
 
 def list_data(params):
-  ref = DB.collection(u'categories')
+  ref = DB.collection(TABLE)
 
   query = ref
 
@@ -27,7 +28,7 @@ def list_data(params):
       category_array = convert_to_array(params['category'])
 
       for category in category_array:
-        results = query.where("category", "==", category).stream()
+        results = query.where(filter=FieldFilter("category", "==", category)).stream()
         for doc in results:
           data.append(doc.to_dict())
 
