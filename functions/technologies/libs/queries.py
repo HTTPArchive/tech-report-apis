@@ -7,7 +7,6 @@ from .result import Result
 from .utils import convert_to_array
 from .presenters import Presenters
 
-
 DB = firestore.Client(project=os.environ.get('PROJECT'), database=os.environ.get('DATABASE'))
 
 def list_data(params):
@@ -29,6 +28,9 @@ def list_data(params):
   if 'category' in params:
     params_array = convert_to_array(params['category'])
     query = query.where(filter=FieldFilter('category_obj', 'array_contains_any', params_array))
+
+  if 'client' in params:
+    query = query.where(filter=FieldFilter('client', '==', params['client']))
 
   if 'onlyname' in params:
     onlyname = True
