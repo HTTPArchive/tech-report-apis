@@ -7,10 +7,21 @@ from .utils import convert_to_array
 DB = firestore.Client(project=os.environ.get('PROJECT'), database=os.environ.get('DATABASE'))
 TABLE = 'page_weight'
 
+def get_latest_date():
+    """Retrieve the latest date in the collection."""
+    query = DB.collection(TABLE).order_by('date', direction=firestore.Query.DESCENDING).limit(1)
+    docs = query.stream()
+    for doc in docs:
+        return doc.to_dict().get('date')
+    return None
+
 def list_data(params):
 
   technology_array = convert_to_array(params['technology'])
   data = []
+
+  if 'end' in params and params['end'] == 'latest':
+    params['start'] = get_latest_date()
 
   for technology in technology_array:
     query = DB.collection(TABLE)
