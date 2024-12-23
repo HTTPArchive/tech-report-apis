@@ -19,7 +19,7 @@ def list_data(params):
   technology_array = convert_to_array(params['technology'])
   data = []
 
-  if 'end' in params and params['end'] == 'latest':
+  if 'start' in params and params['start'] == 'latest':
     params['start'] = get_latest_date()
 
   for technology in technology_array:
