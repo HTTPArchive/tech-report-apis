@@ -27,17 +27,18 @@ resource "google_cloudfunctions2_function" "function" {
       }
     }
   }
-  
+
   service_config {
     all_traffic_on_latest_revision = true
-    available_memory               = var.environment == "prod" ? "4Gi" : var.available_memory_mb
+    available_memory               = var.available_memory_mb
     ingress_settings               = var.ingress_settings
 
     environment_variables = var.environment_variables
 
     min_instance_count         = var.min_instances
     max_instance_count         = var.max_instances
-    timeout_seconds            = var.timeout    
+    timeout_seconds            = var.timeout
+    max_instance_request_concurrency = var.max_instance_request_concurrency
     service_account_email      = var.service_account_email
   }
 
