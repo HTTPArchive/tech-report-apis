@@ -175,6 +175,7 @@ module "cwvtech" {
   function_name = "cwvtech"
   service_account_email = var.google_service_account_cloud_functions
   service_account_api_gateway = var.google_service_account_api_gateway
+  min_instances = var.min_instances
   environment_variables = {
     "PROJECT" = "httparchive",
     "DATABASE" = var.project_database
