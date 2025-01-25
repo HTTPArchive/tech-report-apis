@@ -20,14 +20,14 @@ resource "google_api_gateway_api" "api" {
 }
 
 resource "google_api_gateway_api_config" "api_config" {
-  provider             = google-beta 
+  provider             = google-beta
   api                  = google_api_gateway_api.api.api_id
   api_config_id_prefix = "api"
   project              = "httparchive"
   display_name         = "The prod Config"
   openapi_documents {
     document {
-      path     = "spec.yaml" 
+      path     = "spec.yaml"
       contents = base64encode(<<-EOF
 swagger: "2.0"
 info:
@@ -204,6 +204,7 @@ module "adoption" {
   function_name = "adoption"
   service_account_email = var.google_service_account_cloud_functions
   service_account_api_gateway = var.google_service_account_api_gateway
+  min_instances = var.min_instances
   environment_variables = {
     "PROJECT" = "httparchive",
     "DATABASE" = var.project_database
@@ -219,6 +220,7 @@ module "page-weight" {
   function_name = "page-weight"
   service_account_email = var.google_service_account_cloud_functions
   service_account_api_gateway = var.google_service_account_api_gateway
+  min_instances = var.min_instances
   environment_variables = {
     "PROJECT" = "httparchive",
     "DATABASE" = var.project_database
@@ -234,6 +236,7 @@ module "categories" {
   function_name = "categories"
   service_account_email = var.google_service_account_cloud_functions
   service_account_api_gateway = var.google_service_account_api_gateway
+  min_instances = var.min_instances
   environment_variables = {
     "PROJECT" = "httparchive",
     "DATABASE" = var.project_database
