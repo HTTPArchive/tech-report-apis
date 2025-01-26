@@ -29,16 +29,16 @@ Returns a JSON object with the following schema:
 
 ```json
 [
-	{
-		"technology": "GoCache",
-		"geo": "Mexico",
-		"date": "2023-06-01",
-		"rank": "ALL",
-		"adoption": {
-			"mobile": 19,
-			"desktop": 11
-		}
-	},
+    {
+        "technology": "GoCache",
+        "geo": "Mexico",
+        "date": "2023-06-01",
+        "rank": "ALL",
+        "adoption": {
+            "mobile": 19,
+            "desktop": 11
+        }
+    },
   ...
 ]
 ```
@@ -63,21 +63,29 @@ curl --request GET \
 
 ```json
 [
-	{
-		"technologies": [
-			"Arsys Domain Parking"
-		],
-		"origins": 11,
-		"category": "Domain parking"
-	},
-	{
-		"technologies": [
-			"Jenkins",
-			"TeamCity"
-		],
-		"origins": 20,
-		"category": "CI"
-	}
+  {
+    "description": "Solutions that redirect domains to a different location or page",
+    "technologies": [
+      "Arsys Domain Parking"
+    ],
+    "origins": {
+      "mobile": 14,
+      "desktop": 8
+    },
+    "category": "Domain parking"
+  },
+  {
+    "description": "Systems that automate building, testing, and deploying code",
+    "technologies": [
+      "Jenkins",
+      "TeamCity"
+    ],
+    "origins": {
+      "mobile": 22,
+      "desktop": 35
+    },
+    "category": "CI"
+  }
 ]
 ```
 
@@ -88,12 +96,12 @@ curl --request GET \
 
 ```json
 [
-	"Blogs",
-	"LMS",
-	"CI",
-	"Cross border ecommerce",
-	"Cart abandonment",
-	"Domain parking",
+    "Blogs",
+    "LMS",
+    "CI",
+    "Cross border ecommerce",
+    "Cart abandonment",
+    "Domain parking",
   ...
 ]
 
@@ -121,26 +129,26 @@ curl --request GET \
 
 ```json
 [
-	{
-		"geo": "Uruguay",
-		"date": "2023-06-01",
-    "rank": "ALL",
-		"technology": "DomainFactory",
-		"vitals": [
-			{
-				"mobile": {
-					"good_number": 1,
-					"tested": 4
-				},
-				"desktop": {
-					"good_number": 0,
-					"tested": 2
-				},
-				"name": "overall"
-			},
+    {
+        "geo": "Uruguay",
+        "date": "2023-06-01",
+        "rank": "ALL",
+        "technology": "DomainFactory",
+        "vitals": [
+            {
+                "mobile": {
+                    "good_number": 1,
+                    "tested": 4
+                },
+                "desktop": {
+                    "good_number": 0,
+                    "tested": 2
+                },
+                "name": "overall"
+            },
       ...
-		]
-	}
+        ]
+    }
 ]
 
 ```
@@ -168,29 +176,29 @@ Returns a JSON object with the following schema:
 
 ```json
 [
-	{
-		"geo": "Maldives",
-		"date": "2023-06-01",
-		"rank": "ALL",
-		"technology": "Oracle HTTP Server",
-		"lighthouse": [
-			{
-				"mobile": {
-					"median_score": 0.945
-				},
-				"desktop": null,
-				"name": "accessibility"
-			},
-			{
-				"mobile": {
-					"median_score": 0.915
-				},
-				"desktop": null,
-				"name": "best_practices"
-			},
-			...
-		]
-	}
+    {
+        "geo": "Maldives",
+        "date": "2023-06-01",
+        "rank": "ALL",
+        "technology": "Oracle HTTP Server",
+        "lighthouse": [
+            {
+                "mobile": {
+                    "median_score": 0.945
+                },
+                "desktop": null,
+                "name": "accessibility"
+            },
+            {
+                "mobile": {
+                    "median_score": 0.915
+                },
+                "desktop": null,
+                "name": "best_practices"
+            },
+            ...
+        ]
+    }
 ]
 ```
 
@@ -217,17 +225,17 @@ Returns a JSON object with the following schema:
 
 ```json
 [
-	{
-		"client": "desktop",
-		"date": "2023-07-01",
-		"geo": "ALL",
-		"median_bytes_image": "1048110",
-		"technology": "WordPress",
-		"median_bytes_total": "2600099",
-		"median_bytes_js": "652651",
-		"rank": "ALL"
-	}
-	...
+    {
+        "client": "desktop",
+        "date": "2023-07-01",
+        "geo": "ALL",
+        "median_bytes_image": "1048110",
+        "technology": "WordPress",
+        "median_bytes_total": "2600099",
+        "median_bytes_js": "652651",
+        "rank": "ALL"
+    }
+    ...
 ]
 ```
 
@@ -255,15 +263,13 @@ Returns a JSON object with the following schema:
 
 ```json
 [
-	{
-		"client": "mobile",
-		"similar_technologies": null,
-		"date": "2022-02-01",
-		"description": "Smartsupp is a live chat tool that offers visitor recording feature.",
-		"technology": "Smartsupp",
-		"category": "Live chat",
-		"origins": 16840
-	},
-  ...
+  {
+    "client": "mobile",
+    "similar_technologies": null,
+    "description": "Smartsupp is a live chat tool that offers visitor recording feature.",
+    "origins": 25649,
+    "technology": "Smartsupp",
+    "category": "Live chat"
+  }
 ]
 ```
