@@ -22,7 +22,7 @@ variable "entry_point" {
   type        = string
 }
 variable "available_memory_mb" {
-  default     = "1GiB"
+  default     = "1Gi"
   type        = string
   description = "The amount of memory for the Cloud Function"
 }
