@@ -30,6 +30,7 @@ spec.yaml
 # python
 __pycache__
 .pytest_cache
+.venv
 
 utils.txt
 logs

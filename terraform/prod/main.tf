@@ -204,7 +204,6 @@ module "adoption" {
   function_name = "adoption"
   service_account_email = var.google_service_account_cloud_functions
   service_account_api_gateway = var.google_service_account_api_gateway
-  min_instances = var.min_instances
   environment_variables = {
     "PROJECT" = "httparchive",
     "DATABASE" = var.project_database
@@ -220,7 +219,6 @@ module "page-weight" {
   function_name = "page-weight"
   service_account_email = var.google_service_account_cloud_functions
   service_account_api_gateway = var.google_service_account_api_gateway
-  min_instances = var.min_instances
   environment_variables = {
     "PROJECT" = "httparchive",
     "DATABASE" = var.project_database
@@ -236,7 +234,6 @@ module "categories" {
   function_name = "categories"
   service_account_email = var.google_service_account_cloud_functions
   service_account_api_gateway = var.google_service_account_api_gateway
-  min_instances = var.min_instances
   environment_variables = {
     "PROJECT" = "httparchive",
     "DATABASE" = var.project_database
@@ -252,6 +249,7 @@ module "technologies" {
   function_name = "technologies"
   service_account_email = var.google_service_account_cloud_functions
   service_account_api_gateway = var.google_service_account_api_gateway
+  min_instances = var.min_instances
   environment_variables = {
     "PROJECT" = "httparchive",
     "DATABASE" = var.project_database
