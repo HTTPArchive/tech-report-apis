@@ -3,7 +3,7 @@ import json
 from google.cloud import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter, Or
 
-from .result import Result 
+from .result import Result
 from .utils import convert_to_array
 from .presenters import Presenters
 
@@ -40,16 +40,21 @@ def list_data(params):
   else:
     if params['sort'] == 'origins':
       query = query.order_by('origins', direction=firestore.Query.DESCENDING)
-      
+
 
   documents = query.stream()
 
-  data = []
-  for doc in documents:
+  if onlyname:
+    data = set()
+    for doc in documents:
       item = doc.to_dict()
-      if onlyname:
-        data.append(item['technology'])
-      else:
-        data.append(Presenters.technology(doc.to_dict()))
+      data.append(item['technology'])
 
-  return Result(result=data)
+    return Result(result=list(data))
+
+  else:
+    data = []
+    for doc in documents:
+      data.append(Presenters.technology(doc.to_dict()))
+
+    return Result(result=data)
