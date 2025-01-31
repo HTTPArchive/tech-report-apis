@@ -44,18 +44,17 @@ def list_data(params):
 
   documents = query.stream()
 
-  if onlyname:
-    data = set()
-    for doc in documents:
-      item = doc.to_dict()
-      data.add(item['technology'])
+  data = []
+  seen = set()
+  for doc in documents:
+    item = doc.to_dict()
 
-    data = list(data)
-    data.sort()
-
-  else:
-    data = []
-    for doc in documents:
-      data.append(Presenters.technology(doc.to_dict()))
+    if onlyname:
+      technology = item['technology']
+      if technology not in seen:
+        seen.add(technology)
+        data.append(technology)
+    else:
+      data.append(Presenters.technology(item))
 
   return Result(result=data)
