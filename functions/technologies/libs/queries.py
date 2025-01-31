@@ -48,7 +48,7 @@ def list_data(params):
     data = set()
     for doc in documents:
       item = doc.to_dict()
-      data.append(item['technology'])
+      data.add(item['technology'])
 
     return Result(result=list(data))
 
