@@ -50,11 +50,12 @@ def list_data(params):
       item = doc.to_dict()
       data.add(item['technology'])
 
-    return Result(result=list(data).sort())
+    data = list(data)
+    data.sort()
 
   else:
     data = []
     for doc in documents:
       data.append(Presenters.technology(doc.to_dict()))
 
-    return Result(result=data)
+  return Result(result=data)
