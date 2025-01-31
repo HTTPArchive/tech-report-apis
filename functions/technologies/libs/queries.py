@@ -50,7 +50,7 @@ def list_data(params):
       item = doc.to_dict()
       data.add(item['technology'])
 
-    return Result(result=list(data))
+    return Result(result=list(data).sort())
 
   else:
     data = []
