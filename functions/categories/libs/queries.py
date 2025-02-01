@@ -1,41 +1,34 @@
 import os
 from google.cloud import firestore
-from google.cloud.firestore_v1.base_query import FieldFilter
-from .result import Result 
+from google.cloud.firestore_v1.base_query import FieldFilter, Or
+from .result import Result
 from .utils import convert_to_array
 
-DB = firestore.Client(project=os.environ.get('PROJECT'), database=os.environ.get('DATABASE'))
-TABLE = 'categories'
+DB = firestore.Client(
+    project=os.environ.get("PROJECT"), database=os.environ.get("DATABASE")
+)
 
 def list_data(params):
-  ref = DB.collection(TABLE)
+    ref = DB.collection("categories")
 
-  query = ref
+    query = ref.order_by("category", direction=firestore.Query.ASCENDING)
 
-  data = []
+    if "category" in params:
+        category_array = convert_to_array(params["category"])
+        filter_array = []
+        for category in category_array:
+            filter_array.append(FieldFilter("category", "==", category))
+        query = query.where(filter=Or(filters=filter_array))
 
-  if 'onlyname' in params:
     documents = query.stream()
+    data = []
 
-    for doc in documents:
-      item = doc.to_dict()
-      if 'category' in item:
-        data.append(item['category'])
-
-  else:
-
-    if 'category' in params:
-      category_array = convert_to_array(params['category'])
-
-      for category in category_array:
-        results = query.where(filter=FieldFilter("category", "==", category)).stream()
-        for doc in results:
-          data.append(doc.to_dict())
+    if "onlyname" in params:
+        for doc in documents:
+            data.append(doc.get("category"))
 
     else:
-      documents = query.stream()
+        for doc in documents:
+            data.append(doc.to_dict())
 
-      for doc in documents:
-        data.append(doc.to_dict())
-
-  return Result(result=data)
+    return Result(result=data)

@@ -13,7 +13,7 @@ class Validator():
     #   self.add_error("technology", "missing technology parameter")
 
     return Result(errors=self.errors, result=self.params)
-  
+
   def add_error(self, key, error):
     self.errors.append([key, error])
 
