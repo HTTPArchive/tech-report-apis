@@ -11,7 +11,7 @@ DB = firestore.Client(
 def list_data(params):
     ref = DB.collection("categories")
 
-    query = ref.order_by("category", "asc")
+    query = ref.order_by("category", direction=firestore.Query.ASCENDING)
 
     if "category" in params:
         category_array = convert_to_array(params["category"])
@@ -22,7 +22,7 @@ def list_data(params):
 
     documents = query.stream()
     data = []
-    
+
     if "onlyname" in params:
         for doc in documents:
             data.append(doc.get("category"))

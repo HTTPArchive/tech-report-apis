@@ -14,7 +14,7 @@ DB = firestore.Client(
 def list_data(params):
     ref = DB.collection("technologies")
 
-    query = ref.order_by("technology", 'asc')
+    query = ref.order_by("technology", direction=firestore.Query.ASCENDING)
 
     if "technology" in params:
         arfilters = []
@@ -34,7 +34,7 @@ def list_data(params):
 
     documents = query.stream()
     data = []
-    
+
     if "onlyname" in params and "client" not in params:
         appended_tech = set()
         for doc in documents:
