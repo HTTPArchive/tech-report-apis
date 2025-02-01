@@ -246,7 +246,6 @@ Returns a JSON object with the following schema:
 
 The following parameters can be used to filter the data:
 
-- `client` (optional): A string with the client: `mobile` or `desktop`.
 - `technology` (optional): A comma-separated string representing the technology name(s) or `ALL`.
 - `category` (optional): A comma-separated string representing the category name(s).
 - `onlyname` (optional): No value required. If present, only the technology names will be returned.
@@ -255,7 +254,7 @@ The following parameters can be used to filter the data:
 
 ```bash
 curl --request GET \
-  --url 'https://{{HOST}}/v1/technologies?category=Live%20chat%2C%20blog&technology=Smartsupp&client=mobile'
+  --url 'https://{{HOST}}/v1/technologies?category=Live%20chat%2C%20blog&technology=Smartsupp'
 ```
 
 Returns a JSON object with the following schema:
@@ -266,7 +265,10 @@ Returns a JSON object with the following schema:
         "client": "mobile",
         "similar_technologies": null,
         "description": "Smartsupp is a live chat tool that offers visitor recording feature.",
-        "origins": 25649,
+        "origins": {
+            "desktop": 22178,
+            "mobile": 25649
+        },
         "technology": "Smartsupp",
         "category": "Live chat"
     }
