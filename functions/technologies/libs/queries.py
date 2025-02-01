@@ -48,15 +48,13 @@ def list_data(params):
   if onlyname and 'client' not in params:
     appended_technologies = set()
     for doc in documents:
-      item = doc.to_dict()
-      technology = item['technology']
+      technology = doc.get('technology')
       if technology not in appended_technologies:
         appended_technologies.add(technology)
         data.append(technology)
 
   else:
     for doc in documents:
-      item = doc.to_dict()
-      data.append(Presenters.technology(item))
+      data.append(Presenters.technology(doc.to_dict()))
 
   return Result(result=data)

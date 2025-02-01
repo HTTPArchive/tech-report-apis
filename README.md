@@ -51,8 +51,8 @@ This endpoint can return a full list of categories names or a categories with al
 
 The following parameters can be used to filter the data:
 
-- `category` (`required`): A comma-separated string representing the category name(s).
-- `onlyname` (optional): A string 'true' or 'false'.
+- `category` (optional): A comma-separated string representing the category name(s).
+- `onlyname` (optional): No value required. If present, only the category names will be returned.
 
 #### Response
 
@@ -245,18 +245,16 @@ Returns a JSON object with the following schema:
 
 The following parameters can be used to filter the data:
 
-- `technology` (`required`): A comma-separated string representing the technology name(s).
-- `start` (optional): A string representing the start date in the format `YYYY-MM-DD`.
-- `end` (optional): A string representing the end date in the format `YYYY-MM-DD`.
-- `geo` (optional): A string representing the geographic location.
-- `rank` (optional): An string representing the rank.
+- `client` (optional): A string with the client: `mobile` or `desktop`.
+- `technology` (optional): A comma-separated string representing the technology name(s) or `ALL`.
 - `category` (optional): A comma-separated string representing the category name(s).
+- `onlyname` (optional): No value required. If present, only the technology names will be returned.
 
 #### Response
 
 ```bash
 curl --request GET \
-  --url 'https://{{HOST}}/v1/technologies?start=2022-02-01&end=2022-04-01&category=Live%20chat%2C%20blog&technology=Smartsupp&client=mobile'
+  --url 'https://{{HOST}}/v1/technologies?category=Live%20chat%2C%20blog&technology=Smartsupp&client=mobile'
 ```
 
 Returns a JSON object with the following schema:

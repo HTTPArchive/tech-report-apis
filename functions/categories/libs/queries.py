@@ -1,7 +1,7 @@
 import os
 from google.cloud import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
-from .result import Result 
+from .result import Result
 from .utils import convert_to_array
 
 DB = firestore.Client(project=os.environ.get('PROJECT'), database=os.environ.get('DATABASE'))
