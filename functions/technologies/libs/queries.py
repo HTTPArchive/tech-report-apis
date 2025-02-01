@@ -7,54 +7,44 @@ from .result import Result
 from .utils import convert_to_array
 from .presenters import Presenters
 
-DB = firestore.Client(project=os.environ.get('PROJECT'), database=os.environ.get('DATABASE'))
+DB = firestore.Client(
+    project=os.environ.get("PROJECT"), database=os.environ.get("DATABASE")
+)
 
 def list_data(params):
-  onlyname = False
-  ref = DB.collection('technologies')
+    ref = DB.collection("technologies")
 
-  query = ref
+    query = ref.order_by("technology", 'asc')
 
-  if 'technology' in params:
-    arfilters = []
-    params_array = convert_to_array(params['technology'])
-    for tech in params_array:
-      arfilters.append(FieldFilter('technology', '==', tech))
+    if "technology" in params:
+        arfilters = []
+        params_array = convert_to_array(params["technology"])
+        for tech in params_array:
+            arfilters.append(FieldFilter("technology", "==", tech))
+        query = query.where(filter=Or(filters=arfilters))
 
-    or_filter = Or(filters=arfilters)
+    if "category" in params:
+        params_array = convert_to_array(params["category"])
+        query = query.where(
+            filter=FieldFilter("category_obj", "array_contains_any", params_array)
+        )
 
-    query = query.where(filter=or_filter)
+    if "client" in params:
+        query = query.where(filter=FieldFilter("client", "==", params["client"]))
 
-  if 'category' in params:
-    params_array = convert_to_array(params['category'])
-    query = query.where(filter=FieldFilter('category_obj', 'array_contains_any', params_array))
+    documents = query.stream()
+    data = []
+    
+    if "onlyname" in params and "client" not in params:
+        appended_tech = set()
+        for doc in documents:
+            tech = doc.get("technology")
+            if tech not in appended_tech:
+                appended_tech.add(tech)
+                data.append(tech)
 
-  if 'client' in params:
-    query = query.where(filter=FieldFilter('client', '==', params['client']))
+    else:
+        for doc in documents:
+            data.append(Presenters.technology(doc.to_dict()))
 
-  if 'onlyname' in params:
-    onlyname = True
-
-  if 'sort' not in params:
-    query = query.order_by('technology', direction=firestore.Query.ASCENDING)
-  else:
-    if params['sort'] == 'origins':
-      query = query.order_by('origins', direction=firestore.Query.DESCENDING)
-
-
-  documents = query.stream()
-
-  data = []
-  if onlyname and 'client' not in params:
-    appended_technologies = set()
-    for doc in documents:
-      technology = doc.get('technology')
-      if technology not in appended_technologies:
-        appended_technologies.add(technology)
-        data.append(technology)
-
-  else:
-    for doc in documents:
-      data.append(Presenters.technology(doc.to_dict()))
-
-  return Result(result=data)
+    return Result(result=data)
