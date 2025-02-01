@@ -39,7 +39,7 @@ Returns a JSON object with the following schema:
             "desktop": 11
         }
     },
-  ...
+    ...
 ]
 ```
 
@@ -63,45 +63,46 @@ curl --request GET \
 
 ```json
 [
-  {
-    "description": "Solutions that redirect domains to a different location or page",
-    "technologies": [
-      "Arsys Domain Parking"
-    ],
-    "origins": {
-      "mobile": 14,
-      "desktop": 8
+    {
+        "description": "Systems that automate building, testing, and deploying code",
+        "technologies": [
+            "Jenkins",
+            "TeamCity"
+        ],
+        "origins": {
+            "mobile": 22,
+            "desktop": 35
+        },
+        "category": "CI"
     },
-    "category": "Domain parking"
-  },
-  {
-    "description": "Systems that automate building, testing, and deploying code",
-    "technologies": [
-      "Jenkins",
-      "TeamCity"
-    ],
-    "origins": {
-      "mobile": 22,
-      "desktop": 35
-    },
-    "category": "CI"
-  }
+    {
+        "description": "Solutions that redirect domains to a different location or page",
+        "technologies": [
+          "Cloudflare",
+          "Arsys Domain Parking"
+        ],
+        "origins": {
+            "mobile": 14,
+            "desktop": 8
+        },
+        "category": "Domain parking"
+    }
 ]
 ```
 
 ```bash
 curl --request GET \
-  --url 'https://{{HOST}}/v1/categories?onlyname=true'
+  --url 'https://{{HOST}}/v1/categories?onlyname'
 ```
 
 ```json
 [
-    "Blogs",
-    "LMS",
-    "CI",
-    "Cross border ecommerce",
-    "Cart abandonment",
-    "Domain parking",
+    "A/B Testing",
+    "Accessibility",
+    "Accounting",
+    "Advertising",
+    "Affiliate programs",
+    "Analytics",
   ...
 ]
 
@@ -261,13 +262,34 @@ Returns a JSON object with the following schema:
 
 ```json
 [
-  {
-    "client": "mobile",
-    "similar_technologies": null,
-    "description": "Smartsupp is a live chat tool that offers visitor recording feature.",
-    "origins": 25649,
-    "technology": "Smartsupp",
-    "category": "Live chat"
-  }
+    {
+        "client": "mobile",
+        "similar_technologies": null,
+        "description": "Smartsupp is a live chat tool that offers visitor recording feature.",
+        "origins": 25649,
+        "technology": "Smartsupp",
+        "category": "Live chat"
+    }
 ]
+```
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/technologies?onlyname'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+[
+    "1C-Bitrix",
+    "2B Advice",
+    "33Across",
+    "34SP.com",
+    "4-Tell",
+    "42stores",
+    "51.LA",
+    "5centsCDN",
+    ...
+}
 ```
