@@ -10,7 +10,7 @@ TABLE = 'categories'
 def list_data(params):
   ref = DB.collection(TABLE)
 
-  query = ref
+  query = ref.order_by('category', direction=firestore.Query.ASCENDING)
 
   data = []
 
