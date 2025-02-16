@@ -29,13 +29,10 @@ def list_data(params):
             filter=FieldFilter("category_obj", "array_contains_any", params_array)
         )
 
-    if "client" in params:
-        query = query.where(filter=FieldFilter("client", "==", params["client"]))
-
     documents = query.stream()
     data = []
 
-    if "onlyname" in params and "client" not in params:
+    if "onlyname" in params:
         appended_tech = set()
         for doc in documents:
             tech = doc.get("technology")
