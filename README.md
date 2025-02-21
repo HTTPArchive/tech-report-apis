@@ -261,17 +261,16 @@ Returns a JSON object with the following schema:
 
 ```json
 [
-    {
-        "client": "mobile",
-        "similar_technologies": null,
-        "description": "Smartsupp is a live chat tool that offers visitor recording feature.",
-        "origins": {
-            "desktop": 22178,
-            "mobile": 25649
-        },
-        "technology": "Smartsupp",
-        "category": "Live chat"
+  {
+    "technology": "Smartsupp",
+    "category": "Live chat",
+    "description": "Smartsupp is a live chat tool that offers visitor recording feature.",
+    "icon": "Smartsupp.svg",
+    "origins": {
+      "mobile": 24115,
+      "desktop": 20250
     }
+  }
 ]
 ```
 
