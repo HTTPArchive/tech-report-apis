@@ -157,6 +157,7 @@ module "endpoints" {
   environment                      = "dev"
   source_directory                 = "../../src"
   function_name                    = "tech-report-api"
+  region                           = var.region
   service_account_email            = var.google_service_account_cloud_functions
   service_account_api_gateway      = var.google_service_account_api_gateway
   max_instance_request_concurrency = var.max_instance_request_concurrency

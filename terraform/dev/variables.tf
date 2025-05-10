@@ -25,3 +25,8 @@ variable "max_instance_request_concurrency" {
   type        = number
   default     = 1
 }
+
+variable "region" {
+  default = "us-central1"
+  type    = string
+}
