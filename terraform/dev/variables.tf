@@ -19,3 +19,9 @@ variable "min_instances" {
   type        = number
   default     = 0
 }
+
+variable "max_instance_request_concurrency" {
+  description = "(Optional) The limit on the maximum number of requests that an instance can handle simultaneously. This can be used to control costs when scaling. Defaults to 1."
+  type        = number
+  default     = 1
+}
