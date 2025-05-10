@@ -74,4 +74,4 @@ app.listen(port, () => {
 });
 
 // Export for Cloud Run
-module.exports = app;
+exports.app = app;
