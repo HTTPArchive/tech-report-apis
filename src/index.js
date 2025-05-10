@@ -67,14 +67,5 @@ app.use((err, req, res, next) => {
   }));
 });
 
-// For local development
-if (process.env.ENVIRONMENT === 'dev') {
-  // Start server locally
-  const port = process.env.PORT || 8080;
-  app.listen(port, () => {
-    console.log(`Server listening on port ${port}`);
-  });
-}
-
-// Export for Cloud Run
+// Export the app for Cloud Functions Framework
 exports.app = app;

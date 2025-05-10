@@ -140,7 +140,7 @@ resource "google_api_gateway_gateway" "gateway" {
   display_name = "devApi Gateway"
   labels = {
     owner       = "tech_report_api"
-    environment = "dev"
+    environment = var.environment
   }
   depends_on = [google_api_gateway_api_config.api_config]
   lifecycle {
@@ -165,6 +165,5 @@ module "endpoints" {
   environment_variables = {
     "PROJECT"  = var.project
     "DATABASE" = var.project_database
-    "ENVIRONMENT" = var.environment
   }
 }
