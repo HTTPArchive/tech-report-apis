@@ -29,7 +29,7 @@ resource "google_compute_managed_ssl_certificate" "default" {
   managed {
     domains = ["api.httparchive.org"]
   }
-  
+
 }
 
 resource "google_compute_target_https_proxy" "default" {
@@ -40,7 +40,7 @@ resource "google_compute_target_https_proxy" "default" {
   project          = var.project
   name             = "httparchive-api-gateway-https-proxy"
   url_map          = google_compute_url_map.default[count.index].id
-  ssl_certificates = [google_compute_managed_ssl_certificate.default[count.index].id]  
+  ssl_certificates = [google_compute_managed_ssl_certificate.default[count.index].id]
 }
 
 resource "google_compute_region_network_endpoint_group" "function_neg" {
@@ -57,7 +57,7 @@ resource "google_compute_region_network_endpoint_group" "function_neg" {
     platform = "apigateway.googleapis.com"
     resource = google_api_gateway_gateway.gateway.gateway_id
   }
-  
+
 }
 
 resource "google_compute_backend_service" "backend_neg" {
@@ -70,15 +70,15 @@ resource "google_compute_backend_service" "backend_neg" {
   load_balancing_scheme = "EXTERNAL_MANAGED"
   protocol              = "HTTP"
   backend {
-      group = google_compute_region_network_endpoint_group.function_neg[count.index].self_link
-    }
-  
+    group = google_compute_region_network_endpoint_group.function_neg[count.index].self_link
+  }
+
 }
 
 resource "google_compute_url_map" "default" {
   #count = var.environment == "prod" ? 1 : 0
   count = 0
-  
+
   provider        = google-beta
   project         = var.project
   name            = "httparchive-api-gateway-url-map"

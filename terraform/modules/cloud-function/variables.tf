@@ -3,7 +3,7 @@ variable "secrets" {
 }
 variable "region" {
   default = "us-east1"
-  type = string
+  type    = string
 }
 variable "environment" {
   description = "The 'Environment' that is being created/deployed. Applied as a suffix to many resources."

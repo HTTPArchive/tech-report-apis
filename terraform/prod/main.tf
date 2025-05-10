@@ -27,7 +27,7 @@ resource "google_api_gateway_api_config" "api_config" {
   display_name         = "The prod Config"
   openapi_documents {
     document {
-      path     = "spec.yaml"
+      path = "spec.yaml"
       contents = base64encode(<<-EOF
 swagger: "2.0"
 info:
@@ -166,122 +166,122 @@ resource "google_api_gateway_gateway" "gateway" {
 }
 
 module "cwvtech" {
-  source = "./../modules/cloud-function"
-  entry_point = "dispatcher"
-  project = "httparchive"
-  environment = "prod"
-  source_directory = "../../functions/cwvtech"
-  function_name = "cwvtech"
-  service_account_email = var.google_service_account_cloud_functions
+  source                      = "./../modules/cloud-function"
+  entry_point                 = "dispatcher"
+  project                     = "httparchive"
+  environment                 = "prod"
+  source_directory            = "../../functions/cwvtech"
+  function_name               = "cwvtech"
+  service_account_email       = var.google_service_account_cloud_functions
   service_account_api_gateway = var.google_service_account_api_gateway
   environment_variables = {
-    "PROJECT" = "httparchive",
+    "PROJECT"  = "httparchive",
     "DATABASE" = var.project_database
   }
 }
 
 module "lighthouse" {
-  source = "./../modules/cloud-function"
-  entry_point = "dispatcher"
-  project = "httparchive"
-  environment = "prod"
-  source_directory = "../../functions/lighthouse"
-  function_name = "lighthouse"
-  service_account_email = var.google_service_account_cloud_functions
+  source                      = "./../modules/cloud-function"
+  entry_point                 = "dispatcher"
+  project                     = "httparchive"
+  environment                 = "prod"
+  source_directory            = "../../functions/lighthouse"
+  function_name               = "lighthouse"
+  service_account_email       = var.google_service_account_cloud_functions
   service_account_api_gateway = var.google_service_account_api_gateway
   environment_variables = {
-    "PROJECT" = "httparchive",
+    "PROJECT"  = "httparchive",
     "DATABASE" = var.project_database
   }
 }
 
 module "adoption" {
-  source = "./../modules/cloud-function"
-  entry_point = "dispatcher"
-  project = "httparchive"
-  environment = "prod"
-  source_directory = "../../functions/adoption"
-  function_name = "adoption"
-  service_account_email = var.google_service_account_cloud_functions
+  source                      = "./../modules/cloud-function"
+  entry_point                 = "dispatcher"
+  project                     = "httparchive"
+  environment                 = "prod"
+  source_directory            = "../../functions/adoption"
+  function_name               = "adoption"
+  service_account_email       = var.google_service_account_cloud_functions
   service_account_api_gateway = var.google_service_account_api_gateway
   environment_variables = {
-    "PROJECT" = "httparchive",
+    "PROJECT"  = "httparchive",
     "DATABASE" = var.project_database
   }
 }
 
 module "page-weight" {
-  source = "./../modules/cloud-function"
-  entry_point = "dispatcher"
-  project = "httparchive"
-  environment = "prod"
-  source_directory = "../../functions/page-weight"
-  function_name = "page-weight"
-  service_account_email = var.google_service_account_cloud_functions
+  source                      = "./../modules/cloud-function"
+  entry_point                 = "dispatcher"
+  project                     = "httparchive"
+  environment                 = "prod"
+  source_directory            = "../../functions/page-weight"
+  function_name               = "page-weight"
+  service_account_email       = var.google_service_account_cloud_functions
   service_account_api_gateway = var.google_service_account_api_gateway
   environment_variables = {
-    "PROJECT" = "httparchive",
+    "PROJECT"  = "httparchive",
     "DATABASE" = var.project_database
   }
 }
 
 module "categories" {
-  source = "./../modules/cloud-function"
-  entry_point = "dispatcher"
-  project = "httparchive"
-  environment = "prod"
-  source_directory = "../../functions/categories"
-  function_name = "categories"
-  service_account_email = var.google_service_account_cloud_functions
+  source                      = "./../modules/cloud-function"
+  entry_point                 = "dispatcher"
+  project                     = "httparchive"
+  environment                 = "prod"
+  source_directory            = "../../functions/categories"
+  function_name               = "categories"
+  service_account_email       = var.google_service_account_cloud_functions
   service_account_api_gateway = var.google_service_account_api_gateway
   environment_variables = {
-    "PROJECT" = "httparchive",
+    "PROJECT"  = "httparchive",
     "DATABASE" = var.project_database
   }
 }
 
 module "technologies" {
-  source = "./../modules/cloud-function"
-  entry_point = "dispatcher"
-  project = "httparchive"
-  environment = "prod"
-  source_directory = "../../functions/technologies"
-  function_name = "technologies"
-  service_account_email = var.google_service_account_cloud_functions
+  source                      = "./../modules/cloud-function"
+  entry_point                 = "dispatcher"
+  project                     = "httparchive"
+  environment                 = "prod"
+  source_directory            = "../../functions/technologies"
+  function_name               = "technologies"
+  service_account_email       = var.google_service_account_cloud_functions
   service_account_api_gateway = var.google_service_account_api_gateway
-  min_instances = var.min_instances
+  min_instances               = var.min_instances
   environment_variables = {
-    "PROJECT" = "httparchive",
+    "PROJECT"  = "httparchive",
     "DATABASE" = var.project_database
   }
 }
 
 module "ranks" {
-  source = "./../modules/cloud-function"
-  entry_point = "dispatcher"
-  project = "httparchive"
-  environment = "prod"
-  source_directory = "../../functions/ranks"
-  function_name = "ranks"
-  service_account_email = var.google_service_account_cloud_functions
+  source                      = "./../modules/cloud-function"
+  entry_point                 = "dispatcher"
+  project                     = "httparchive"
+  environment                 = "prod"
+  source_directory            = "../../functions/ranks"
+  function_name               = "ranks"
+  service_account_email       = var.google_service_account_cloud_functions
   service_account_api_gateway = var.google_service_account_api_gateway
   environment_variables = {
-    "PROJECT" = "httparchive",
+    "PROJECT"  = "httparchive",
     "DATABASE" = var.project_database
   }
 }
 
 module "geos" {
-  source = "./../modules/cloud-function"
-  entry_point = "dispatcher"
-  project = "httparchive"
-  environment = "prod"
-  source_directory = "../../functions/geos"
-  function_name = "geos"
-  service_account_email = var.google_service_account_cloud_functions
+  source                      = "./../modules/cloud-function"
+  entry_point                 = "dispatcher"
+  project                     = "httparchive"
+  environment                 = "prod"
+  source_directory            = "../../functions/geos"
+  function_name               = "geos"
+  service_account_email       = var.google_service_account_cloud_functions
   service_account_api_gateway = var.google_service_account_api_gateway
   environment_variables = {
-    "PROJECT" = "httparchive",
+    "PROJECT"  = "httparchive",
     "DATABASE" = var.project_database
   }
 }
