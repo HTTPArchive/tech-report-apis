@@ -1,5 +1,5 @@
 locals {
-  bucketName    = "tf-cloudfunctions-backingapi-20230314"
+  bucketName = "tf-cloudfunctions-backingapi-20230314"
 }
 data "archive_file" "source" {
   type        = "zip"
@@ -13,7 +13,7 @@ resource "google_storage_bucket_object" "zip" {
 }
 
 resource "google_cloudfunctions2_function" "function" {
-  name = "${var.function_name}-${var.environment}"
+  name     = "${var.function_name}-${var.environment}"
   location = var.region
 
   build_config {
@@ -35,11 +35,11 @@ resource "google_cloudfunctions2_function" "function" {
 
     environment_variables = var.environment_variables
 
-    min_instance_count         = var.min_instances
-    max_instance_count         = var.max_instances
-    timeout_seconds            = var.timeout
+    min_instance_count               = var.min_instances
+    max_instance_count               = var.max_instances
+    timeout_seconds                  = var.timeout
     max_instance_request_concurrency = var.max_instance_request_concurrency
-    service_account_email      = var.service_account_email
+    service_account_email            = var.service_account_email
   }
 
   labels = {
@@ -79,8 +79,8 @@ resource "google_cloudfunctions2_function_iam_member" "api_gw_variable_service_a
   cloud_function = google_cloudfunctions2_function.function.name
   role           = "roles/cloudfunctions.invoker"
   #member         = "serviceAccount:api-gateway@httparchive.iam.gserviceaccount.com"
-  member         = "serviceAccount:${var.service_account_api_gateway}"
-  depends_on     = [google_cloudfunctions2_function.function]
+  member     = "serviceAccount:${var.service_account_api_gateway}"
+  depends_on = [google_cloudfunctions2_function.function]
 }
 // TODO: Conditionally apply if the function needs to be invoked by API Gateway
 resource "google_cloud_run_v2_service_iam_member" "api_gw_variable_service_account_run_invoker" {

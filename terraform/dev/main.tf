@@ -151,14 +151,16 @@ resource "google_api_gateway_gateway" "gateway" {
 }
 
 module "endpoints" {
-  source                      = "./../modules/run-service"
-  entry_point                 = "app"
-  project                     = "httparchive"
-  environment                 = "dev"
-  source_directory            = "../../src"
-  function_name               = "tech-report-api"
-  service_account_email       = var.google_service_account_cloud_functions
-  service_account_api_gateway = var.google_service_account_api_gateway
+  source                           = "./../modules/run-service"
+  entry_point                      = "app"
+  project                          = "httparchive"
+  environment                      = "dev"
+  source_directory                 = "../../src"
+  function_name                    = "tech-report-api"
+  service_account_email            = var.google_service_account_cloud_functions
+  service_account_api_gateway      = var.google_service_account_api_gateway
+  max_instance_request_concurrency = var.max_instance_request_concurrency
+  min_instances                    = var.min_instances
   environment_variables = {
     "PROJECT"  = "httparchive",
     "DATABASE" = var.project_database
