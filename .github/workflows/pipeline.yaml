@@ -44,20 +44,20 @@ jobs:
           credentials_json: ${{ env.PIPELINE_SA_KEY }}
 
       - uses: hashicorp/setup-terraform@v3
-      
+
       - name: Terraform fmt
         id: fmt
         run: terraform fmt -check
         continue-on-error: true
-      
+
       - name: Terraform Init
         id: init
         run: terraform init
-      
+
       - name: Terraform Validate
         id: validate
         run: terraform validate -no-color
-      
+
       - name: Terraform Plan
         id: plan
         run: |
@@ -77,7 +77,7 @@ jobs:
                           -var="google_service_account_api_gateway=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_API_GATEWAY }}" \
                           -var="project_database=${{ env.PIPELINE_PROJECT_DATABASE_DEV }}" \
                           -auto-approve
-        
+
   deploy_production:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -94,20 +94,20 @@ jobs:
           credentials_json: ${{ env.PIPELINE_SA_KEY }}
 
       - uses: hashicorp/setup-terraform@v3
-      
+
       - name: Terraform fmt
         id: fmt
         run: terraform fmt -check
         continue-on-error: true
-      
+
       - name: Terraform Init
         id: init
         run: terraform init
-      
+
       - name: Terraform Validate
         id: validate
         run: terraform validate -no-color
-      
+
       - name: Terraform Plan
         id: plan
         run: |
@@ -127,5 +127,4 @@ jobs:
                           -var="google_service_account_api_gateway=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_API_GATEWAY }}" \
                           -var="project_database=${{ env.PIPELINE_PROJECT_DATABASE_PROD }}" \
                           -auto-approve
-                                
-                        
+

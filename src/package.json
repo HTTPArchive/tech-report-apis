@@ -1,0 +1,42 @@
+{
+  "name": "tech-report-api",
+  "version": "1.0.0",
+  "description": "API for HTTP Archive technology reports",
+  "main": "index.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@google-cloud/firestore": "7.3.0",
+    "cors": "2.8.5",
+    "express": "4.21.2"
+  },
+  "devDependencies": {
+    "jest": "29.7.0",
+    "nodemon": "3.0.1"
+  },
+  "jest": {
+    "preset": "jest",
+    "testEnvironment": "node",
+    "verbose": true,
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "src /**/*.js",
+      "!index.js"
+    ],
+    "coverageDirectory": "coverage",
+    "coverageReporters": [
+      "text",
+      "lcov"
+    ],
+    "testMatch": [
+      "**/__tests__ /**/*.js",
+      "**/?(*.)+(spec|test).js"
+    ]
+  }
+}
