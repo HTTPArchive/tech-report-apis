@@ -17,7 +17,7 @@ resource "google_cloudfunctions2_function" "function" {
   location = var.region
 
   build_config {
-    runtime     = "nodejs24"
+    runtime     = "nodejs22"
     entry_point = var.entry_point
 
     source {
