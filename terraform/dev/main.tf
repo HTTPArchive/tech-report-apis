@@ -45,7 +45,7 @@ paths:
       summary: categories
       operationId: getCategories
       x-google-backend:
-        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev
+        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev/categories
         deadline: 60
       responses:
         200:
@@ -55,7 +55,7 @@ paths:
       summary: adoption
       operationId: getadoptionReports
       x-google-backend:
-        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev
+        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev/adoption
         deadline: 60
       responses:
         200:
@@ -65,7 +65,7 @@ paths:
       summary: pageWeight
       operationId: getpageWeight
       x-google-backend:
-        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev
+        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev/page-weight
         deadline: 60
       responses:
         200:
@@ -75,7 +75,7 @@ paths:
       summary: lighthouse
       operationId: getLighthouseReports
       x-google-backend:
-        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev
+        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev/lighthouse
         deadline: 60
       responses:
         200:
@@ -85,7 +85,7 @@ paths:
       summary: cwv
       operationId: getCwv
       x-google-backend:
-        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev
+        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev/cwv
         deadline: 60
       responses:
         200:
@@ -95,7 +95,7 @@ paths:
       summary: ranks
       operationId: getRanks
       x-google-backend:
-        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev
+        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev/ranks
         deadline: 60
       responses:
         200:
@@ -105,7 +105,7 @@ paths:
       summary: geos
       operationId: getGeos
       x-google-backend:
-        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev
+        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev/geos
         deadline: 60
       responses:
         200:
@@ -115,7 +115,7 @@ paths:
       summary: technologies
       operationId: getTechnologies
       x-google-backend:
-        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev
+        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev/technologies
         deadline: 60
       responses:
         200:
