@@ -30,3 +30,15 @@ variable "region" {
   default = "us-central1"
   type    = string
 }
+
+variable "environment" {
+  description = "The environment name"
+  type        = string
+  default     = "dev"
+}
+
+variable "project" {
+  description = "The project name"
+  type        = string
+  default     = "httparchive"
+}

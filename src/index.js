@@ -67,11 +67,14 @@ app.use((err, req, res, next) => {
   }));
 });
 
-// Start server
-const port = process.env.PORT || 8080;
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
-});
+// For local development
+if (process.env.ENVIRONMENT === 'dev') {
+  // Start server locally
+  const port = process.env.PORT || 8080;
+  app.listen(port, () => {
+    console.log(`Server listening on port ${port}`);
+  });
+}
 
 // Export for Cloud Run
 exports.app = app;

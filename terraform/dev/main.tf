@@ -154,7 +154,7 @@ module "endpoints" {
   source                           = "./../modules/run-service"
   entry_point                      = "app"
   project                          = "httparchive"
-  environment                      = "dev"
+  environment                      = var.environment
   source_directory                 = "../../src"
   function_name                    = "tech-report-api"
   region                           = var.region
@@ -163,7 +163,8 @@ module "endpoints" {
   max_instance_request_concurrency = var.max_instance_request_concurrency
   min_instances                    = var.min_instances
   environment_variables = {
-    "PROJECT"  = "httparchive",
+    "PROJECT"  = var.project
     "DATABASE" = var.project_database
+    "ENVIRONMENT" = var.environment
   }
 }
