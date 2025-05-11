@@ -54,7 +54,7 @@ variable "service_account_api_gateway" {
   description = "API Gateway service account who can invoke this function. This is required!"
 }
 variable "max_instances" {
-  default     = 5
+  default     = 1
   type        = number
   description = "(Optional) The limit on the maximum number of function instances that may coexist at a given time."
 }
@@ -66,7 +66,7 @@ variable "min_instances" {
 variable "max_instance_request_concurrency" {
   description = "(Optional) The limit on the maximum number of requests that an instance can handle simultaneously. This can be used to control costs when scaling. Defaults to 1."
   type        = number
-  default     = 5
+  default     = 1
 }
 variable "environment_variables" {
   description = "environment_variables"

@@ -140,8 +140,6 @@ module "endpoints" {
   region                           = var.region
   service_account_email            = var.google_service_account_cloud_functions
   service_account_api_gateway      = var.google_service_account_api_gateway
-  max_instance_request_concurrency = var.max_instance_request_concurrency
-  min_instances                    = var.min_instances
   environment_variables = {
     "PROJECT"  = var.project
     "DATABASE" = var.project_database

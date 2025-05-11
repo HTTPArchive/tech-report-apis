@@ -3,10 +3,7 @@ name: Tech Report API Pipeline
 on: [push]
 
 env:
-  PIPELINE_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   PIPELINE_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-  PIPELINE_PROJECT_DATABASE_DEV: ${{ secrets.GCP_PROJECT_DATABASE_DEV }}
-  PIPELINE_PROJECT_DATABASE_PROD: ${{ secrets.GCP_PROJECT_DATABASE_PROD }}
   PIPELINE_GOOGLE_SERVICE_ACCOUNT_CLOUD_FUNCTIONS: ${{ secrets.GCP_SERVICE_ACCOUNT_CLOUD_FUNCTIONS }}
   PIPELINE_GOOGLE_SERVICE_ACCOUNT_API_GATEWAY: ${{ secrets.GCP_SERVICE_ACCOUNT_API_GATEWAY }}
 
@@ -40,7 +37,7 @@ jobs:
       - name: Google Cloud Auth
         uses: 'google-github-actions/auth@v2'
         with:
-          project_id: ${{ env.PIPELINE_PROJECT_ID }}
+          project_id: 'httparchive'
           credentials_json: ${{ env.PIPELINE_SA_KEY }}
 
       - uses: hashicorp/setup-terraform@v3
@@ -62,8 +59,7 @@ jobs:
         id: plan
         run: |
           terraform plan -no-color -var="google_service_account_cloud_functions=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_CLOUD_FUNCTIONS }}" \
-                                   -var="google_service_account_api_gateway=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_API_GATEWAY }}" \
-                                   -var="project_database=${{ env.PIPELINE_PROJECT_DATABASE_DEV }}"
+                                   -var="google_service_account_api_gateway=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_API_GATEWAY }}"
         continue-on-error: true
 
       - name: Terraform Plan status
@@ -75,7 +71,6 @@ jobs:
         run: |
           terraform apply -var="google_service_account_cloud_functions=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_CLOUD_FUNCTIONS }}" \
                           -var="google_service_account_api_gateway=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_API_GATEWAY }}" \
-                          -var="project_database=${{ env.PIPELINE_PROJECT_DATABASE_DEV }}" \
                           -auto-approve
 
   deploy_production:
@@ -90,7 +85,7 @@ jobs:
       - name: Google Cloud Auth
         uses: 'google-github-actions/auth@v2'
         with:
-          project_id: ${{ env.PIPELINE_PROJECT_ID }}
+          project_id: 'httparchive'
           credentials_json: ${{ env.PIPELINE_SA_KEY }}
 
       - uses: hashicorp/setup-terraform@v3
@@ -112,8 +107,7 @@ jobs:
         id: plan
         run: |
           terraform plan -no-color -var="google_service_account_cloud_functions=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_CLOUD_FUNCTIONS }}" \
-                                    -var="google_service_account_api_gateway=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_API_GATEWAY }}" \
-                                    -var="project_database=${{ env.PIPELINE_PROJECT_DATABASE_PROD }}"
+                                    -var="google_service_account_api_gateway=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_API_GATEWAY }}"
         continue-on-error: true
 
       - name: Terraform Plan status
@@ -125,6 +119,5 @@ jobs:
         run: |
           terraform apply -var="google_service_account_cloud_functions=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_CLOUD_FUNCTIONS }}" \
                           -var="google_service_account_api_gateway=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_API_GATEWAY }}" \
-                          -var="project_database=${{ env.PIPELINE_PROJECT_DATABASE_PROD }}" \
                           -auto-approve
 
