@@ -1,15 +1,14 @@
+terraform {
+  backend "gcs" {
+    bucket = "tf-state-backingapi-20230314"
+    prefix = "dev"
+  }
+}
 
 provider "google" {
   project         = var.project
   region          = var.region
   request_timeout = "60m"
-}
-
-terraform {
-  backend "gcs" {
-    bucket = "tf-state-backingapi-20230314"
-    prefix = var.environment
-  }
 }
 
 resource "google_api_gateway_api" "api" {
