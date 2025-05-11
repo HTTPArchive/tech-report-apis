@@ -45,14 +45,14 @@ app.use((req, res, next) => {
 });
 
 // Define routes
-app.use('/technologies', technologiesRoutes);
-app.use('/categories', categoriesRoutes);
-app.use('/adoption', adoptionRoutes);
-app.use('/cwv', cwvtechRoutes);
-app.use('/lighthouse', lighthouseRoutes);
-app.use('/page-weight', pageWeightRoutes);
-app.use('/ranks', ranksRoutes);
-app.use('/geos', geosRoutes);
+app.use('/v1/technologies', technologiesRoutes);
+app.use('/v1/categories', categoriesRoutes);
+app.use('/v1/adoption', adoptionRoutes);
+app.use('/v1/cwv', cwvtechRoutes);
+app.use('/v1/lighthouse', lighthouseRoutes);
+app.use('/v1/page-weight', pageWeightRoutes);
+app.use('/v1/ranks', ranksRoutes);
+app.use('/v1/geos', geosRoutes);
 
 // Health check endpoint
 app.get('/', (req, res) => {

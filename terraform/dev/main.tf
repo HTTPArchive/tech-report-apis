@@ -44,7 +44,7 @@ x-google-backend:
   path_translation: APPEND_PATH_TO_ADDRESS
   protocol: h2
 paths:
-  /categories:
+  /v1/categories:
     get:
       summary: categories
       operationId: getCategories
