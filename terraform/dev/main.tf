@@ -1,14 +1,14 @@
 
 provider "google" {
-  project         = "httparchive"
-  region          = "us-central1"
+  project         = var.project
+  region          = var.region
   request_timeout = "60m"
 }
 
 terraform {
   backend "gcs" {
     bucket = "tf-state-backingapi-20230314"
-    prefix = "dev"
+    prefix = var.environment
   }
 }
 
@@ -16,7 +16,7 @@ resource "google_api_gateway_api" "api" {
   provider     = google-beta
   api_id       = "api-gw-dev"
   display_name = "The dev API Gateway"
-  project      = "httparchive"
+  project      = var.project
 }
 
 # A Configuration, consisting of an OpenAPI specification
@@ -24,7 +24,7 @@ resource "google_api_gateway_api_config" "api_config" {
   provider             = google-beta
   api                  = google_api_gateway_api.api.api_id
   api_config_id_prefix = "api"
-  project              = "httparchive"
+  project              = var.project
   display_name         = "The dev Config"
   openapi_documents {
     document {
@@ -39,14 +39,16 @@ schemes:
   - https
 produces:
   - application/json
+x-google-backend:
+  address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev
+  deadline: 60
+  path_translation: APPEND_PATH_TO_ADDRESS
+  protocol: h2
 paths:
-  /v1/categories:
+  /categories:
     get:
       summary: categories
       operationId: getCategories
-      x-google-backend:
-        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev/categories
-        deadline: 60
       responses:
         200:
           description: String
@@ -54,9 +56,6 @@ paths:
     get:
       summary: adoption
       operationId: getadoptionReports
-      x-google-backend:
-        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev/adoption
-        deadline: 60
       responses:
         200:
           description: String
@@ -64,9 +63,6 @@ paths:
     get:
       summary: pageWeight
       operationId: getpageWeight
-      x-google-backend:
-        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev/page-weight
-        deadline: 60
       responses:
         200:
           description: String
@@ -74,9 +70,6 @@ paths:
     get:
       summary: lighthouse
       operationId: getLighthouseReports
-      x-google-backend:
-        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev/lighthouse
-        deadline: 60
       responses:
         200:
           description: String
@@ -84,9 +77,6 @@ paths:
     get:
       summary: cwv
       operationId: getCwv
-      x-google-backend:
-        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev/cwv
-        deadline: 60
       responses:
         200:
           description: String
@@ -94,9 +84,6 @@ paths:
     get:
       summary: ranks
       operationId: getRanks
-      x-google-backend:
-        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev/ranks
-        deadline: 60
       responses:
         200:
           description: String
@@ -104,9 +91,6 @@ paths:
     get:
       summary: geos
       operationId: getGeos
-      x-google-backend:
-        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev/geos
-        deadline: 60
       responses:
         200:
           description: String
@@ -114,9 +98,6 @@ paths:
     get:
       summary: technologies
       operationId: getTechnologies
-      x-google-backend:
-        address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev/technologies
-        deadline: 60
       responses:
         200:
           description: String
@@ -133,8 +114,8 @@ EOF
 # The actual API Gateway
 resource "google_api_gateway_gateway" "gateway" {
   provider     = google-beta
-  project      = "httparchive"
-  region       = "us-central1"
+  project      = var.project
+  region       = var.region
   api_config   = google_api_gateway_api_config.api_config.id
   gateway_id   = "dev-gw"
   display_name = "devApi Gateway"
@@ -153,7 +134,7 @@ resource "google_api_gateway_gateway" "gateway" {
 module "endpoints" {
   source                           = "./../modules/run-service"
   entry_point                      = "app"
-  project                          = "httparchive"
+  project                          = var.project
   environment                      = var.environment
   source_directory                 = "../../src"
   function_name                    = "tech-report-api"
