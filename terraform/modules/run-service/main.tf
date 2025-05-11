@@ -31,6 +31,7 @@ resource "google_cloudfunctions2_function" "function" {
   service_config {
     all_traffic_on_latest_revision = true
     available_memory               = var.available_memory_mb
+    available_cpu                  = var.available_cpu
     ingress_settings               = var.ingress_settings
 
     environment_variables = var.environment_variables
