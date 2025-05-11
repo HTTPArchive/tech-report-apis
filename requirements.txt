@@ -1,5 +1,0 @@
-functions-framework
-google-cloud-firestore
-google-cloud-error-reporting
-mock-firestore
-pytest

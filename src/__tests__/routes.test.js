@@ -1,8 +1,8 @@
 const request = require('supertest');
-const app = require('../src/src/index');
+const { app } = require('../index');
 
 // Mock Firestore
-jest.mock('../src/utils/db', () => {
+jest.mock('../utils/db', () => {
   return {
     collection: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
@@ -45,25 +45,23 @@ describe('API Routes', () => {
     });
   });
 
-  describe('GET /technologies', () => {
+  describe('GET /v1/technologies', () => {
     it('should return technologies', async () => {
-      const res = await request(app).get('/technologies');
+      const res = await request(app).get('/v1/technologies');
       expect(res.statusCode).toEqual(200);
-      expect(res.body).toHaveProperty('success', true);
-      expect(res.body).toHaveProperty('result');
-      expect(Array.isArray(res.body.result)).toBe(true);
+      expect(Array.isArray(res.body)).toBe(true);
     });
 
     it('should filter technologies by name', async () => {
-      const res = await request(app).get('/technologies?technology=Test');
+      const res = await request(app).get('/v1/technologies?technology=Test');
       expect(res.statusCode).toEqual(200);
-      expect(res.body).toHaveProperty('success', true);
+      expect(Array.isArray(res.body)).toBe(true);
     });
 
     it('should return only names when onlyname parameter is provided', async () => {
-      const res = await request(app).get('/technologies?onlyname=true');
+      const res = await request(app).get('/v1/technologies?onlyname=true');
       expect(res.statusCode).toEqual(200);
-      expect(res.body).toHaveProperty('success', true);
+      expect(Array.isArray(res.body)).toBe(true);
     });
   });
 

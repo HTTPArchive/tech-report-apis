@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const { Firestore } = require('@google-cloud/firestore');
 
 // Import routes
 const technologiesRoutes = require('./routes/technologies');
@@ -11,12 +10,6 @@ const lighthouseRoutes = require('./routes/lighthouse');
 const pageWeightRoutes = require('./routes/pageWeight');
 const ranksRoutes = require('./routes/ranks');
 const geosRoutes = require('./routes/geos');
-
-// Initialize Firebase
-const firestore = new Firestore({
-  projectId: process.env.PROJECT,
-  databaseId: process.env.DATABASE
-});
 
 // Create Express app
 const app = express();
