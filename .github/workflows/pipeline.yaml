@@ -13,6 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: |
+          cd src
           npm ci
           npm run test
 
