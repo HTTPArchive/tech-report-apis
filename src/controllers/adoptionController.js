@@ -25,14 +25,16 @@ const listAdoptionData = async (req, res) => {
 
     // Technology is required
     if (!params.technology) {
-      return res.status(400).send(createErrorResponse([
+      res.statusCode = 400;
+      res.end(JSON.stringify(createErrorResponse([
         ['technology', 'missing technology parameter']
-      ]));
+      ])));
+      return;
     }
 
     // Convert technology parameter to array
     const techArray = convertToArray(params.technology);
-    
+
     // Handle 'latest' special value for start parameter
     if (params.start && params.start === 'latest') {
       params.start = await getLatestDate();
@@ -46,19 +48,19 @@ const listAdoptionData = async (req, res) => {
       if (params.start) {
         query = query.where('date', '>=', params.start);
       }
-      
+
       if (params.end) {
         query = query.where('date', '<=', params.end);
       }
-      
+
       if (params.geo) {
         query = query.where('geo', '==', params.geo);
       }
-      
+
       if (params.rank) {
         query = query.where('rank', '==', params.rank);
       }
-      
+
       // Always filter by technology
       query = query.where('technology', '==', technology);
 
@@ -70,13 +72,15 @@ const listAdoptionData = async (req, res) => {
     }
 
     // Send response
-    res.status(200).send(createSuccessResponse(data));
+    res.statusCode = 200;
+    res.end(JSON.stringify(createSuccessResponse(data)));
   } catch (error) {
     console.error('Error fetching adoption data:', error);
-    res.status(400).send(createErrorResponse([['query', error.message]]));
+    res.statusCode = 400;
+    res.end(JSON.stringify(createErrorResponse([['query', error.message]])));
   }
 };
 
 module.exports = {
-  listAdoptionData
+  listAdoption: listAdoptionData
 };

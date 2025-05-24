@@ -7,13 +7,13 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "start": "functions-framework --target=app",
+    "start": "node index.js",
+    "start:functions": "functions-framework --target=api",
+    "dev": "nodemon index.js",
     "test": "jest"
   },
   "dependencies": {
-    "@google-cloud/firestore": "7.3.0",
-    "cors": "2.8.5",
-    "express": "4.21.2"
+    "@google-cloud/firestore": "7.3.0"
   },
   "devDependencies": {
     "@google-cloud/functions-framework": "^4.0.0",

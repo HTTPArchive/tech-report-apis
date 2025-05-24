@@ -25,26 +25,32 @@ const listLighthouseData = async (req, res) => {
 
     // Required parameters check
     if (!params.technology) {
-      return res.status(400).send(createErrorResponse([
+      res.statusCode = 400;
+      res.end(JSON.stringify(createErrorResponse([
         ['technology', 'missing technology parameter']
-      ]));
+      ])));
+      return;
     }
 
     if (!params.geo) {
-      return res.status(400).send(createErrorResponse([
+      res.statusCode = 400;
+      res.end(JSON.stringify(createErrorResponse([
         ['geo', 'missing geo parameter']
-      ]));
+      ])));
+      return;
     }
 
     if (!params.rank) {
-      return res.status(400).send(createErrorResponse([
+      res.statusCode = 400;
+      res.end(JSON.stringify(createErrorResponse([
         ['rank', 'missing rank parameter']
-      ]));
+      ])));
+      return;
     }
 
     // Convert technology parameter to array
     const techArray = convertToArray(params.technology);
-    
+
     // Handle 'latest' special value for start parameter
     if (params.start && params.start === 'latest') {
       params.start = await getLatestDate();
@@ -58,11 +64,11 @@ const listLighthouseData = async (req, res) => {
       if (params.start) {
         query = query.where('date', '>=', params.start);
       }
-      
+
       if (params.end) {
         query = query.where('date', '<=', params.end);
       }
-      
+
       // Always filter by required parameters
       query = query.where('geo', '==', params.geo);
       query = query.where('rank', '==', params.rank);
@@ -76,13 +82,15 @@ const listLighthouseData = async (req, res) => {
     }
 
     // Send response
-    res.status(200).send(createSuccessResponse(data));
+    res.statusCode = 200;
+    res.end(JSON.stringify(createSuccessResponse(data)));
   } catch (error) {
     console.error('Error fetching Lighthouse data:', error);
-    res.status(400).send(createErrorResponse([['query', error.message]]));
+    res.statusCode = 400;
+    res.end(JSON.stringify(createErrorResponse([['query', error.message]])));
   }
 };
 
 module.exports = {
-  listLighthouseData
+  listLighthouse: listLighthouseData
 };

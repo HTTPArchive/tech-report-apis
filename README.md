@@ -1,60 +1,132 @@
-# tech-report-apis
+# Technology Reports API (Node.js)
 
-APIs for the HTTP Archive Technology Report
+This is a unified Google Cloud Run function that provides technology metrics and information via various endpoints.
 
-## API
+## Setup
 
-## Endpoints
+### Prerequisites
 
-### `GET /adoption`
+- Node.js 18+
+- npm
+- Google Cloud account with necessary permissions
+- Set environment variables:
+
+    ```bash
+    export PROJECT=httparchive
+    export DATABASE=tech-report-apis-prod
+    ```
+
+### Local Development
+
+  ```bash
+  npm install
+  npm start:functions
+  ```
+
+The API will be available at <http://localhost:8080>
+
+### Google Cloud Functions Mode
+
+  ```bash
+  npm install
+  npm run start:functions
+  ```
+
+The function will run on `http://localhost:8080`
+
+## Deployment
+
+### Deploy to Google Cloud Run Function
+
+```bash
+# Deploy to Google Cloud Functions
+gcloud functions deploy tech-report-api \
+  --runtime nodejs22 \
+  --trigger-http \
+  --allow-unauthenticated \
+  --entry-point api \
+  --source .
+```
+
+## API Endpoints
+
+## Features
+
+- **ETag Support**: All endpoints include ETag headers for efficient caching
+- **CORS Enabled**: Cross-origin requests are supported
+- **Cache Headers**: 6-hour cache control for static data
+- **Health Check**: GET `/` returns health status
+- **RESTful API**: All endpoints follow REST conventions
+
+### `GET /`
+
+Health check
+
+### `GET /technologies`
+
+Lists available technologies with optional filtering.
 
 #### Parameters
 
-The following parameters can be used to filter the data:
+- `technology` (optional): Filter by technology name(s) - comma-separated list
+- `category` (optional): Filter by category - comma-separated list
+- `onlyname` (optional): If present, returns only technology names
 
-- `geo` (`required`): A string representing the geographic location.
-- `technology` (`required`): A comma-separated string representing the technology name(s).
-- `rank` (`required`): An string representing the rank.
-- `start` (optional): A string representing the start date in the format `YYYY-MM-DD`.
-- `end` (optional): A string representing the end date in the format `YYYY-MM-DD`.
-
-#### Response
+#### Example Request & Response
 
 ```bash
 curl --request GET \
-  --url 'https://{{HOST}}/v1/adoption?start=2023-01-01&end=2023-09-01&geo=Mexico&technology=GoCache&rank=ALL'
+  --url 'https://{{HOST}}/v1/technologies?category=Live%20chat%2C%20blog&technology=Smartsupp'
 ```
 
 Returns a JSON object with the following schema:
 
 ```json
 [
-    {
-        "technology": "GoCache",
-        "geo": "Mexico",
-        "date": "2023-06-01",
-        "rank": "ALL",
-        "adoption": {
-            "mobile": 19,
-            "desktop": 11
-        }
-    },
-    ...
+  {
+    "technology": "Smartsupp",
+    "category": "Live chat",
+    "description": "Smartsupp is a live chat tool that offers visitor recording feature.",
+    "icon": "Smartsupp.svg",
+    "origins": {
+      "mobile": 24115,
+      "desktop": 20250
+    }
+  }
 ]
+```
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/technologies?onlyname'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+[
+    "1C-Bitrix",
+    "2B Advice",
+    "33Across",
+    "34SP.com",
+    "4-Tell",
+    "42stores",
+    "51.LA",
+    "5centsCDN",
+    ...
+}
 ```
 
 ### `GET /categories`
 
-This endpoint can return a full list of categories names or a categories with all the associated technologies
+Lists available categories.
 
-#### Parameters
+#### Categories Parameters
 
-The following parameters can be used to filter the data:
+- `category` (optional): Filter by category name(s) - comma-separated list
+- `onlyname` (optional): If present, returns only category names
 
-- `category` (optional): A comma-separated string representing the category name(s).
-- `onlyname` (optional): No value required. If present, only the category names will be returned.
-
-#### Response
+#### Categories Response
 
 ```bash
 curl --request GET \
@@ -105,22 +177,58 @@ curl --request GET \
     "Analytics",
   ...
 ]
-
 ```
 
-### `GET /cwv`
+### `GET /adoption`
 
-#### Parameters
+Provides technology adoption data.
 
-The following parameters can be used to filter the data:
+#### Adoption Parameters
 
-- `geo` (`required`): A string representing the geographic location.
-- `technology` (`required`): A string representing the technology name.
-- `rank` (`required`): An string representing the rank.
-- `start` (optional): A string representing the start date in the format `YYYY-MM-DD`.
-- `end` (optional): A string representing the end date in the format `YYYY-MM-DD`.
+- `technology` (required): Filter by technology name(s) - comma-separated list
+- `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
+- `end` (optional): Filter by date range end (YYYY-MM-DD)
+- `geo` (optional): Filter by geographic location
+- `rank` (optional): Filter by rank
 
-#### Response
+#### Adoption Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/adoption?start=2023-01-01&end=2023-09-01&geo=Mexico&technology=GoCache&rank=ALL'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+[
+    {
+        "technology": "GoCache",
+        "geo": "Mexico",
+        "date": "2023-06-01",
+        "rank": "ALL",
+        "adoption": {
+            "mobile": 19,
+            "desktop": 11
+        }
+    },
+    ...
+]
+```
+
+### `GET /cwv` (Core Web Vitals)
+
+Provides Core Web Vitals metrics for technologies.
+
+#### CWV Parameters
+
+- `technology` (required): Filter by technology name(s) - comma-separated list
+- `geo` (required): Filter by geographic location
+- `rank` (required): Filter by rank
+- `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
+- `end` (optional): Filter by date range end (YYYY-MM-DD)
+
+#### CWV Response
 
 ```bash
 curl --request GET \
@@ -151,22 +259,21 @@ curl --request GET \
         ]
     }
 ]
-
 ```
 
 ### `GET /lighthouse`
 
-#### Parameters
+Provides Lighthouse scores for technologies.
 
-The following parameters can be used to filter the data:
+#### Lighthouse Parameters
 
-- `technology` (`required`): A comma-separated string representing the technology name(s).
-- `geo` (`required`): A string representing the geographic location.
-- `rank` (`required`): An string representing the rank.
-- `start` (optional): A string representing the start date in the format `YYYY-MM-DD`.
-- `end` (optional): A string representing the end date in the format `YYYY-MM-DD`.
+- `technology` (required): Filter by technology name(s) - comma-separated list
+- `geo` (required): Filter by geographic location
+- `rank` (required): Filter by rank
+- `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
+- `end` (optional): Filter by date range end (YYYY-MM-DD)
 
-#### Response
+#### Lighthouse Response
 
 ```bash
 curl --request GET \
@@ -205,17 +312,17 @@ Returns a JSON object with the following schema:
 
 ### `GET /page-weight`
 
-#### Parameters
+Provides Page Weight metrics for technologies.
 
-The following parameters can be used to filter the data:
+#### Page Weight Parameters
 
-- `geo` (`required`): A string representing the geographic location.
-- `technology` (`required`): A comma-separated string representing the technology name(s).
-- `rank` (`required`): An string representing the rank.
-- `start` (optional): A string representing the start date in the format `YYYY-MM-DD`.
-- `end` (optional): A string representing the end date in the format `YYYY-MM-DD`.
+- `technology` (required): Filter by technology name(s) - comma-separated list
+- `geo` (optional): Filter by geographic location
+- `rank` (optional): Filter by rank
+- `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
+- `end` (optional): Filter by date range end (YYYY-MM-DD)
 
-#### Response
+#### Page Weight Response
 
 ```bash
 curl --request GET \
@@ -240,57 +347,41 @@ Returns a JSON object with the following schema:
 ]
 ```
 
-### `GET /technologies`
+### `GET /ranks`
 
-#### Parameters
+Lists all available ranks.
 
-The following parameters can be used to filter the data:
+### `GET /geos`
 
-- `technology` (optional): A comma-separated string representing the technology name(s) or `ALL`.
-- `category` (optional): A comma-separated string representing the category name(s).
-- `onlyname` (optional): No value required. If present, only the technology names will be returned.
+Lists all available geographic locations.
 
-#### Response
+## Testing
 
 ```bash
-curl --request GET \
-  --url 'https://{{HOST}}/v1/technologies?category=Live%20chat%2C%20blog&technology=Smartsupp'
+# Run all tests
+npm test
+
+# Run tests with coverage
+npm run test
 ```
 
-Returns a JSON object with the following schema:
+## Response Format
+
+All API responses follow this format:
 
 ```json
 [
-  {
-    "technology": "Smartsupp",
-    "category": "Live chat",
-    "description": "Smartsupp is a live chat tool that offers visitor recording feature.",
-    "icon": "Smartsupp.svg",
-    "origins": {
-      "mobile": 24115,
-      "desktop": 20250
-    }
-  }
+  // Array of data objects
 ]
 ```
 
-```bash
-curl --request GET \
-  --url 'https://{{HOST}}/v1/technologies?onlyname'
-```
-
-Returns a JSON object with the following schema:
+Or in case of an error:
 
 ```json
-[
-    "1C-Bitrix",
-    "2B Advice",
-    "33Across",
-    "34SP.com",
-    "4-Tell",
-    "42stores",
-    "51.LA",
-    "5centsCDN",
-    ...
+{
+  "success": false,
+  "errors": [
+    {"key": "error message"}
+  ]
 }
 ```

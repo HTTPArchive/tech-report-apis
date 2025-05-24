@@ -15,10 +15,12 @@ const RANKS = [
  */
 const listRanks = async (req, res) => {
   try {
-    res.status(200).send(createSuccessResponse(RANKS));
+    res.statusCode = 200;
+    res.end(JSON.stringify(createSuccessResponse(RANKS)));
   } catch (error) {
     console.error('Error fetching ranks:', error);
-    res.status(400).send(createErrorResponse([['query', error.message]]));
+    res.statusCode = 400;
+    res.end(JSON.stringify(createErrorResponse([['query', error.message]])));
   }
 };
 

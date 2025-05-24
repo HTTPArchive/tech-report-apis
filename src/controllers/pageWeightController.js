@@ -25,9 +25,11 @@ const listPageWeightData = async (req, res) => {
 
     // Required parameters check
     if (!params.technology) {
-      return res.status(400).send(createErrorResponse([
+      res.statusCode = 400;
+      res.end(JSON.stringify(createErrorResponse([
         ['technology', 'missing technology parameter']
-      ]));
+      ])));
+      return;
     }
 
     // Convert technology parameter to array
@@ -70,13 +72,15 @@ const listPageWeightData = async (req, res) => {
     }
 
     // Send response
-    res.status(200).send(createSuccessResponse(data));
+    res.statusCode = 200;
+    res.end(JSON.stringify(createSuccessResponse(data)));
   } catch (error) {
     console.error('Error fetching Page Weight data:', error);
-    res.status(400).send(createErrorResponse([['query', error.message]]));
+    res.statusCode = 400;
+    res.end(JSON.stringify(createErrorResponse([['query', error.message]])));
   }
 };
 
 module.exports = {
-  listPageWeightData
+  listPageWeight: listPageWeightData
 };
