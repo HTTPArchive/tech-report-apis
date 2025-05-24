@@ -8,15 +8,15 @@
   },
   "scripts": {
     "start": "node index.js",
-    "start:functions": "functions-framework --target=api",
+    "start:functions": "functions-framework --target=app",
     "dev": "nodemon index.js",
     "test": "jest"
   },
   "dependencies": {
-    "@google-cloud/firestore": "7.3.0"
+    "@google-cloud/firestore": "7.3.0",
+    "@google-cloud/functions-framework": "^4.0.0"
   },
   "devDependencies": {
-    "@google-cloud/functions-framework": "^4.0.0",
     "jest": "29.7.0",
     "nodemon": "3.0.1",
     "supertest": "^7.1.0"

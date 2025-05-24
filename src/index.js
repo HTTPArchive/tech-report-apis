@@ -1,6 +1,7 @@
 const http = require('http');
 const url = require('url');
 const crypto = require('crypto');
+const functions = require('@google-cloud/functions-framework');
 
 // Import controllers
 const { listTechnologies } = require('./controllers/technologiesController');
@@ -117,22 +118,16 @@ const handleRequest = async (req, res) => {
 // Create HTTP server
 const server = http.createServer(handleRequest);
 
-// Export the server and handleRequest for testing and cloud functions
+// Export the server for testing
 exports.app = server;
-exports.handleRequest = handleRequest;
 
-// Start server in development mode (not when imported as module)
+// Register with Functions Framework for Cloud Functions
+functions.http('app', handleRequest);
+
+// For standalone server mode (local development)
 if (require.main === module) {
   const PORT = process.env.PORT || 3000;
   server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
-}
-
-// Functions Framework wrapper for Google Cloud Functions
-try {
-  const functions = require('@google-cloud/functions-framework');
-  functions.http('api', handleRequest);
-} catch (error) {
-  // Functions Framework not available in development mode
 }
