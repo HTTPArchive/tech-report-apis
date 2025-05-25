@@ -15,7 +15,7 @@ variable "environment" {
 variable "project_database" {
   type        = string
   description = "The database name"
-  default     = "tech-report-apis-prod" // TODO: Update this to the correct database name
+  default     = "tech-report-api-prod" // TODO: Update this to the DEV database name
 }
 
 variable "google_service_account_cloud_functions" {
@@ -30,5 +30,5 @@ variable "google_service_account_api_gateway" {
 variable "min_instances" {
   description = "(Optional) The limit on the minimum number of function instances that may coexist at a given time."
   type        = number
-  default     = 1 # TODO: Update this to 0 after performance testing
+  default     = 0
 }

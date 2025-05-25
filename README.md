@@ -13,7 +13,7 @@ This is a unified Google Cloud Run function that provides technology metrics and
 
     ```bash
     export PROJECT=httparchive
-    export DATABASE=tech-report-apis-prod
+    export DATABASE=tech-report-api-prod
     ```
 
 ### Local Development

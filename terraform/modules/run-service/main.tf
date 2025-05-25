@@ -73,17 +73,16 @@ resource "google_cloud_run_v2_service_iam_member" "variable_service_account_run_
   role     = "roles/run.invoker"
   member   = "serviceAccount:${var.service_account_email}"
 }
-// TODO: Conditionally apply if the function needs to be invoked by API Gateway
+
 resource "google_cloudfunctions2_function_iam_member" "api_gw_variable_service_account_function_invoker" {
   project        = google_cloudfunctions2_function.function.project
   location       = google_cloudfunctions2_function.function.location
   cloud_function = google_cloudfunctions2_function.function.name
   role           = "roles/cloudfunctions.invoker"
-  #member         = "serviceAccount:api-gateway@httparchive.iam.gserviceaccount.com"
   member     = "serviceAccount:${var.service_account_api_gateway}"
   depends_on = [google_cloudfunctions2_function.function]
 }
-// TODO: Conditionally apply if the function needs to be invoked by API Gateway
+
 resource "google_cloud_run_v2_service_iam_member" "api_gw_variable_service_account_run_invoker" {
   project  = var.project
   location = var.region
