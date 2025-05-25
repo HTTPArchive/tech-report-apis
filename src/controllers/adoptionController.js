@@ -61,8 +61,13 @@ const listAdoptionData = async (req, res) => {
         query = query.where('rank', '==', params.rank);
       }
 
-      // Always filter by technology
+      // Always filter by technology and version
       query = query.where('technology', '==', technology);
+      if (params.version && techArray.length === 1) {
+        query = query.where('version', '==', params.version);
+      } else {
+        query = query.where('version', '==', 'ALL');
+      }
 
       // Execute query
       const snapshot = await query.get();
