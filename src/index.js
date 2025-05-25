@@ -12,6 +12,7 @@ const { listLighthouse } = require('./controllers/lighthouseController');
 const { listPageWeight } = require('./controllers/pageWeightController');
 const { listRanks } = require('./controllers/ranksController');
 const { listGeos } = require('./controllers/geosController');
+const { listVersions } = require('./controllers/versionsController');
 
 // Helper function to set CORS headers
 const setCORSHeaders = (res) => {
@@ -101,6 +102,8 @@ const handleRequest = async (req, res) => {
       await listRanks(req, res);
     } else if (pathname === '/v1/geos' && req.method === 'GET') {
       await listGeos(req, res);
+    } else if (pathname === '/v1/versions' && req.method === 'GET') {
+      await listVersions(req, res);
     } else {
       // 404 Not Found
       res.statusCode = 404;
