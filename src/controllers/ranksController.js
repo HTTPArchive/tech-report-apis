@@ -1,5 +1,6 @@
 const firestore = require('../utils/db');
-const { createSuccessResponse, createErrorResponse } = require('../utils/helpers');
+const { createSuccessResponse } = require('../utils/helpers');
+const { handleControllerError } = require('../utils/controllerHelpers');
 
 /**
  * List all rank options from database
@@ -18,9 +19,7 @@ const listRanks = async (req, res) => {
     res.statusCode = 200;
     res.end(JSON.stringify(createSuccessResponse(data)));
   } catch (error) {
-    console.error('Error fetching ranks:', error);
-    res.statusCode = 400;
-    res.end(JSON.stringify(createErrorResponse([['query', error.message]])));
+    handleControllerError(res, error, 'fetching ranks');
   }
 };
 

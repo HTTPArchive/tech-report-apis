@@ -8,9 +8,10 @@
   },
   "scripts": {
     "start": "node index.js",
-    "start:functions": "functions-framework --target=app",
+    "start:functions": "export DATABASE=tech-report-apis-prod && functions-framework --target=app",
     "dev": "nodemon index.js",
-    "test": "jest"
+    "test": "jest",
+    "test:live": "bash ../test-api.sh"
   },
   "dependencies": {
     "@google-cloud/firestore": "7.3.0",

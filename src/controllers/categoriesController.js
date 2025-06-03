@@ -1,47 +1,44 @@
 const firestore = require('../utils/db');
-const { convertToArray, createSuccessResponse, createErrorResponse } = require('../utils/helpers');
+const { createSuccessResponse } = require('../utils/helpers');
+const { applyArrayFilter, selectFields, handleControllerError } = require('../utils/controllerHelpers');
 
 /**
- * List categories with optional filtering
+ * List categories with optional filtering and field selection
  */
 const listCategories = async (req, res) => {
   try {
     const params = req.query;
-    let ref = firestore.collection('categories');
-    let query = ref.orderBy('category', 'asc');
+    const isOnlyNames = params.onlyname || typeof params.onlyname === 'string';
+    const hasCustomFields = params.fields && !isOnlyNames;
 
-    // Filter by category if provided
-    if (params.category) {
-      const categoryArray = convertToArray(params.category);
-      if (categoryArray.length > 0) {
-        // Using 'in' operator instead of multiple 'or' filters for simplicity
-        query = query.where('category', 'in', categoryArray);
-      }
-    }
+    let query = firestore.collection('categories').orderBy('category', 'asc');
+
+    // Apply category filter using shared utility
+    query = applyArrayFilter(query, 'category', params.category);
 
     // Execute query
     const snapshot = await query.get();
     const data = [];
 
-    // Return only category names if onlyname parameter exists
-    if (params.onlyname || typeof params.onlyname === 'string') {
-      snapshot.forEach(doc => {
+    // Process results based on response type
+    snapshot.forEach(doc => {
+      if (isOnlyNames) {
         data.push(doc.get('category'));
-      });
-    } else {
-      // Return full category objects
-      snapshot.forEach(doc => {
+      } else if (hasCustomFields) {
+        // Use custom field selection
+        const fullData = doc.data();
+        data.push(selectFields(fullData, params.fields));
+      } else {
+        // Return full data
         data.push(doc.data());
-      });
-    }
+      }
+    });
 
     // Send response
     res.statusCode = 200;
     res.end(JSON.stringify(createSuccessResponse(data)));
   } catch (error) {
-    console.error('Error fetching categories:', error);
-    res.statusCode = 400;
-    res.end(JSON.stringify(createErrorResponse([['query', error.message]])));
+    handleControllerError(res, error, 'fetching categories');
   }
 };
 

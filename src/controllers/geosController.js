@@ -1,5 +1,6 @@
 const firestore = require('../utils/db');
-const { createSuccessResponse, createErrorResponse } = require('../utils/helpers');
+const { createSuccessResponse } = require('../utils/helpers');
+const { handleControllerError } = require('../utils/controllerHelpers');
 
 /**
  * List all geographic locations from database
@@ -11,16 +12,13 @@ const listGeos = async (req, res) => {
 
     // Extract only the 'geo' property from each document
     snapshot.forEach(doc => {
-      const docData = doc.data();
-      data.push({ geo: docData.geo });
+      data.push({ geo: doc.data().geo });
     });
 
     res.statusCode = 200;
     res.end(JSON.stringify(createSuccessResponse(data)));
   } catch (error) {
-    console.error('Error fetching geographic locations:', error);
-    res.statusCode = 400;
-    res.end(JSON.stringify(createErrorResponse([['query', error.message]])));
+    handleControllerError(res, error, 'fetching geographic locations');
   }
 };
 

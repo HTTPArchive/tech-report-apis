@@ -1,66 +1,54 @@
 const firestore = require('../utils/db');
-const { convertToArray, createSuccessResponse, createErrorResponse } = require('../utils/helpers');
+const { createSuccessResponse } = require('../utils/helpers');
+const { applyArrayFilter, selectFields, handleControllerError } = require('../utils/controllerHelpers');
 
-// Technology Presenter
-const presentTechnology = (item) => {
-  return {
-    technology: item.technology,
-    category: item.category,
-    description: item.description,
-    icon: item.icon,
-    origins: item.origins
-  };
-};
+// Technology Presenter - optimized with destructuring
+const presentTechnology = ({ technology, category, description, icon, origins }) => ({
+  technology,
+  category,
+  description,
+  icon,
+  origins
+});
 
 /**
- * List technologies with optional filtering
+ * List technologies with optional filtering and field selection
  */
 const listTechnologies = async (req, res) => {
   try {
     const params = req.query;
-    let ref = firestore.collection('technologies');
-    let query = ref.orderBy('technology', 'asc');
+    const isOnlyNames = params.onlyname || typeof params.onlyname === 'string';
+    const hasCustomFields = params.fields && !isOnlyNames;
 
-    // Filter by technology if provided
-    if (params.technology) {
-      const techArray = convertToArray(params.technology);
-      if (techArray.length > 0) {
-        // Using 'in' operator instead of multiple 'or' filters for simplicity
-        query = query.where('technology', 'in', techArray);
-      }
-    }
+    let query = firestore.collection('technologies').orderBy('technology', 'asc');
 
-    // Filter by category if provided
-    if (params.category) {
-      const categoryArray = convertToArray(params.category);
-      if (categoryArray.length > 0) {
-        query = query.where('category_obj', 'array-contains-any', categoryArray);
-      }
-    }
+    // Apply filters using shared utilities
+    query = applyArrayFilter(query, 'technology', params.technology);
+    query = applyArrayFilter(query, 'category_obj', params.category, 'array-contains-any');
 
     // Execute query
     const snapshot = await query.get();
     const data = [];
 
-    if (params.onlyname || typeof params.onlyname === 'string') {
-      // Return only technology names if onlyname parameter exists
-      snapshot.forEach(doc => {
+    // Process results based on response type
+    snapshot.forEach(doc => {
+      if (isOnlyNames) {
         data.push(doc.get('technology'));
-      });
-    } else {
-      // Return full technology objects
-      snapshot.forEach(doc => {
+      } else if (hasCustomFields) {
+        // Use custom field selection
+        const fullData = doc.data();
+        data.push(selectFields(fullData, params.fields));
+      } else {
+        // Use default presenter
         data.push(presentTechnology(doc.data()));
-      });
-    };
+      }
+    });
 
     // Send response
     res.statusCode = 200;
     res.end(JSON.stringify(createSuccessResponse(data)));
   } catch (error) {
-    console.error('Error fetching technologies:', error);
-    res.statusCode = 400;
-    res.end(JSON.stringify(createErrorResponse([['query', error.message]])));
+    handleControllerError(res, error, 'fetching technologies');
   }
 };
 

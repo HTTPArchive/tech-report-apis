@@ -1,5 +1,6 @@
 const firestore = require('../utils/db');
-const { convertToArray, createSuccessResponse, createErrorResponse } = require('../utils/helpers');
+const { createSuccessResponse } = require('../utils/helpers');
+const { applyArrayFilter, handleControllerError } = require('../utils/controllerHelpers');
 
 /**
  * List versions with optional technology filtering
@@ -7,17 +8,10 @@ const { convertToArray, createSuccessResponse, createErrorResponse } = require('
 const listVersions = async (req, res) => {
   try {
     const params = req.query;
-    let ref = firestore.collection('versions');
-    let query = ref;
+    let query = firestore.collection('versions');
 
-    // Filter by technology if provided
-    if (params.technology) {
-      const technologyArray = convertToArray(params.technology);
-      if (technologyArray.length > 0) {
-        // Using 'in' operator for filtering by technology names
-        query = query.where('technology', 'in', technologyArray);
-      }
-    }
+    // Apply technology filter using shared utility
+    query = applyArrayFilter(query, 'technology', params.technology);
 
     // Execute query
     const snapshot = await query.get();
@@ -28,12 +22,11 @@ const listVersions = async (req, res) => {
       data.push(doc.data());
     });
 
+    // Send response
     res.statusCode = 200;
     res.end(JSON.stringify(createSuccessResponse(data)));
   } catch (error) {
-    console.error('Error fetching versions:', error);
-    res.statusCode = 400;
-    res.end(JSON.stringify(createErrorResponse([['query', error.message]])));
+    handleControllerError(res, error, 'fetching versions');
   }
 };
 

@@ -385,3 +385,127 @@ Or in case of an error:
   ]
 }
 ```
+
+## Field Selection API Documentation
+
+### Overview
+
+The categories and technologies endpoints now support custom field selection, allowing clients to specify exactly which fields they want in the response. This feature helps reduce payload size and improves API performance by returning only the needed data.
+
+### Endpoints Supporting Field Selection
+
+- `GET /v1/technologies`
+- `GET /v1/categories`
+
+### Usage
+
+#### Basic Syntax
+
+Add a `fields` parameter to your request with comma-separated field names:
+
+```
+GET /v1/technologies?fields=technology,category
+GET /v1/categories?fields=category,description
+```
+
+#### Examples
+
+##### Technologies Endpoint
+
+**Get only technology names and categories:**
+
+```
+GET /v1/technologies?fields=technology,category
+```
+
+Response:
+
+```json
+{
+  "data": [
+    {
+      "technology": "React",
+      "category": "JavaScript Frameworks"
+    },
+    {
+      "technology": "Angular",
+      "category": "JavaScript Frameworks"
+    }
+  ]
+}
+```
+
+**Get technology names and descriptions:**
+
+```
+GET /v1/technologies?fields=technology,description
+```
+
+**Combine with existing filters:**
+
+```
+GET /v1/technologies?category=JavaScript%20Frameworks&fields=technology,icon
+```
+
+##### Categories Endpoint
+
+**Get only category names:**
+
+```
+GET /v1/categories?fields=category
+```
+
+**Get categories with descriptions:**
+
+```
+GET /v1/categories?fields=category,description
+```
+
+#### Behavior Notes
+
+1. **Field Priority**: The `fields` parameter takes precedence over other response formatting options, except for `onlyname`
+2. **Invalid Fields**: Non-existent fields are silently ignored
+3. **Empty Fields**: If no valid fields are specified, the full object is returned
+4. **Backward Compatibility**: When `fields` is not specified, endpoints return their default response format
+5. **onlyname Override**: The `onlyname` parameter still takes precedence over `fields` for backward compatibility
+
+#### Available Fields
+
+##### Technologies Endpoint
+
+- `technology` - Technology name
+- `category` - Category name
+- `description` - Technology description
+- `icon` - Icon filename
+- `origins` - Array of origin companies/organizations
+
+##### Categories Endpoint
+
+- `category` - Category name
+- Additional fields depend on your data structure
+
+#### Error Handling
+
+The field selection feature handles errors gracefully:
+
+- Invalid field names are ignored
+- Empty field lists return full objects
+- Malformed field parameters fallback to default behavior
+
+#### Performance Benefits
+
+- **Reduced Payload Size**: Only requested fields are included
+- **Faster Parsing**: Clients process smaller JSON objects
+- **Bandwidth Savings**: Less data transferred over the network
+- **Improved Caching**: More specific responses can be cached more effectively
+
+#### Migration Guide
+
+Existing API consumers are not affected by this change. The field selection feature is entirely opt-in through the `fields` parameter.
+
+To adopt field selection:
+
+1. Identify which fields your application actually uses
+2. Add the `fields` parameter with those field names
+3. Update your client code to handle the new response structure
+4. Test thoroughly with your specific use cases

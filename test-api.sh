@@ -84,29 +84,32 @@ test_cors_preflight "/"
 test_endpoint "/" ""
 
 # Test technologies endpoint
-test_cors_preflight "/technologies"
-test_endpoint "/technologies" "?technology=WordPress&onlyname=true"
+test_cors_preflight "/v1/technologies"
+test_endpoint "/v1/technologies" "?technology=WordPress&onlyname=true"
+test_endpoint "/v1/technologies" "?technology=WordPress&onlyname=true&fields=technology,icon"
+test_endpoint "/v1/technologies" "?technology=WordPress&fields=technology,icon"
 
 # Test categories endpoint
-test_cors_preflight "/categories"
-test_endpoint "/categories" "?category=CMS&onlyname=true"
+test_cors_preflight "/v1/categories"
+test_endpoint "/v1/categories" "?category=CMS&onlyname=true"
+test_endpoint "/v1/categories" "?category=CMS&fields=category"
 
 # Test ranks endpoint
-test_endpoint "/ranks" ""
+test_endpoint "/v1/ranks" ""
 
 # Test geos endpoint
-test_endpoint "/geos" ""
+test_endpoint "/v1/geos" ""
 
 # Test adoption endpoint
-test_endpoint "/adoption" "?technology=WordPress&geo=ALL&rank=ALL&start=latest"
+test_endpoint "/v1/adoption" "?technology=WordPress&geo=ALL&rank=ALL&start=latest"
 
 # Test cwv endpoint
-test_endpoint "/cwv" "?technology=WordPress&geo=ALL&rank=ALL&start=latest"
+test_endpoint "/v1/cwv" "?technology=WordPress&geo=ALL&rank=ALL&start=latest"
 
 # Test lighthouse endpoint
-test_endpoint "/lighthouse" "?technology=WordPress&geo=ALL&rank=ALL&start=latest"
+test_endpoint "/v1/lighthouse" "?technology=WordPress&geo=ALL&rank=ALL&start=latest"
 
 # Test page-weight endpoint
-test_endpoint "/page-weight" "?technology=WordPress&geo=ALL&rank=ALL&start=latest"
+test_endpoint "/v1/page-weight" "?technology=WordPress&geo=ALL&rank=ALL&start=latest"
 
 echo "API tests complete! All endpoints returned 200 status code and CORS is properly configured."
