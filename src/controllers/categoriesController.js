@@ -1,4 +1,4 @@
-const firestore = require('../utils/db');
+const { firestore } = require('../utils/db');
 const { createSuccessResponse } = require('../utils/helpers');
 const { applyArrayFilter, selectFields, handleControllerError } = require('../utils/controllerHelpers');
 

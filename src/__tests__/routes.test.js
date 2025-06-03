@@ -3,7 +3,7 @@ const { app } = require('../index');
 
 // Mock Firestore
 jest.mock('../utils/db', () => {
-  return {
+  const mockFirestoreInstance = {
     collection: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
     orderBy: jest.fn().mockReturnThis(),
@@ -43,6 +43,11 @@ jest.mock('../utils/db', () => {
         })
       }]
     })
+  };
+
+  return {
+    firestore: mockFirestoreInstance,
+    firestoreOld: mockFirestoreInstance
   };
 });
 

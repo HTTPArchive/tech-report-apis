@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "node index.js",
-    "start:functions": "export DATABASE=tech-report-apis-prod && functions-framework --target=app",
+    "start:functions": "export DATABASE=tech-report-api-prod && functions-framework --target=app",
     "dev": "nodemon index.js",
     "test": "jest",
     "test:live": "bash ../test-api.sh"

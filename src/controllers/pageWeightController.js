@@ -1,4 +1,6 @@
-const firestore = require('../utils/db');
+const { firestoreOld } = require('../utils/db');
+const firestore = firestoreOld;
+
 const { createSuccessResponse } = require('../utils/helpers');
 const {
   REQUIRED_PARAMS,
