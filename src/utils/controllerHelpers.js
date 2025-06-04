@@ -42,6 +42,45 @@ const sendValidationError = (res, errors) => {
 const latestDateCache = new Map();
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
 
+// Cache for query results to eliminate bimodal performance
+const queryResultCache = new Map();
+const QUERY_CACHE_TTL = 10 * 60 * 1000; // 10 minutes for query results
+
+/**
+ * Generate a cache key for a query
+ * @param {string} collection - Collection name
+ * @param {Object} filters - Query filters
+ * @returns {string} - Cache key
+ */
+const generateQueryCacheKey = (collection, filters) => {
+  return `${collection}:${JSON.stringify(filters)}`;
+};
+
+/**
+ * Get cached query result if available and not expired
+ * @param {string} cacheKey - Cache key
+ * @returns {Array|null} - Cached result or null
+ */
+const getCachedQueryResult = (cacheKey) => {
+  const cached = queryResultCache.get(cacheKey);
+  if (cached && (Date.now() - cached.timestamp) < QUERY_CACHE_TTL) {
+    return cached.data;
+  }
+  return null;
+};
+
+/**
+ * Cache a query result
+ * @param {string} cacheKey - Cache key
+ * @param {Array} data - Query result data
+ */
+const setCachedQueryResult = (cacheKey, data) => {
+  queryResultCache.set(cacheKey, {
+    data: data,
+    timestamp: Date.now()
+  });
+};
+
 /**
  * Get the latest date from a collection with caching
  * @param {Object} firestore - Firestore instance
@@ -209,5 +248,8 @@ export {
   preprocessParams,
   applyArrayFilter,
   selectFields,
-  handleControllerError
+  handleControllerError,
+  generateQueryCacheKey,
+  getCachedQueryResult,
+  setCachedQueryResult
 };

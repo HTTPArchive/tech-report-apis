@@ -2,7 +2,10 @@ import { firestoreOld } from '../utils/db.js';
 const firestore = firestoreOld;
 
 import {
-  getLatestDate
+  getLatestDate,
+  generateQueryCacheKey,
+  getCachedQueryResult,
+  setCachedQueryResult
 } from '../utils/controllerHelpers.js';
 
 const TABLE = 'core_web_vitals';
@@ -37,6 +40,24 @@ const listCWVTechData = async (req, res) => {
       startDate = await getLatestDate(firestore, TABLE);
     }
 
+    // Create cache key for this specific query
+    const queryFilters = {
+      geo: params.geo,
+      rank: params.rank,
+      technology: techArray,
+      startDate: startDate,
+      endDate: params.end
+    };
+    const cacheKey = generateQueryCacheKey(TABLE, queryFilters);
+
+    // Check cache first
+    const cachedResult = getCachedQueryResult(cacheKey);
+    if (cachedResult) {
+      res.statusCode = 200;
+      res.end(JSON.stringify(cachedResult));
+      return;
+    }
+
     // Build optimized query
     let query = firestore.collection(TABLE);
 
@@ -49,7 +70,7 @@ const listCWVTechData = async (req, res) => {
       // Use 'in' operator for batch processing (Firestore limit: 30 values)
       query = query.where('technology', 'in', techArray);
     } else {
-      // Parallel queries for >10 technologies (rare case)
+      // Parallel queries for >30 technologies (rare case)
       const queryPromises = techArray.map(async (technology) => {
         let individualQuery = firestore.collection(TABLE)
           .where('geo', '==', params.geo)
@@ -68,6 +89,9 @@ const listCWVTechData = async (req, res) => {
       const results = await Promise.all(queryPromises);
       const data = results.flat();
 
+      // Cache the result
+      setCachedQueryResult(cacheKey, data);
+
       res.statusCode = 200;
       res.end(JSON.stringify(data));
       return;
@@ -83,6 +107,9 @@ const listCWVTechData = async (req, res) => {
     snapshot.forEach(doc => {
       data.push(doc.data());
     });
+
+    // Cache the result
+    setCachedQueryResult(cacheKey, data);
 
     // Direct response without wrapper functions
     res.statusCode = 200;
