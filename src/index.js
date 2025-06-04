@@ -26,7 +26,9 @@ const setCORSHeaders = (res) => {
 const setCommonHeaders = (res) => {
   setCORSHeaders(res);
   res.setHeader('Content-Type', 'application/json');
-  res.setHeader('Cache-Control', 'public, max-age=21600');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.setHeader('Timing-Allow-Origin', '*');
 };
 
