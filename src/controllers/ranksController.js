@@ -1,6 +1,6 @@
-const { firestore } = require('../utils/db');
-const { createSuccessResponse } = require('../utils/helpers');
-const { handleControllerError } = require('../utils/controllerHelpers');
+import { firestore } from '../utils/db.js';
+import { createSuccessResponse } from '../utils/helpers.js';
+import { handleControllerError } from '../utils/controllerHelpers.js';
 
 /**
  * List all rank options from database
@@ -23,6 +23,6 @@ const listRanks = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   listRanks
 };

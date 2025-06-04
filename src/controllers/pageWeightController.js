@@ -1,8 +1,8 @@
-const { firestoreOld } = require('../utils/db');
+import { firestoreOld } from '../utils/db.js';
 const firestore = firestoreOld;
 
-const { createSuccessResponse } = require('../utils/helpers');
-const {
+import { createSuccessResponse } from '../utils/helpers.js';
+import {
   REQUIRED_PARAMS,
   validateRequiredParams,
   sendValidationError,
@@ -10,7 +10,7 @@ const {
   applyStandardFilters,
   preprocessParams,
   handleControllerError
-} = require('../utils/controllerHelpers');
+} from '../utils/controllerHelpers.js';
 
 const TABLE = 'page_weight';
 
@@ -63,6 +63,6 @@ const listPageWeightData = async (req, res) => {
   }
 };
 
-module.exports = {
-  listPageWeight: listPageWeightData
+export {
+  listPageWeightData
 };

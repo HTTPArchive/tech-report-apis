@@ -1,6 +1,6 @@
-const { firestore } = require('../utils/db');
-const { createSuccessResponse } = require('../utils/helpers');
-const { applyArrayFilter, handleControllerError } = require('../utils/controllerHelpers');
+import { firestore } from '../utils/db.js';
+import { createSuccessResponse } from '../utils/helpers.js';
+import { applyArrayFilter, handleControllerError } from '../utils/controllerHelpers.js';
 
 /**
  * List versions with optional technology filtering
@@ -30,6 +30,6 @@ const listVersions = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   listVersions
 };

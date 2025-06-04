@@ -1,4 +1,4 @@
-const { createErrorResponse } = require('./helpers');
+import { createErrorResponse, convertToArray } from './helpers.js';
 
 /**
  * Common parameter validation patterns
@@ -112,7 +112,7 @@ const preprocessParams = async (firestore, params, collection) => {
   }
 
   // Handle version 'ALL' special case for multiple technologies
-  const techArray = require('./helpers').convertToArray(params.technology);
+  const techArray = convertToArray(params.technology);
   if (!params.version || techArray.length > 1) {
     params.version = 'ALL';
   }
@@ -130,8 +130,6 @@ const preprocessParams = async (firestore, params, collection) => {
  */
 const applyArrayFilter = (query, field, value, operator = 'in') => {
   if (!value) return query;
-
-  const { convertToArray } = require('./helpers');
   const valueArray = convertToArray(value);
 
   if (valueArray.length > 0) {
@@ -150,7 +148,6 @@ const applyArrayFilter = (query, field, value, operator = 'in') => {
 const selectFields = (data, fieldsParam) => {
   if (!fieldsParam) return data;
 
-  const { convertToArray } = require('./helpers');
   const fields = convertToArray(fieldsParam);
 
   if (fields.length === 0) return data;
@@ -179,7 +176,7 @@ const handleControllerError = (res, error, operation) => {
   }));
 };
 
-module.exports = {
+export {
   REQUIRED_PARAMS,
   validateRequiredParams,
   sendValidationError,

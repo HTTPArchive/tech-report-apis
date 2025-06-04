@@ -1,18 +1,56 @@
-const http = require('http');
-const url = require('url');
-const crypto = require('crypto');
-const functions = require('@google-cloud/functions-framework');
+import http from 'http';
+import url from 'url';
+import crypto from 'crypto';
+import functions from '@google-cloud/functions-framework';
 
-// Import controllers
-const { listTechnologies } = require('./controllers/technologiesController');
-const { listCategories } = require('./controllers/categoriesController');
-const { listAdoption } = require('./controllers/adoptionController');
-const { listCwvtech } = require('./controllers/cwvtechController');
-const { listLighthouse } = require('./controllers/lighthouseController');
-const { listPageWeight } = require('./controllers/pageWeightController');
-const { listRanks } = require('./controllers/ranksController');
-const { listGeos } = require('./controllers/geosController');
-const { listVersions } = require('./controllers/versionsController');
+// Dynamic imports for better performance - only load when needed
+const controllers = {
+  technologies: null,
+  categories: null,
+  adoption: null,
+  cwvtech: null,
+  lighthouse: null,
+  pageWeight: null,
+  ranks: null,
+  geos: null,
+  versions: null
+};
+
+// Helper function to dynamically import controllers
+const getController = async (name) => {
+  if (!controllers[name]) {
+    switch (name) {
+      case 'technologies':
+        controllers[name] = await import('./controllers/technologiesController.js');
+        break;
+      case 'categories':
+        controllers[name] = await import('./controllers/categoriesController.js');
+        break;
+      case 'adoption':
+        controllers[name] = await import('./controllers/adoptionController.js');
+        break;
+      case 'cwvtech':
+        controllers[name] = await import('./controllers/cwvtechController.js');
+        break;
+      case 'lighthouse':
+        controllers[name] = await import('./controllers/lighthouseController.js');
+        break;
+      case 'pageWeight':
+        controllers[name] = await import('./controllers/pageWeightController.js');
+        break;
+      case 'ranks':
+        controllers[name] = await import('./controllers/ranksController.js');
+        break;
+      case 'geos':
+        controllers[name] = await import('./controllers/geosController.js');
+        break;
+      case 'versions':
+        controllers[name] = await import('./controllers/versionsController.js');
+        break;
+    }
+  }
+  return controllers[name];
+};
 
 // Helper function to set CORS headers
 const setCORSHeaders = (res) => {
@@ -87,22 +125,31 @@ const handleRequest = async (req, res) => {
       const data = { status: 'ok' };
       sendJSONResponse(res, data);
     } else if (pathname === '/v1/technologies' && req.method === 'GET') {
+      const { listTechnologies } = await getController('technologies');
       await listTechnologies(req, res);
     } else if (pathname === '/v1/categories' && req.method === 'GET') {
+      const { listCategories } = await getController('categories');
       await listCategories(req, res);
     } else if (pathname === '/v1/adoption' && req.method === 'GET') {
-      await listAdoption(req, res);
+      const { listAdoptionData } = await getController('adoption');
+      await listAdoptionData(req, res);
     } else if (pathname === '/v1/cwv' && req.method === 'GET') {
-      await listCwvtech(req, res);
+      const { listCWVTechData } = await getController('cwvtech');
+      await listCWVTechData(req, res);
     } else if (pathname === '/v1/lighthouse' && req.method === 'GET') {
-      await listLighthouse(req, res);
+      const { listLighthouseData } = await getController('lighthouse');
+      await listLighthouseData(req, res);
     } else if (pathname === '/v1/page-weight' && req.method === 'GET') {
-      await listPageWeight(req, res);
+      const { listPageWeightData } = await getController('pageWeight');
+      await listPageWeightData(req, res);
     } else if (pathname === '/v1/ranks' && req.method === 'GET') {
+      const { listRanks } = await getController('ranks');
       await listRanks(req, res);
     } else if (pathname === '/v1/geos' && req.method === 'GET') {
+      const { listGeos } = await getController('geos');
       await listGeos(req, res);
     } else if (pathname === '/v1/versions' && req.method === 'GET') {
+      const { listVersions } = await getController('versions');
       await listVersions(req, res);
     } else {
       // 404 Not Found
@@ -122,13 +169,16 @@ const handleRequest = async (req, res) => {
 const server = http.createServer(handleRequest);
 
 // Export the server for testing
-exports.app = server;
+export { server as app };
 
 // Register with Functions Framework for Cloud Functions
 functions.http('app', handleRequest);
 
 // For standalone server mode (local development)
-if (require.main === module) {
+// Note: In ES modules, there's no require.main === module equivalent
+// We'll use import.meta.url to check if this is the main module
+const isMain = import.meta.url === `file://${process.argv[1]}`;
+if (isMain) {
   const PORT = process.env.PORT || 3000;
   server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

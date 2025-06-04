@@ -45,9 +45,4 @@ const createErrorResponse = (errors) => {
   };
 };
 
-module.exports = {
-  convertToArray,
-  convertToHashes,
-  createSuccessResponse,
-  createErrorResponse
-};
+export { convertToArray, convertToHashes, createSuccessResponse, createErrorResponse };

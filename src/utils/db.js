@@ -1,4 +1,4 @@
-const { Firestore } = require('@google-cloud/firestore');
+import { Firestore } from '@google-cloud/firestore';
 
 // Initialize Firestore with basic optimizations (default connection using env variables)
 const firestore = new Firestore({
@@ -29,7 +29,4 @@ const firestoreOld = new Firestore({
 });
 
 // Export both connections - maintain backward compatibility
-module.exports = {
-  firestore,
-  firestoreOld
-};
+export { firestore, firestoreOld };

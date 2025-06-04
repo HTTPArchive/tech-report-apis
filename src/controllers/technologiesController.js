@@ -1,6 +1,6 @@
-const { firestore } = require('../utils/db');
-const { createSuccessResponse } = require('../utils/helpers');
-const { applyArrayFilter, selectFields, handleControllerError } = require('../utils/controllerHelpers');
+import { firestore } from '../utils/db.js';
+import { createSuccessResponse } from '../utils/helpers.js';
+import { applyArrayFilter, selectFields, handleControllerError } from '../utils/controllerHelpers.js';
 
 // Technology Presenter - optimized with destructuring
 const presentTechnology = ({ technology, category, description, icon, origins }) => ({
@@ -52,6 +52,6 @@ const listTechnologies = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   listTechnologies
 };

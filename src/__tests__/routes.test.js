@@ -1,48 +1,54 @@
-const request = require('supertest');
-const { app } = require('../index');
+import request from 'supertest';
+import { jest } from '@jest/globals';
 
-// Mock Firestore
-jest.mock('../utils/db', () => {
+// Mock the entire utils/db module using ESM-compatible mocking
+jest.unstable_mockModule('../utils/db.js', () => {
+  const mockDoc = {
+    data: () => ({
+      technology: 'WordPress',
+      category: 'CMS',
+      description: 'A popular content management system',
+      icon: 'wordpress.svg',
+      origins: ['WordPress Foundation'],
+      rank: 'ALL',
+      geo: 'ALL',
+      date: '2023-01-01'
+    }),
+    get: (field) => {
+      const mockData = {
+        technology: 'WordPress',
+        category: 'CMS',
+        rank: 'ALL',
+        geo: 'ALL',
+        date: '2023-01-01'
+      };
+      return mockData[field] || 'Mock Value';
+    }
+  };
+
+  const mockQuerySnapshot = {
+    empty: false,
+    forEach: (callback) => {
+      callback(mockDoc);
+    },
+    docs: [mockDoc]
+  };
+
+  // Create a chainable query mock - avoid infinite recursion
+  const mockQuery = {
+    where: jest.fn(),
+    orderBy: jest.fn(),
+    limit: jest.fn(),
+    get: jest.fn().mockResolvedValue(mockQuerySnapshot)
+  };
+
+  // Make the methods chainable by returning the same mock object
+  mockQuery.where.mockReturnValue(mockQuery);
+  mockQuery.orderBy.mockReturnValue(mockQuery);
+  mockQuery.limit.mockReturnValue(mockQuery);
+
   const mockFirestoreInstance = {
-    collection: jest.fn().mockReturnThis(),
-    where: jest.fn().mockReturnThis(),
-    orderBy: jest.fn().mockReturnThis(),
-    limit: jest.fn().mockReturnThis(),
-    get: jest.fn().mockResolvedValue({
-      empty: false,
-      forEach: (callback) => {
-        // Mock technology data
-        callback({
-          data: () => ({
-            technology: 'WordPress',
-            category: 'CMS',
-            description: 'A popular content management system',
-            icon: 'wordpress.svg',
-            origins: ['WordPress Foundation']
-          }),
-          get: (field) => {
-            const mockData = {
-              technology: 'WordPress',
-              category: 'CMS',
-              rank: 'ALL',
-              geo: 'ALL',
-              date: '2023-01-01'
-            };
-            return mockData[field] || 'Mock Value';
-          }
-        });
-      },
-      docs: [{
-        data: () => ({
-          technology: 'WordPress',
-          category: 'CMS',
-          description: 'A popular content management system',
-          icon: 'wordpress.svg',
-          origins: ['WordPress Foundation'],
-          date: '2023-01-01'
-        })
-      }]
-    })
+    collection: jest.fn().mockImplementation((collectionName) => mockQuery)
   };
 
   return {
@@ -50,6 +56,9 @@ jest.mock('../utils/db', () => {
     firestoreOld: mockFirestoreInstance
   };
 });
+
+// Import app after mocking
+const { app } = await import('../index.js');
 
 describe('API Routes', () => {
   describe('Health Check', () => {
