@@ -1,11 +1,11 @@
 const axios = require('axios');
 
 const ENDPOINTS = {
-  A: 'https://prod-gw-2vzgiib6.ue.gateway.dev/v1/technologies',
-  B: 'https://dev-gw-2vzgiib6.uc.gateway.dev/v1/technologies'
+  A: 'https://prod-gw-2vzgiib6.ue.gateway.dev/v1/cwv?technology=WordPress,Shopify,Wix,Joomla,Drupal,Squarespace,PrestaShop,Webflow,1C-Bitrix,Tilda&geo=United%20States%20of%20America&rank=Top%20100k&start=latest',
+  B: 'https://reports-dev-2vzgiib6.uc.gateway.dev/v1/cwv?technology=WordPress,Shopify,Wix,Joomla,Drupal,Squarespace,PrestaShop,Webflow,1C-Bitrix,Tilda&geo=United%20States%20of%20America&rank=Top%20100k&start=latest'
 };
 
-const NUM_REQUESTS = 200;
+const NUM_REQUESTS = 100;
 const CONCURRENCY = 10;
 const MAX_JITTER_MS = 100;
 

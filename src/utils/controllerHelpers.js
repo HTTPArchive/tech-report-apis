@@ -38,19 +38,42 @@ const sendValidationError = (res, errors) => {
   res.end(JSON.stringify(createErrorResponse(errors)));
 };
 
+// Cache for latest dates to avoid repeated queries
+const latestDateCache = new Map();
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
+
 /**
- * Get the latest date from a collection
+ * Get the latest date from a collection with caching
  * @param {Object} firestore - Firestore instance
  * @param {string} collection - Collection name
  * @returns {string|null} - Latest date or null
  */
 const getLatestDate = async (firestore, collection) => {
+  const now = Date.now();
+  const cacheKey = collection;
+  const cached = latestDateCache.get(cacheKey);
+
+  // Check if we have a valid cached result
+  if (cached && (now - cached.timestamp) < CACHE_TTL) {
+    return cached.date;
+  }
+
+  // Query for latest date
   const query = firestore.collection(collection).orderBy('date', 'desc').limit(1);
   const snapshot = await query.get();
+
+  let latestDate = null;
   if (!snapshot.empty) {
-    return snapshot.docs[0].data().date;
+    latestDate = snapshot.docs[0].data().date;
   }
-  return null;
+
+  // Cache the result
+  latestDateCache.set(cacheKey, {
+    date: latestDate,
+    timestamp: now
+  });
+
+  return latestDate;
 };
 
 /**

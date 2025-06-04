@@ -104,7 +104,7 @@ test_endpoint "/v1/geos" ""
 test_endpoint "/v1/adoption" "?technology=WordPress&geo=ALL&rank=ALL&start=latest"
 
 # Test cwv endpoint
-test_endpoint "/v1/cwv" "?technology=WordPress&geo=ALL&rank=ALL&start=latest"
+test_endpoint "/v1/cwv" "?technology=WordPress,Drupal&geo=ALL&rank=ALL&start=latest"
 
 # Test lighthouse endpoint
 test_endpoint "/v1/lighthouse" "?technology=WordPress&geo=ALL&rank=ALL&start=latest"
