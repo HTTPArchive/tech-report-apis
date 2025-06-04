@@ -1,12 +1,22 @@
 import { firestore } from '../utils/db.js';
-import { createSuccessResponse } from '../utils/helpers.js';
-import { handleControllerError } from '../utils/controllerHelpers.js';
+import { handleControllerError, generateQueryCacheKey, getCachedQueryResult, setCachedQueryResult } from '../utils/controllerHelpers.js';
 
 /**
  * List all geographic locations from database
  */
 const listGeos = async (req, res) => {
   try {
+    // Generate cache key for this query
+    const cacheKey = generateQueryCacheKey('geos', { orderBy: 'mobile_origins' });
+
+    // Check cache first
+    const cachedResult = getCachedQueryResult(cacheKey);
+    if (cachedResult) {
+      res.statusCode = 200;
+      res.end(JSON.stringify(cachedResult));
+      return;
+    }
+
     const snapshot = await firestore.collection('geos').orderBy('mobile_origins', 'desc').get();
     const data = [];
 
@@ -15,8 +25,11 @@ const listGeos = async (req, res) => {
       data.push({ geo: doc.data().geo });
     });
 
+    // Cache the result
+    setCachedQueryResult(cacheKey, data);
+
     res.statusCode = 200;
-    res.end(JSON.stringify(createSuccessResponse(data)));
+    res.end(JSON.stringify(data));
   } catch (error) {
     handleControllerError(res, error, 'fetching geographic locations');
   }

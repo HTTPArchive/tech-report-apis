@@ -1,12 +1,22 @@
 import { firestore } from '../utils/db.js';
-import { createSuccessResponse } from '../utils/helpers.js';
-import { handleControllerError } from '../utils/controllerHelpers.js';
+import { handleControllerError, generateQueryCacheKey, getCachedQueryResult, setCachedQueryResult } from '../utils/controllerHelpers.js';
 
 /**
  * List all rank options from database
  */
 const listRanks = async (req, res) => {
   try {
+    // Generate cache key for this query
+    const cacheKey = generateQueryCacheKey('ranks', { orderBy: 'mobile_origins' });
+
+    // Check cache first
+    const cachedResult = getCachedQueryResult(cacheKey);
+    if (cachedResult) {
+      res.statusCode = 200;
+      res.end(JSON.stringify(cachedResult));
+      return;
+    }
+
     const snapshot = await firestore.collection('ranks').orderBy('mobile_origins', 'desc').get();
     const data = [];
 
@@ -16,8 +26,11 @@ const listRanks = async (req, res) => {
       data.push({ rank: docData.rank });
     });
 
+    // Cache the result
+    setCachedQueryResult(cacheKey, data);
+
     res.statusCode = 200;
-    res.end(JSON.stringify(createSuccessResponse(data)));
+    res.end(JSON.stringify(data));
   } catch (error) {
     handleControllerError(res, error, 'fetching ranks');
   }

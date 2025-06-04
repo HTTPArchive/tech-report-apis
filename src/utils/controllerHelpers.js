@@ -1,4 +1,4 @@
-import { createErrorResponse, convertToArray } from './helpers.js';
+import { convertToHashes, convertToArray } from './helpers.js';
 
 /**
  * Common parameter validation patterns
@@ -26,6 +26,19 @@ const validateRequiredParams = (params, required) => {
   }
 
   return errors.length > 0 ? errors : null;
+};
+
+
+/**
+ * Creates an error response object
+ * @param {Array<Array<string>>} errors - Array of [key, message] arrays
+ * @returns {Object} Error response object
+ */
+const createErrorResponse = (errors) => {
+  return {
+    success: false,
+    errors: convertToHashes(errors)
+  };
 };
 
 /**

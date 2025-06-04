@@ -24,25 +24,5 @@ const convertToHashes = (arr) => {
   return arr.map(([key, message]) => ({ [key]: message }));
 };
 
-/**
- * Creates a successful response object
- * @param {*} data - The data to return
- * @returns {Object} Success response object
- */
-const createSuccessResponse = (data) => {
-  return data;
-};
 
-/**
- * Creates an error response object
- * @param {Array<Array<string>>} errors - Array of [key, message] arrays
- * @returns {Object} Error response object
- */
-const createErrorResponse = (errors) => {
-  return {
-    success: false,
-    errors: convertToHashes(errors)
-  };
-};
-
-export { convertToArray, createSuccessResponse, createErrorResponse };
+export { convertToArray, convertToHashes };

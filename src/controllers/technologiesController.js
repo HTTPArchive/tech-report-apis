@@ -1,6 +1,11 @@
 import { firestore } from '../utils/db.js';
-import { createSuccessResponse } from '../utils/helpers.js';
-import { applyArrayFilter, selectFields, handleControllerError } from '../utils/controllerHelpers.js';
+import {
+  applyArrayFilter,
+  selectFields,
+  generateQueryCacheKey,
+  getCachedQueryResult,
+  setCachedQueryResult
+} from '../utils/controllerHelpers.js';
 
 // Technology Presenter - optimized with destructuring
 const presentTechnology = ({ technology, category, description, icon, origins }) => ({
@@ -12,13 +17,30 @@ const presentTechnology = ({ technology, category, description, icon, origins })
 });
 
 /**
- * List technologies with optional filtering and field selection
+ * List technologies with optional filtering and field selection - Optimized version
  */
 const listTechnologies = async (req, res) => {
   try {
     const params = req.query;
     const isOnlyNames = params.onlyname || typeof params.onlyname === 'string';
     const hasCustomFields = params.fields && !isOnlyNames;
+
+    // Create cache key for this specific query
+    const queryFilters = {
+      technology: params.technology,
+      category: params.category,
+      onlyname: isOnlyNames,
+      fields: params.fields
+    };
+    const cacheKey = generateQueryCacheKey('technologies', queryFilters);
+
+    // Check cache first
+    const cachedResult = getCachedQueryResult(cacheKey);
+    if (cachedResult) {
+      res.statusCode = 200;
+      res.end(JSON.stringify(cachedResult));
+      return;
+    }
 
     let query = firestore.collection('technologies').orderBy('technology', 'asc');
 
@@ -44,11 +66,18 @@ const listTechnologies = async (req, res) => {
       }
     });
 
-    // Send response
+    // Cache the result
+    setCachedQueryResult(cacheKey, data);
+
+    // Direct response
     res.statusCode = 200;
-    res.end(JSON.stringify(createSuccessResponse(data)));
+    res.end(JSON.stringify(data));
   } catch (error) {
-    handleControllerError(res, error, 'fetching technologies');
+    console.error('Error fetching technologies:', error);
+    res.statusCode = 500;
+    res.end(JSON.stringify({
+      errors: [{ error: 'Failed to fetch technologies' }]
+    }));
   }
 };
 

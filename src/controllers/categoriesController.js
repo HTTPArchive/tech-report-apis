@@ -1,15 +1,36 @@
 import { firestore } from '../utils/db.js';
-import { createSuccessResponse } from '../utils/helpers.js';
-import { applyArrayFilter, selectFields, handleControllerError } from '../utils/controllerHelpers.js';
+import {
+  applyArrayFilter,
+  selectFields,
+  generateQueryCacheKey,
+  getCachedQueryResult,
+  setCachedQueryResult
+} from '../utils/controllerHelpers.js';
 
 /**
- * List categories with optional filtering and field selection
+ * List categories with optional filtering and field selection - Optimized version
  */
 const listCategories = async (req, res) => {
   try {
     const params = req.query;
     const isOnlyNames = params.onlyname || typeof params.onlyname === 'string';
     const hasCustomFields = params.fields && !isOnlyNames;
+
+    // Create cache key for this specific query
+    const queryFilters = {
+      category: params.category,
+      onlyname: isOnlyNames,
+      fields: params.fields
+    };
+    const cacheKey = generateQueryCacheKey('categories', queryFilters);
+
+    // Check cache first
+    const cachedResult = getCachedQueryResult(cacheKey);
+    if (cachedResult) {
+      res.statusCode = 200;
+      res.end(JSON.stringify(cachedResult));
+      return;
+    }
 
     let query = firestore.collection('categories').orderBy('category', 'asc');
 
@@ -34,11 +55,18 @@ const listCategories = async (req, res) => {
       }
     });
 
-    // Send response
+    // Cache the result
+    setCachedQueryResult(cacheKey, data);
+
+    // Direct response
     res.statusCode = 200;
-    res.end(JSON.stringify(createSuccessResponse(data)));
+    res.end(JSON.stringify(data));
   } catch (error) {
-    handleControllerError(res, error, 'fetching categories');
+    console.error('Error fetching categories:', error);
+    res.statusCode = 500;
+    res.end(JSON.stringify({
+      errors: [{ error: 'Failed to fetch categories' }]
+    }));
   }
 };
 
