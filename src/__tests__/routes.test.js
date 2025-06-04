@@ -334,7 +334,7 @@ describe('API Routes', () => {
       const res = await request(app).get('/v1/technologies');
       expect(res.headers['access-control-allow-origin']).toEqual('*');
       expect(res.headers['content-type']).toContain('application/json');
-      expect(res.headers['cache-control']).toContain('no-cache');
+      expect(res.headers['cache-control']).toContain('public');
     });
 
     it('should include ETag headers for caching', async () => {
