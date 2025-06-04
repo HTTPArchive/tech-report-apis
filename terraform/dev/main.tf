@@ -22,7 +22,7 @@ resource "google_api_gateway_api" "api" {
 resource "google_api_gateway_api_config" "api_config" {
   provider             = google-beta
   api                  = google_api_gateway_api.api.api_id
-  api_config_id_prefix = "reports_api_config_dev"
+  api_config_id_prefix = "reports-api-config-dev"
   project              = var.project
   display_name         = "Reports API Config DEV"
   openapi_documents {
