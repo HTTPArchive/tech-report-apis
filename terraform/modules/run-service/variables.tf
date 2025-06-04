@@ -2,7 +2,7 @@ variable "secrets" {
   default = []
 }
 variable "region" {
-  default = "us-east1"
+  default = "us-central1"
   type    = string
 }
 variable "environment" {
@@ -22,12 +22,12 @@ variable "entry_point" {
   type        = string
 }
 variable "available_memory_mb" {
-  default     = "1Gi"
+  default     = "2Gi"
   type        = string
   description = "The amount of memory for the Cloud Function"
 }
 variable "available_cpu" {
-  default     = "1"
+  default     = "2"
   type        = string
   description = "The amount of CPU for the Cloud Function"
 }
