@@ -13,8 +13,8 @@ provider "google" {
 
 resource "google_api_gateway_api" "api" {
   provider     = google-beta
-  api_id       = "api-gw-dev"
-  display_name = "The dev API Gateway"
+  api_id       = "reports-api"
+  display_name = "Reports API Gateway"
   project      = var.project
 }
 
@@ -22,17 +22,16 @@ resource "google_api_gateway_api" "api" {
 resource "google_api_gateway_api_config" "api_config" {
   provider             = google-beta
   api                  = google_api_gateway_api.api.api_id
-  api_config_id_prefix = "api"
+  api_config_id_prefix = "reports_api_config_dev"
   project              = var.project
-  display_name         = "The dev Config"
+  display_name         = "Reports API Config DEV"
   openapi_documents {
     document {
       path = "spec.yaml"
       contents = base64encode(<<-EOF
 swagger: "2.0"
 info:
-  title: reports-backend-api
-  description: API tech report
+  title: reports_api_config_dev
   version: 1.0.0
 schemes:
   - https
@@ -116,8 +115,8 @@ resource "google_api_gateway_gateway" "gateway" {
   project      = var.project
   region       = var.region
   api_config   = google_api_gateway_api_config.api_config.id
-  gateway_id   = "dev-gw"
-  display_name = "devApi Gateway"
+  gateway_id   = "reports-dev"
+  display_name = "Reports API Gateway DEV"
   labels = {
     owner       = "tech_report_api"
     environment = var.environment
