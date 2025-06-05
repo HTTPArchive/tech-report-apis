@@ -13,8 +13,8 @@ provider "google" {
 
 resource "google_api_gateway_api" "api" {
   provider     = google-beta
-  api_id       = "reports-api"
-  display_name = "Reports API Gateway"
+  api_id       = "reports-api-dev"
+  display_name = "Reports API Gateway DEV"
   project      = var.project
 }
 

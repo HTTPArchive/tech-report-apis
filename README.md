@@ -1,6 +1,6 @@
-# Technology Reports API (Node.js)
+# Reports API
 
-This is a unified Google Cloud Run function that provides technology metrics and information via various endpoints.
+This is an HTTP Archive Reporting API that provides reporting data via various endpoints.
 
 ## Setup
 
@@ -12,7 +12,6 @@ This is a unified Google Cloud Run function that provides technology metrics and
 - Set environment variables:
 
     ```bash
-    export PROJECT=httparchive
     export DATABASE=tech-report-api-prod
     ```
 
@@ -20,100 +19,33 @@ This is a unified Google Cloud Run function that provides technology metrics and
 
   ```bash
   npm install
-  npm start:functions
+  npm run start
   ```
 
-The API will be available at <http://localhost:8080>
-
-### Google Cloud Functions Mode
-
-  ```bash
-  npm install
-  npm run start:functions
-  ```
-
-The function will run on `http://localhost:8080`
-
-## Deployment
-
-### Deploy to Google Cloud Run Function
-
-```bash
-# Deploy to Google Cloud Functions
-gcloud functions deploy tech-report-api \
-  --runtime nodejs22 \
-  --trigger-http \
-  --allow-unauthenticated \
-  --entry-point api \
-  --source .
-```
+The API will be available at <http://localhost:3000>
 
 ## API Endpoints
 
-## Features
-
-- **ETag Support**: All endpoints include ETag headers for efficient caching
 - **CORS Enabled**: Cross-origin requests are supported
 - **Cache Headers**: 6-hour cache control for static data
 - **Health Check**: GET `/` returns health status
 - **RESTful API**: All endpoints follow REST conventions
+- **Backend caching**: Some responses are cached on the backend for 1 hours to improve latency
 
 ### `GET /`
 
-Health check
-
-### `GET /technologies`
-
-Lists available technologies with optional filtering.
-
-#### Parameters
-
-- `technology` (optional): Filter by technology name(s) - comma-separated list
-- `category` (optional): Filter by category - comma-separated list
-- `onlyname` (optional): If present, returns only technology names
-
-#### Example Request & Response
+Health check endpoint that returns the current status of the API.
 
 ```bash
 curl --request GET \
-  --url 'https://{{HOST}}/v1/technologies?category=Live%20chat%2C%20blog&technology=Smartsupp'
+  --url 'https://{{HOST}}/v1/health'
 ```
 
 Returns a JSON object with the following schema:
 
 ```json
-[
-  {
-    "technology": "Smartsupp",
-    "category": "Live chat",
-    "description": "Smartsupp is a live chat tool that offers visitor recording feature.",
-    "icon": "Smartsupp.svg",
-    "origins": {
-      "mobile": 24115,
-      "desktop": 20250
-    }
-  }
-]
-```
-
-```bash
-curl --request GET \
-  --url 'https://{{HOST}}/v1/technologies?onlyname'
-```
-
-Returns a JSON object with the following schema:
-
-```json
-[
-    "1C-Bitrix",
-    "2B Advice",
-    "33Across",
-    "34SP.com",
-    "4-Tell",
-    "42stores",
-    "51.LA",
-    "5centsCDN",
-    ...
+{
+    "status": "ok"
 }
 ```
 
@@ -125,6 +57,7 @@ Lists available categories.
 
 - `category` (optional): Filter by category name(s) - comma-separated list
 - `onlyname` (optional): If present, returns only category names
+- `fields` (optional): Comma-separated list of fields to include in the response (see [Field Selection API Documentation](#field-selection-api-documentation) for details)
 
 #### Categories Response
 
@@ -179,6 +112,96 @@ curl --request GET \
 ]
 ```
 
+### `GET /technologies`
+
+Lists available technologies with optional filtering.
+
+#### Parameters
+
+- `technology` (optional): Filter by technology name(s) - comma-separated list
+- `category` (optional): Filter by category - comma-separated list
+- `onlyname` (optional): If present, returns only technology names
+- `fields` (optional): Comma-separated list of fields to include in the response (see [Field Selection API Documentation](#field-selection-api-documentation) for details)
+
+#### Example Request & Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/technologies?category=Live%20chat%2C%20blog&technology=Smartsupp'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+[
+  {
+    "technology": "Smartsupp",
+    "category": "Live chat",
+    "description": "Smartsupp is a live chat tool that offers visitor recording feature.",
+    "icon": "Smartsupp.svg",
+    "origins": {
+      "mobile": 24115,
+      "desktop": 20250
+    }
+  }
+]
+```
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/technologies?onlyname'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+[
+    "1C-Bitrix",
+    "2B Advice",
+    "33Across",
+    "34SP.com",
+    "4-Tell",
+    "42stores",
+    "51.LA",
+    "5centsCDN",
+    ...
+}
+```
+
+### `GET /versions`
+
+Lists available versions.
+
+#### Versions Parameters
+
+- `version` (optional): Filter by version name(s) - comma-separated list
+- `technology` (optional): Filter by technology name(s) - comma-separated list
+- `category` (optional): Filter by category - comma-separated list
+- `onlyname` (optional): If present, returns only version names
+- `fields` (optional): Comma-separated list of fields to include in the response (see [Field Selection API Documentation](#field-selection-api-documentation) for details)
+
+#### Versions Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/versions?technology=WordPress&version=6.2.2'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+[
+    {
+        "technology": "WordPress",
+        "version": "6.2.2",
+        "origins": {
+            "mobile": 123456,
+            "desktop": 654321
+        }
+    }
+]
+```
+
 ### `GET /adoption`
 
 Provides technology adoption data.
@@ -204,9 +227,7 @@ Returns a JSON object with the following schema:
 [
     {
         "technology": "GoCache",
-        "geo": "Mexico",
         "date": "2023-06-01",
-        "rank": "ALL",
         "adoption": {
             "mobile": 19,
             "desktop": 11
@@ -239,9 +260,7 @@ curl --request GET \
 ```json
 [
     {
-        "geo": "Uruguay",
         "date": "2023-06-01",
-        "rank": "ALL",
         "technology": "DomainFactory",
         "vitals": [
             {
@@ -285,9 +304,7 @@ Returns a JSON object with the following schema:
 ```json
 [
     {
-        "geo": "Maldives",
         "date": "2023-06-01",
-        "rank": "ALL",
         "technology": "Oracle HTTP Server",
         "lighthouse": [
             {
@@ -334,15 +351,38 @@ Returns a JSON object with the following schema:
 ```json
 [
     {
-        "client": "desktop",
-        "date": "2023-07-01",
-        "geo": "ALL",
-        "median_bytes_image": "1048110",
-        "technology": "WordPress",
-        "median_bytes_total": "2600099",
-        "median_bytes_js": "652651",
-        "rank": "ALL"
-    }
+        "date": "2020-06-01",
+        "pageWeight": [
+            {
+                "desktop": {
+                    "median_bytes": 2428028
+                },
+                "mobile": {
+                    "median_bytes": 2430912
+                },
+                "name": "total"
+            },
+            {
+                "desktop": {
+                    "median_bytes": 490451
+                },
+                "mobile": {
+                    "median_bytes": 477218
+                },
+                "name": "js"
+            },
+            {
+                "desktop": {
+                    "median_bytes": 1221876
+                },
+                "mobile": {
+                    "median_bytes": 1296673
+                },
+                "name": "images"
+            }
+        ],
+        "technology": "WordPress"
+    },
     ...
 ]
 ```
@@ -351,9 +391,70 @@ Returns a JSON object with the following schema:
 
 Lists all available ranks.
 
+#### Ranks Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/ranks'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+[
+    {
+        "rank": "ALL"
+    },
+    {
+        "rank": "Top 10M"
+    },
+    ...
+]
+```
+
 ### `GET /geos`
 
 Lists all available geographic locations.
+
+#### Geos Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/geos'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+[
+    {
+        "geo": "ALL"
+    },
+    {
+        "geo": "United States of America"
+    },
+    ...
+]
+```
+
+### `GET /cache-stats`
+
+Provides statistics about the API's cache.
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/cache-stats'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+{
+    "cache_hits": 12345,
+    "cache_misses": 6789,
+    "last_cleared": "2023-10-01T12:00:00Z"
+}
+```
 
 ## Testing
 
@@ -392,29 +493,36 @@ Or in case of an error:
 
 The categories and technologies endpoints now support custom field selection, allowing clients to specify exactly which fields they want in the response. This feature helps reduce payload size and improves API performance by returning only the needed data.
 
-### Endpoints Supporting Field Selection
+### Categories Endpoint
 
-- `GET /v1/technologies`
-- `GET /v1/categories`
+- `category` - Category name
+- `description` - Category description
+- `technologies` - Array of technology names in the category
+- `origins` - Array of origin companies/organizations
 
-### Usage
+Get only category names:
 
-#### Basic Syntax
-
-Add a `fields` parameter to your request with comma-separated field names:
-
+```http
+GET /v1/categories?fields=category
 ```
-GET /v1/technologies?fields=technology,category
+
+Get categories with descriptions:
+
+```http
 GET /v1/categories?fields=category,description
 ```
 
-#### Examples
+### Technologies Endpoint
 
-##### Technologies Endpoint
+- `technology` - Technology name
+- `category` - Category name
+- `description` - Technology description
+- `icon` - Icon filename
+- `origins` - Array of origin companies/organizations
 
-**Get only technology names and categories:**
+Get only technology names and categories:
 
-```
+```http
 GET /v1/technologies?fields=technology,category
 ```
 
@@ -435,77 +543,68 @@ Response:
 }
 ```
 
-**Get technology names and descriptions:**
+Combine with existing filters:
 
-```
-GET /v1/technologies?fields=technology,description
-```
-
-**Combine with existing filters:**
-
-```
+```http
 GET /v1/technologies?category=JavaScript%20Frameworks&fields=technology,icon
 ```
 
-##### Categories Endpoint
-
-**Get only category names:**
-
-```
-GET /v1/categories?fields=category
-```
-
-**Get categories with descriptions:**
-
-```
-GET /v1/categories?fields=category,description
-```
-
-#### Behavior Notes
-
-1. **Field Priority**: The `fields` parameter takes precedence over other response formatting options, except for `onlyname`
-2. **Invalid Fields**: Non-existent fields are silently ignored
-3. **Empty Fields**: If no valid fields are specified, the full object is returned
-4. **Backward Compatibility**: When `fields` is not specified, endpoints return their default response format
-5. **onlyname Override**: The `onlyname` parameter still takes precedence over `fields` for backward compatibility
-
-#### Available Fields
-
-##### Technologies Endpoint
+### Versions Endpoint
 
 - `technology` - Technology name
-- `category` - Category name
-- `description` - Technology description
-- `icon` - Icon filename
-- `origins` - Array of origin companies/organizations
+- `version` - Version name
+- `origins` - Mobile and desktop origins
 
-##### Categories Endpoint
+Get only technology and version names:
 
-- `category` - Category name
-- Additional fields depend on your data structure
+```http
+GET /v1/versions?fields=technology,version
+```
 
-#### Error Handling
+Response:
 
-The field selection feature handles errors gracefully:
+```json
+{
+  {
+    "technology": "React",
+    "version": "18.2.0"
+  },
+  {
+    "technology": "Angular",
+    "version": "12.0.0"
+  },
+  ...
+}
+```
 
-- Invalid field names are ignored
-- Empty field lists return full objects
-- Malformed field parameters fallback to default behavior
+## Cache Stats Private Endpoint
 
-#### Performance Benefits
+The Cache Stats private endpoint provides information about the API's cache performance, including cache hits, misses, and the last time the cache was cleared. This endpoint is useful for monitoring and debugging cache behavior.
 
-- **Reduced Payload Size**: Only requested fields are included
-- **Faster Parsing**: Clients process smaller JSON objects
-- **Bandwidth Savings**: Less data transferred over the network
-- **Improved Caching**: More specific responses can be cached more effectively
+```bash
+curl "https://tech-report-api-dev-226352634162.us-central1.run.app/v1/cache-stats" \
+  -H "Authorization: bearer $(gcloud auth print-identity-token)"
+```
 
-#### Migration Guide
+Returns a JSON object with the following schema:
 
-Existing API consumers are not affected by this change. The field selection feature is entirely opt-in through the `fields` parameter.
-
-To adopt field selection:
-
-1. Identify which fields your application actually uses
-2. Add the `fields` parameter with those field names
-3. Update your client code to handle the new response structure
-4. Test thoroughly with your specific use cases
+```json
+{
+    "queryCache": {
+        "total": 3220,
+        "valid": 2437,
+        "expired": 783,
+        "ttl": 3600000
+    },
+    "dateCache": {
+        "total": 4,
+        "valid": 4,
+        "expired": 0,
+        "ttl": 3600000
+    },
+    "config": {
+        "maxCacheSize": 5000,
+        "cleanupStrategy": "size-based-lru"
+    }
+}
+```
