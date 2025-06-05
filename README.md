@@ -502,13 +502,13 @@ The categories and technologies endpoints now support custom field selection, al
 
 Get only category names:
 
-```
+```http
 GET /v1/categories?fields=category
 ```
 
 Get categories with descriptions:
 
-```
+```http
 GET /v1/categories?fields=category,description
 ```
 
@@ -522,7 +522,7 @@ GET /v1/categories?fields=category,description
 
 Get only technology names and categories:
 
-```
+```http
 GET /v1/technologies?fields=technology,category
 ```
 
@@ -545,7 +545,7 @@ Response:
 
 Combine with existing filters:
 
-```
+```http
 GET /v1/technologies?category=JavaScript%20Frameworks&fields=technology,icon
 ```
 
@@ -557,7 +557,8 @@ GET /v1/technologies?category=JavaScript%20Frameworks&fields=technology,icon
 
 Get only technology and version names:
 
-```GET /v1/versions?fields=technology,version
+```http
+GET /v1/versions?fields=technology,version
 ```
 
 Response:
