@@ -55,12 +55,11 @@ const sendValidationError = (res, errors) => {
 const latestDateCache = new Map();
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
 
-// Cache for query results to eliminate bimodal performance
 const queryResultCache = new Map();
-const QUERY_CACHE_TTL = 10 * 60 * 1000; // 10 minutes for query results
+const QUERY_CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
 
 // Cache size limit
-const MAX_CACHE_SIZE = 3000; // Maximum number of cache entries
+const MAX_CACHE_SIZE = 5000; // Maximum number of cache entries
 
 /**
  * Clean up cache when it exceeds size limit (LRU-style cleanup)
