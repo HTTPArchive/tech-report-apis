@@ -316,7 +316,7 @@ const getCacheStats = () => {
       ttl: CACHE_TTL
     },
     config: {
-      maxCacheSize: MAX_CACHE_SIZE,
+      maxQueryCacheSize: MAX_CACHE_SIZE,
       cleanupStrategy: 'size-based-lru'
     }
   };

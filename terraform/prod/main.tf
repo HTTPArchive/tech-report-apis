@@ -14,7 +14,7 @@ provider "google" {
 resource "google_api_gateway_api" "api" {
   provider     = google-beta
   api_id       = "reports-api-prod"
-  display_name = "Reports API Gateway"
+  display_name = "Reports API Gateway PROD"
   project      = var.project
 }
 
