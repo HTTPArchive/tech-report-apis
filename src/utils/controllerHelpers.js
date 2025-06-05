@@ -1,4 +1,4 @@
-import { convertToHashes, convertToArray } from './helpers.js';
+import { convertToArray } from './helpers.js';
 
 /**
  * Common parameter validation patterns
@@ -28,19 +28,6 @@ const validateRequiredParams = (params, required) => {
   return errors.length > 0 ? errors : null;
 };
 
-
-/**
- * Creates an error response object
- * @param {Array<Array<string>>} errors - Array of [key, message] arrays
- * @returns {Object} Error response object
- */
-const createErrorResponse = (errors) => {
-  return {
-    success: false,
-    errors: convertToHashes(errors)
-  };
-};
-
 /**
  * Send error response for missing parameters
  * @param {Object} res - Response object
@@ -48,7 +35,10 @@ const createErrorResponse = (errors) => {
  */
 const sendValidationError = (res, errors) => {
   res.statusCode = 400;
-  res.end(JSON.stringify(createErrorResponse(errors)));
+  res.end(JSON.stringify({
+    success: false,
+    errors: errors.map(([key, message]) => ({ [key]: message }))
+  }));
 };
 
 // Cache for latest dates to avoid repeated queries
@@ -166,112 +156,22 @@ const getLatestDate = async (firestore, collection) => {
 };
 
 /**
- * Apply date filters to a query
- * @param {Object} query - Firestore query
- * @param {Object} params - Request parameters
- * @returns {Object} - Modified query
- */
-const applyDateFilters = (query, params) => {
-  if (params.start) {
-    query = query.where('date', '>=', params.start);
-  }
-  if (params.end) {
-    query = query.where('date', '<=', params.end);
-  }
-  return query;
-};
-
-/**
- * Apply standard filters (geo, rank, technology, version) to a query
- * @param {Object} query - Firestore query
- * @param {Object} params - Request parameters
- * @param {string} technology - Technology name
- * @param {Array} techArray - Array of technologies (used for version filtering)
- * @returns {Object} - Modified query
- */
-const applyStandardFilters = (query, params, technology, techArray = []) => {
-  if (params.geo) {
-    query = query.where('geo', '==', params.geo);
-  }
-  if (params.rank) {
-    query = query.where('rank', '==', params.rank);
-  }
-  if (technology) {
-    query = query.where('technology', '==', technology);
-  }
-
-  // Apply version filter with special handling for 'ALL' case
-  if (params.version && techArray.length === 1) {
-    //query = query.where('version', '==', params.version); // TODO: Uncomment when migrating to a new data schema
-  } else {
-    //query = query.where('version', '==', 'ALL');
-  }
-
-  return query;
-};
-
-/**
- * Process technology array and handle 'latest' date substitution
- * @param {Object} firestore - Firestore instance
- * @param {Object} params - Request parameters
- * @param {string} collection - Collection name
- * @returns {Object} - Processed parameters and tech array
- */
-const preprocessParams = async (firestore, params, collection) => {
-  // Handle 'latest' special value for start parameter
-  if (params.start && params.start === 'latest') {
-    params.start = await getLatestDate(firestore, collection);
-  }
-
-  // Handle version 'ALL' special case for multiple technologies
-  const techArray = convertToArray(params.technology);
-  if (!params.version || techArray.length > 1) {
-    params.version = 'ALL';
-  }
-
-  return { params, techArray };
-};
-
-/**
- * Apply array-based filters using 'in' or 'array-contains-any' operators
- * @param {Object} query - Firestore query
- * @param {string} field - Field name to filter on
+ * Validate array parameter against Firestore limit
  * @param {string} value - Comma-separated values or single value
- * @param {string} operator - Firestore operator ('in' or 'array-contains-any')
- * @returns {Object} - Modified query
+ * @param {string} fieldName - Field name for error messages (optional)
+ * @returns {Array} - Validated array
+ * @throws {Error} - If array exceeds Firestore limit
  */
-const applyArrayFilter = (query, field, value, operator = 'in') => {
-  if (!value) return query;
+const validateArrayParameter = (value, fieldName = 'parameter') => {
+  if (!value) return [];
+
   const valueArray = convertToArray(value);
 
-  if (valueArray.length > 0) {
-    query = query.where(field, operator, valueArray);
+  if (valueArray.length > FIRESTORE_IN_LIMIT) {
+    throw new Error(`Too many values specified for ${fieldName}. Maximum ${FIRESTORE_IN_LIMIT} allowed.`);
   }
 
-  return query;
-};
-
-/**
- * Select specific fields from an object based on comma-separated field names
- * @param {Object} data - Source data object
- * @param {string} fieldsParam - Comma-separated field names (e.g., "technology,category")
- * @returns {Object} - Object containing only requested fields
- */
-const selectFields = (data, fieldsParam) => {
-  if (!fieldsParam) return data;
-
-  const fields = convertToArray(fieldsParam);
-
-  if (fields.length === 0) return data;
-
-  const result = {};
-  fields.forEach(field => {
-    if (data.hasOwnProperty(field)) {
-      result[field] = data[field];
-    }
-  });
-
-  return result;
+  return valueArray;
 };
 
 /**
@@ -336,19 +236,95 @@ const handleControllerError = (res, error, operation) => {
   }));
 };
 
+/**
+ * Generic cache-enabled query executor
+ * Handles caching, query execution, and response for simple queries
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @param {string} collection - Firestore collection name
+ * @param {Function} queryBuilder - Function to build the query
+ * @param {Function} dataProcessor - Optional function to process results
+ */
+const executeQuery = async (req, res, collection, queryBuilder, dataProcessor = null, customCacheKeyData = null) => {
+  try {
+    const params = req.query;
+
+    // Generate cache key with custom data if provided
+    const cacheKeyData = customCacheKeyData ? { ...params, ...customCacheKeyData } : params;
+    const cacheKey = generateQueryCacheKey(collection, cacheKeyData);
+
+    // Check cache first
+    const cachedResult = getCachedQueryResult(cacheKey);
+    if (cachedResult) {
+      res.statusCode = 200;
+      res.end(JSON.stringify(cachedResult));
+      return;
+    }
+
+    // Build and execute query
+    const query = await queryBuilder(params);
+    const snapshot = await query.get();
+
+    let data = [];
+    snapshot.forEach(doc => {
+      data.push(doc.data());
+    });
+
+    // Process data if processor provided
+    if (dataProcessor) {
+      data = dataProcessor(data, params);
+    }
+
+    // Cache the result
+    setCachedQueryResult(cacheKey, data);
+
+    // Send response
+    res.statusCode = 200;
+    res.end(JSON.stringify(data));
+
+  } catch (error) {
+    // Handle validation errors specifically
+    if (error.message.includes('Too many technologies')) {
+      res.statusCode = 400;
+      res.end(JSON.stringify({
+        success: false,
+        errors: [{ technology: error.message }]
+      }));
+      return;
+    }
+
+    handleControllerError(res, error, `querying ${collection}`);
+  }
+};
+
+// Firestore 'in' operator limit
+const FIRESTORE_IN_LIMIT = 30;
+
+/**
+ * Technology array validation helper (backward compatibility wrapper)
+ * @param {string} technologyParam - Comma-separated technology string
+ * @returns {Array|null} - Array of technologies or null if too many
+ */
+const validateTechnologyArray = (technologyParam) => {
+  try {
+    return validateArrayParameter(technologyParam, 'technology');
+  } catch (error) {
+    return null; // Maintain backward compatibility - return null on validation failure
+  }
+};
+
 export {
   REQUIRED_PARAMS,
+  FIRESTORE_IN_LIMIT,
   validateRequiredParams,
   sendValidationError,
   getLatestDate,
-  applyDateFilters,
-  applyStandardFilters,
-  preprocessParams,
-  applyArrayFilter,
-  selectFields,
+  validateArrayParameter,
   handleControllerError,
   generateQueryCacheKey,
   getCachedQueryResult,
   setCachedQueryResult,
-  getCacheStats
+  getCacheStats,
+  executeQuery,
+  validateTechnologyArray
 };
