@@ -1,60 +1,132 @@
-# tech-report-apis
+# Technology Reports API (Node.js)
 
-APIs for the HTTP Archive Technology Report
+This is a unified Google Cloud Run function that provides technology metrics and information via various endpoints.
 
-## API
+## Setup
 
-## Endpoints
+### Prerequisites
 
-### `GET /adoption`
+- Node.js 18+
+- npm
+- Google Cloud account with necessary permissions
+- Set environment variables:
+
+    ```bash
+    export PROJECT=httparchive
+    export DATABASE=tech-report-api-prod
+    ```
+
+### Local Development
+
+  ```bash
+  npm install
+  npm start:functions
+  ```
+
+The API will be available at <http://localhost:8080>
+
+### Google Cloud Functions Mode
+
+  ```bash
+  npm install
+  npm run start:functions
+  ```
+
+The function will run on `http://localhost:8080`
+
+## Deployment
+
+### Deploy to Google Cloud Run Function
+
+```bash
+# Deploy to Google Cloud Functions
+gcloud functions deploy tech-report-api \
+  --runtime nodejs22 \
+  --trigger-http \
+  --allow-unauthenticated \
+  --entry-point api \
+  --source .
+```
+
+## API Endpoints
+
+## Features
+
+- **ETag Support**: All endpoints include ETag headers for efficient caching
+- **CORS Enabled**: Cross-origin requests are supported
+- **Cache Headers**: 6-hour cache control for static data
+- **Health Check**: GET `/` returns health status
+- **RESTful API**: All endpoints follow REST conventions
+
+### `GET /`
+
+Health check
+
+### `GET /technologies`
+
+Lists available technologies with optional filtering.
 
 #### Parameters
 
-The following parameters can be used to filter the data:
+- `technology` (optional): Filter by technology name(s) - comma-separated list
+- `category` (optional): Filter by category - comma-separated list
+- `onlyname` (optional): If present, returns only technology names
 
-- `geo` (`required`): A string representing the geographic location.
-- `technology` (`required`): A comma-separated string representing the technology name(s).
-- `rank` (`required`): An string representing the rank.
-- `start` (optional): A string representing the start date in the format `YYYY-MM-DD`.
-- `end` (optional): A string representing the end date in the format `YYYY-MM-DD`.
-
-#### Response
+#### Example Request & Response
 
 ```bash
 curl --request GET \
-  --url 'https://{{HOST}}/v1/adoption?start=2023-01-01&end=2023-09-01&geo=Mexico&technology=GoCache&rank=ALL'
+  --url 'https://{{HOST}}/v1/technologies?category=Live%20chat%2C%20blog&technology=Smartsupp'
 ```
 
 Returns a JSON object with the following schema:
 
 ```json
 [
-    {
-        "technology": "GoCache",
-        "geo": "Mexico",
-        "date": "2023-06-01",
-        "rank": "ALL",
-        "adoption": {
-            "mobile": 19,
-            "desktop": 11
-        }
-    },
-    ...
+  {
+    "technology": "Smartsupp",
+    "category": "Live chat",
+    "description": "Smartsupp is a live chat tool that offers visitor recording feature.",
+    "icon": "Smartsupp.svg",
+    "origins": {
+      "mobile": 24115,
+      "desktop": 20250
+    }
+  }
 ]
+```
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/technologies?onlyname'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+[
+    "1C-Bitrix",
+    "2B Advice",
+    "33Across",
+    "34SP.com",
+    "4-Tell",
+    "42stores",
+    "51.LA",
+    "5centsCDN",
+    ...
+}
 ```
 
 ### `GET /categories`
 
-This endpoint can return a full list of categories names or a categories with all the associated technologies
+Lists available categories.
 
-#### Parameters
+#### Categories Parameters
 
-The following parameters can be used to filter the data:
+- `category` (optional): Filter by category name(s) - comma-separated list
+- `onlyname` (optional): If present, returns only category names
 
-- `category` (optional): A comma-separated string representing the category name(s).
-- `onlyname` (optional): No value required. If present, only the category names will be returned.
-
-#### Response
+#### Categories Response
 
 ```bash
 curl --request GET \
@@ -105,22 +177,58 @@ curl --request GET \
     "Analytics",
   ...
 ]
-
 ```
 
-### `GET /cwv`
+### `GET /adoption`
 
-#### Parameters
+Provides technology adoption data.
 
-The following parameters can be used to filter the data:
+#### Adoption Parameters
 
-- `geo` (`required`): A string representing the geographic location.
-- `technology` (`required`): A string representing the technology name.
-- `rank` (`required`): An string representing the rank.
-- `start` (optional): A string representing the start date in the format `YYYY-MM-DD`.
-- `end` (optional): A string representing the end date in the format `YYYY-MM-DD`.
+- `technology` (required): Filter by technology name(s) - comma-separated list
+- `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
+- `end` (optional): Filter by date range end (YYYY-MM-DD)
+- `geo` (optional): Filter by geographic location
+- `rank` (optional): Filter by rank
 
-#### Response
+#### Adoption Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/adoption?start=2023-01-01&end=2023-09-01&geo=Mexico&technology=GoCache&rank=ALL'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+[
+    {
+        "technology": "GoCache",
+        "geo": "Mexico",
+        "date": "2023-06-01",
+        "rank": "ALL",
+        "adoption": {
+            "mobile": 19,
+            "desktop": 11
+        }
+    },
+    ...
+]
+```
+
+### `GET /cwv` (Core Web Vitals)
+
+Provides Core Web Vitals metrics for technologies.
+
+#### CWV Parameters
+
+- `technology` (required): Filter by technology name(s) - comma-separated list
+- `geo` (required): Filter by geographic location
+- `rank` (required): Filter by rank
+- `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
+- `end` (optional): Filter by date range end (YYYY-MM-DD)
+
+#### CWV Response
 
 ```bash
 curl --request GET \
@@ -151,22 +259,21 @@ curl --request GET \
         ]
     }
 ]
-
 ```
 
 ### `GET /lighthouse`
 
-#### Parameters
+Provides Lighthouse scores for technologies.
 
-The following parameters can be used to filter the data:
+#### Lighthouse Parameters
 
-- `technology` (`required`): A comma-separated string representing the technology name(s).
-- `geo` (`required`): A string representing the geographic location.
-- `rank` (`required`): An string representing the rank.
-- `start` (optional): A string representing the start date in the format `YYYY-MM-DD`.
-- `end` (optional): A string representing the end date in the format `YYYY-MM-DD`.
+- `technology` (required): Filter by technology name(s) - comma-separated list
+- `geo` (required): Filter by geographic location
+- `rank` (required): Filter by rank
+- `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
+- `end` (optional): Filter by date range end (YYYY-MM-DD)
 
-#### Response
+#### Lighthouse Response
 
 ```bash
 curl --request GET \
@@ -205,17 +312,17 @@ Returns a JSON object with the following schema:
 
 ### `GET /page-weight`
 
-#### Parameters
+Provides Page Weight metrics for technologies.
 
-The following parameters can be used to filter the data:
+#### Page Weight Parameters
 
-- `geo` (`required`): A string representing the geographic location.
-- `technology` (`required`): A comma-separated string representing the technology name(s).
-- `rank` (`required`): An string representing the rank.
-- `start` (optional): A string representing the start date in the format `YYYY-MM-DD`.
-- `end` (optional): A string representing the end date in the format `YYYY-MM-DD`.
+- `technology` (required): Filter by technology name(s) - comma-separated list
+- `geo` (optional): Filter by geographic location
+- `rank` (optional): Filter by rank
+- `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
+- `end` (optional): Filter by date range end (YYYY-MM-DD)
 
-#### Response
+#### Page Weight Response
 
 ```bash
 curl --request GET \
@@ -240,57 +347,165 @@ Returns a JSON object with the following schema:
 ]
 ```
 
-### `GET /technologies`
+### `GET /ranks`
 
-#### Parameters
+Lists all available ranks.
 
-The following parameters can be used to filter the data:
+### `GET /geos`
 
-- `technology` (optional): A comma-separated string representing the technology name(s) or `ALL`.
-- `category` (optional): A comma-separated string representing the category name(s).
-- `onlyname` (optional): No value required. If present, only the technology names will be returned.
+Lists all available geographic locations.
 
-#### Response
+## Testing
 
 ```bash
-curl --request GET \
-  --url 'https://{{HOST}}/v1/technologies?category=Live%20chat%2C%20blog&technology=Smartsupp'
+# Run all tests
+npm test
+
+# Run tests with coverage
+npm run test
 ```
 
-Returns a JSON object with the following schema:
+## Response Format
+
+All API responses follow this format:
 
 ```json
 [
-  {
-    "technology": "Smartsupp",
-    "category": "Live chat",
-    "description": "Smartsupp is a live chat tool that offers visitor recording feature.",
-    "icon": "Smartsupp.svg",
-    "origins": {
-      "mobile": 24115,
-      "desktop": 20250
-    }
-  }
+  // Array of data objects
 ]
 ```
 
-```bash
-curl --request GET \
-  --url 'https://{{HOST}}/v1/technologies?onlyname'
-```
-
-Returns a JSON object with the following schema:
+Or in case of an error:
 
 ```json
-[
-    "1C-Bitrix",
-    "2B Advice",
-    "33Across",
-    "34SP.com",
-    "4-Tell",
-    "42stores",
-    "51.LA",
-    "5centsCDN",
-    ...
+{
+  "success": false,
+  "errors": [
+    {"key": "error message"}
+  ]
 }
 ```
+
+## Field Selection API Documentation
+
+### Overview
+
+The categories and technologies endpoints now support custom field selection, allowing clients to specify exactly which fields they want in the response. This feature helps reduce payload size and improves API performance by returning only the needed data.
+
+### Endpoints Supporting Field Selection
+
+- `GET /v1/technologies`
+- `GET /v1/categories`
+
+### Usage
+
+#### Basic Syntax
+
+Add a `fields` parameter to your request with comma-separated field names:
+
+```
+GET /v1/technologies?fields=technology,category
+GET /v1/categories?fields=category,description
+```
+
+#### Examples
+
+##### Technologies Endpoint
+
+**Get only technology names and categories:**
+
+```
+GET /v1/technologies?fields=technology,category
+```
+
+Response:
+
+```json
+{
+  "data": [
+    {
+      "technology": "React",
+      "category": "JavaScript Frameworks"
+    },
+    {
+      "technology": "Angular",
+      "category": "JavaScript Frameworks"
+    }
+  ]
+}
+```
+
+**Get technology names and descriptions:**
+
+```
+GET /v1/technologies?fields=technology,description
+```
+
+**Combine with existing filters:**
+
+```
+GET /v1/technologies?category=JavaScript%20Frameworks&fields=technology,icon
+```
+
+##### Categories Endpoint
+
+**Get only category names:**
+
+```
+GET /v1/categories?fields=category
+```
+
+**Get categories with descriptions:**
+
+```
+GET /v1/categories?fields=category,description
+```
+
+#### Behavior Notes
+
+1. **Field Priority**: The `fields` parameter takes precedence over other response formatting options, except for `onlyname`
+2. **Invalid Fields**: Non-existent fields are silently ignored
+3. **Empty Fields**: If no valid fields are specified, the full object is returned
+4. **Backward Compatibility**: When `fields` is not specified, endpoints return their default response format
+5. **onlyname Override**: The `onlyname` parameter still takes precedence over `fields` for backward compatibility
+
+#### Available Fields
+
+##### Technologies Endpoint
+
+- `technology` - Technology name
+- `category` - Category name
+- `description` - Technology description
+- `icon` - Icon filename
+- `origins` - Array of origin companies/organizations
+
+##### Categories Endpoint
+
+- `category` - Category name
+- Additional fields depend on your data structure
+
+#### Error Handling
+
+The field selection feature handles errors gracefully:
+
+- Invalid field names are ignored
+- Empty field lists return full objects
+- Malformed field parameters fallback to default behavior
+
+#### Performance Benefits
+
+- **Reduced Payload Size**: Only requested fields are included
+- **Faster Parsing**: Clients process smaller JSON objects
+- **Bandwidth Savings**: Less data transferred over the network
+- **Improved Caching**: More specific responses can be cached more effectively
+
+#### Migration Guide
+
+Existing API consumers are not affected by this change. The field selection feature is entirely opt-in through the `fields` parameter.
+
+To adopt field selection:
+
+1. Identify which fields your application actually uses
+2. Add the `fields` parameter with those field names
+3. Update your client code to handle the new response structure
+4. Test thoroughly with your specific use cases

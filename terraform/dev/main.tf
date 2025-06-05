@@ -1,10 +1,3 @@
-
-provider "google" {
-  project         = "httparchive"
-  region          = "us-east1"
-  request_timeout = "60m"
-}
-
 terraform {
   backend "gcs" {
     bucket = "tf-state-backingapi-20230314"
@@ -12,43 +5,47 @@ terraform {
   }
 }
 
-resource "google_api_gateway_api" "api" {
-  provider     = google-beta
-  api_id       = "api-gw-dev"
-  display_name = "The dev API Gateway"
-  project      = "httparchive"
+provider "google" {
+  project         = var.project
+  region          = var.region
+  request_timeout = "60m"
 }
 
-# A Configuration, consisting of an OpenAPI specification
+resource "google_api_gateway_api" "api" {
+  provider     = google-beta
+  api_id       = "reports-api"
+  display_name = "Reports API Gateway"
+  project      = var.project
+}
+
 resource "google_api_gateway_api_config" "api_config" {
   provider             = google-beta
   api                  = google_api_gateway_api.api.api_id
-  api_config_id_prefix = "api"
-  project              = "httparchive"
-  display_name         = "The dev Config"
+  api_config_id_prefix = "reports-api-config-dev"
+  project              = var.project
+  display_name         = "Reports API Config DEV"
   openapi_documents {
     document {
-      path     = "spec.yaml"
+      path = "spec.yaml"
       contents = base64encode(<<-EOF
 swagger: "2.0"
 info:
-  title: reports-backend-api
-  description: API tech report
+  title: reports_api_config_dev
   version: 1.0.0
 schemes:
   - https
 produces:
   - application/json
+x-google-backend:
+  address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-dev
+  deadline: 60
+  path_translation: APPEND_PATH_TO_ADDRESS
+  protocol: h2
 paths:
   /v1/categories:
     get:
       summary: categories
       operationId: getCategories
-      x-google-backend:
-        address: https://us-east1-httparchive.cloudfunctions.net/categories-dev
-        deadline: 60
-      # security:
-      #   - api_key: []
       responses:
         200:
           description: String
@@ -56,11 +53,6 @@ paths:
     get:
       summary: adoption
       operationId: getadoptionReports
-      x-google-backend:
-        address: https://us-east1-httparchive.cloudfunctions.net/adoption-dev
-        deadline: 60
-      # security:
-      #   - api_key: []
       responses:
         200:
           description: String
@@ -68,11 +60,6 @@ paths:
     get:
       summary: pageWeight
       operationId: getpageWeight
-      x-google-backend:
-        address: https://us-east1-httparchive.cloudfunctions.net/page-weight-dev
-        deadline: 60
-      # security:
-      #   - api_key: []
       responses:
         200:
           description: String
@@ -80,11 +67,6 @@ paths:
     get:
       summary: lighthouse
       operationId: getLighthouseReports
-      x-google-backend:
-        address: https://us-east1-httparchive.cloudfunctions.net/lighthouse-dev
-        deadline: 60
-      # security:
-      #   - api_key: []
       responses:
         200:
           description: String
@@ -92,11 +74,6 @@ paths:
     get:
       summary: cwv
       operationId: getCwv
-      x-google-backend:
-        address: https://us-east1-httparchive.cloudfunctions.net/cwvtech-dev
-        deadline: 60
-      # security:
-      #   - api_key: []
       responses:
         200:
           description: String
@@ -104,11 +81,6 @@ paths:
     get:
       summary: ranks
       operationId: getRanks
-      x-google-backend:
-        address: https://us-east1-httparchive.cloudfunctions.net/ranks-dev
-        deadline: 60
-      # security:
-      #   - api_key: []
       responses:
         200:
           description: String
@@ -116,23 +88,13 @@ paths:
     get:
       summary: geos
       operationId: getGeos
-      x-google-backend:
-        address: https://us-east1-httparchive.cloudfunctions.net/geos-dev
-        deadline: 60
-      # security:
-      #   - api_key: []
       responses:
         200:
           description: String
   /v1/technologies:
     get:
-      summary: geos
+      summary: technologies
       operationId: getTechnologies
-      x-google-backend:
-        address: https://us-east1-httparchive.cloudfunctions.net/technologies-dev
-        deadline: 60
-      # security:
-      #   - api_key: []
       responses:
         200:
           description: String
@@ -146,17 +108,17 @@ EOF
     }
   }
 }
-# The actual API Gateway
+
 resource "google_api_gateway_gateway" "gateway" {
   provider     = google-beta
-  project      = "httparchive"
-  region       = "us-east1"
+  project      = var.project
+  region       = var.region
   api_config   = google_api_gateway_api_config.api_config.id
-  gateway_id   = "dev-gw"
-  display_name = "devApi Gateway"
+  gateway_id   = "reports-dev"
+  display_name = "Reports API Gateway DEV"
   labels = {
     owner       = "tech_report_api"
-    environment = "dev"
+    environment = var.environment
   }
   depends_on = [google_api_gateway_api_config.api_config]
   lifecycle {
@@ -166,122 +128,19 @@ resource "google_api_gateway_gateway" "gateway" {
   }
 }
 
-module "cwvtech" {
-  source = "./../modules/cloud-function"
-  entry_point = "dispatcher"
-  project = "httparchive"
-  environment = "dev"
-  source_directory = "../../functions/cwvtech"
-  function_name = "cwvtech"
-  service_account_email = var.google_service_account_cloud_functions
-  service_account_api_gateway = var.google_service_account_api_gateway
+module "endpoints" {
+  source                           = "./../modules/run-service"
+  entry_point                      = "app"
+  project                          = var.project
+  environment                      = var.environment
+  source_directory                 = "../../src"
+  function_name                    = "tech-report-api"
+  region                           = var.region
+  service_account_email            = var.google_service_account_cloud_functions
+  service_account_api_gateway      = var.google_service_account_api_gateway
+  min_instances                    = var.min_instances
   environment_variables = {
-    "PROJECT" = "httparchive",
-    "DATABASE" = var.project_database
-  }
-}
-
-module "lighthouse" {
-  source = "./../modules/cloud-function"
-  entry_point = "dispatcher"
-  project = "httparchive"
-  environment = "dev"
-  source_directory = "../../functions/lighthouse"
-  function_name = "lighthouse"
-  service_account_email = var.google_service_account_cloud_functions
-  service_account_api_gateway = var.google_service_account_api_gateway
-  environment_variables = {
-    "PROJECT" = "httparchive",
-    "DATABASE" = var.project_database
-  }
-}
-
-module "adoption" {
-  source = "./../modules/cloud-function"
-  entry_point = "dispatcher"
-  project = "httparchive"
-  environment = "dev"
-  source_directory = "../../functions/adoption"
-  function_name = "adoption"
-  service_account_email = var.google_service_account_cloud_functions
-  service_account_api_gateway = var.google_service_account_api_gateway
-  environment_variables = {
-    "PROJECT" = "httparchive",
-    "DATABASE" = var.project_database
-  }
-}
-
-module "page-weight" {
-  source = "./../modules/cloud-function"
-  entry_point = "dispatcher"
-  project = "httparchive"
-  environment = "dev"
-  source_directory = "../../functions/page-weight"
-  function_name = "page-weight"
-  service_account_email = var.google_service_account_cloud_functions
-  service_account_api_gateway = var.google_service_account_api_gateway
-  environment_variables = {
-    "PROJECT" = "httparchive",
-    "DATABASE" = var.project_database
-  }
-}
-
-module "categories" {
-  source = "./../modules/cloud-function"
-  entry_point = "dispatcher"
-  project = "httparchive"
-  environment = "dev"
-  source_directory = "../../functions/categories"
-  function_name = "categories"
-  service_account_email = var.google_service_account_cloud_functions
-  service_account_api_gateway = var.google_service_account_api_gateway
-  environment_variables = {
-    "PROJECT" = "httparchive",
-    "DATABASE" = var.project_database
-  }
-}
-
-module "technologies" {
-  source = "./../modules/cloud-function"
-  entry_point = "dispatcher"
-  project = "httparchive"
-  environment = "dev"
-  source_directory = "../../functions/technologies"
-  function_name = "technologies"
-  service_account_email = var.google_service_account_cloud_functions
-  service_account_api_gateway = var.google_service_account_api_gateway
-  environment_variables = {
-    "PROJECT" = "httparchive",
-    "DATABASE" = var.project_database
-  }
-}
-
-module "ranks" {
-  source = "./../modules/cloud-function"
-  entry_point = "dispatcher"
-  project = "httparchive"
-  environment = "dev"
-  source_directory = "../../functions/ranks"
-  function_name = "ranks"
-  service_account_email = var.google_service_account_cloud_functions
-  service_account_api_gateway = var.google_service_account_api_gateway
-  environment_variables = {
-    "PROJECT" = "httparchive",
-    "DATABASE" = var.project_database
-  }
-}
-
-module "geos" {
-  source = "./../modules/cloud-function"
-  entry_point = "dispatcher"
-  project = "httparchive"
-  environment = "dev"
-  source_directory = "../../functions/geos"
-  function_name = "geos"
-  service_account_email = var.google_service_account_cloud_functions
-  service_account_api_gateway = var.google_service_account_api_gateway
-  environment_variables = {
-    "PROJECT" = "httparchive",
+    "PROJECT"  = var.project
     "DATABASE" = var.project_database
   }
 }

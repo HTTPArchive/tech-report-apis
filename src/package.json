@@ -1,0 +1,49 @@
+{
+  "name": "tech-report-api",
+  "version": "1.0.0",
+  "description": "API for HTTP Archive technology reports",
+  "main": "index.js",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "start": "export DATABASE=tech-report-api-prod &&node index.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:live": "bash ../test-api.sh"
+  },
+  "dependencies": {
+    "@google-cloud/firestore": "7.3.0",
+    "@google-cloud/functions-framework": "^4.0.0"
+  },
+  "devDependencies": {
+    "@jest/transform": "^30.0.0-beta.3",
+    "jest": "29.7.0",
+    "nodemon": "3.0.1",
+    "supertest": "^7.1.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "verbose": true,
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "**/*.js",
+      "!index.js"
+    ],
+    "coverageDirectory": "coverage",
+    "coverageReporters": [
+      "text",
+      "lcov"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.js",
+      "**/?(*.)+(spec|test).js"
+    ],
+    "globals": {
+      "__filename": false,
+      "__dirname": false
+    },
+    "transformIgnorePatterns": ["node_modules/(?!(.*\\.mjs$))"],
+    "transform": {}
+  }
+}
