@@ -37,21 +37,28 @@ const listCategories = async (req, res) => {
     // Apply category filter using shared utility
     query = applyArrayFilter(query, 'category', params.category);
 
+    if (isOnlyNames) {
+      // Only select category field for names-only queries
+      query = query.select('category');
+    } else if (hasCustomFields) {
+      // Select only requested fields
+      const requestedFields = params.fields.split(',').map(f => f.trim());
+      query = query.select(...requestedFields);
+    }
+
     // Execute query
     const snapshot = await query.get();
     const data = [];
 
     // Process results based on response type
     snapshot.forEach(doc => {
+      const docData = doc.data();
+
       if (isOnlyNames) {
-        data.push(doc.get('category'));
-      } else if (hasCustomFields) {
-        // Use custom field selection
-        const fullData = doc.data();
-        data.push(selectFields(fullData, params.fields));
+        data.push(docData.category);
       } else {
-        // Return full data
-        data.push(doc.data());
+        // Data already filtered by select(), just return it
+        data.push(docData);
       }
     });
 

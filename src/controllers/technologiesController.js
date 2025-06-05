@@ -7,17 +7,8 @@ import {
   setCachedQueryResult
 } from '../utils/controllerHelpers.js';
 
-// Technology Presenter - optimized with destructuring
-const presentTechnology = ({ technology, category, description, icon, origins }) => ({
-  technology,
-  category,
-  description,
-  icon,
-  origins
-});
-
 /**
- * List technologies with optional filtering and field selection - Optimized version
+ * List technologies with optional filtering and field selection
  */
 const listTechnologies = async (req, res) => {
   try {
@@ -48,21 +39,31 @@ const listTechnologies = async (req, res) => {
     query = applyArrayFilter(query, 'technology', params.technology);
     query = applyArrayFilter(query, 'category_obj', params.category, 'array-contains-any');
 
+    if (isOnlyNames) {
+      // Only select technology field for names-only queries
+      query = query.select('technology');
+    } else if (hasCustomFields) {
+      // Select only requested fields
+      const requestedFields = params.fields.split(',').map(f => f.trim());
+      query = query.select(...requestedFields);
+    } else {
+      // Select default presentation fields
+      query = query.select('technology', 'category', 'description', 'icon', 'origins');
+    }
+
     // Execute query
     const snapshot = await query.get();
-    const data = [];
+    let data = [];
 
     // Process results based on response type
     snapshot.forEach(doc => {
+      const docData = doc.data();
+
       if (isOnlyNames) {
-        data.push(doc.get('technology'));
-      } else if (hasCustomFields) {
-        // Use custom field selection
-        const fullData = doc.data();
-        data.push(selectFields(fullData, params.fields));
+        data.push(docData.technology);
       } else {
-        // Use default presenter
-        data.push(presentTechnology(doc.data()));
+        // Data already filtered by select(), just return it
+        data.push(docData)
       }
     });
 

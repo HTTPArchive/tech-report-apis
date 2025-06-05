@@ -39,6 +39,7 @@ jest.unstable_mockModule('../utils/db.js', () => {
     where: jest.fn(),
     orderBy: jest.fn(),
     limit: jest.fn(),
+    select: jest.fn(),
     get: jest.fn().mockResolvedValue(mockQuerySnapshot)
   };
 
@@ -46,6 +47,7 @@ jest.unstable_mockModule('../utils/db.js', () => {
   mockQuery.where.mockReturnValue(mockQuery);
   mockQuery.orderBy.mockReturnValue(mockQuery);
   mockQuery.limit.mockReturnValue(mockQuery);
+  mockQuery.select.mockReturnValue(mockQuery);
 
   const mockFirestoreInstance = {
     collection: jest.fn().mockImplementation((collectionName) => mockQuery)

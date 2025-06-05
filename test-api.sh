@@ -11,7 +11,7 @@ test_endpoint() {
   http_code=$(echo "$response" | tail -n1)
   body=$(echo "$response" | sed '$d')
 
-  echo "$body" | jq .
+  echo "$body" | jq . | head -10
   echo "Status code: $http_code"
 
   if [[ $http_code -ne 200 ]]; then
@@ -87,7 +87,7 @@ test_endpoint "/" ""
 test_cors_preflight "/v1/technologies"
 test_endpoint "/v1/technologies" "?technology=WordPress&onlyname=true"
 test_endpoint "/v1/technologies" "?technology=WordPress&onlyname=true&fields=technology,icon"
-test_endpoint "/v1/technologies" "?technology=WordPress&fields=technology,icon"
+test_endpoint "/v1/technologies" "?technology=WordPress&category=CMS&fields=technology,icon"
 
 # Test categories endpoint
 test_cors_preflight "/v1/categories"

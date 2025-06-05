@@ -17,12 +17,12 @@ const listGeos = async (req, res) => {
       return;
     }
 
-    const snapshot = await firestore.collection('geos').orderBy('mobile_origins', 'desc').get();
+    const snapshot = await firestore.collection('geos').orderBy('mobile_origins', 'desc').select('geo').get();
     const data = [];
 
     // Extract only the 'geo' property from each document
     snapshot.forEach(doc => {
-      data.push({ geo: doc.data().geo });
+      data.push(doc.data());
     });
 
     // Cache the result

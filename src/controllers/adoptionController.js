@@ -11,7 +11,7 @@ import {
 const TABLE = 'adoption';
 
 /**
- * List adoption data with filtering - Optimized version
+ * List adoption data with filtering
  */
 const listAdoptionData = async (req, res) => {
   try {
@@ -34,7 +34,6 @@ const listAdoptionData = async (req, res) => {
     // Fast preprocessing - handle 'latest' date and technology array
     const techArray = params.technology ? decodeURIComponent(params.technology).split(',') : [];
 
-    // Handle 'latest' date with caching
     let startDate = params.start;
     if (startDate === 'latest') {
       startDate = await getLatestDate(firestore, TABLE);
@@ -58,42 +57,23 @@ const listAdoptionData = async (req, res) => {
       return;
     }
 
-    // Build optimized query
+    // Build query
     let query = firestore.collection(TABLE);
 
     // Apply required filters
     query = query.where('geo', '==', params.geo);
     query = query.where('rank', '==', params.rank);
 
-    // Apply technology filter efficiently
+    // Apply technology filter
     if (techArray.length <= 30) {
-      // Use 'in' operator for batch processing (Firestore limit: 30 values)
+      // Use 'in' operator for batch processing (Firestore limit: 30 values https://cloud.google.com/firestore/docs/query-data/queries#limits_on_or_queries)
       query = query.where('technology', 'in', techArray);
     } else {
-      // Parallel queries for >30 technologies (rare case)
-      const queryPromises = techArray.map(async (technology) => {
-        let individualQuery = firestore.collection(TABLE)
-          .where('geo', '==', params.geo)
-          .where('rank', '==', params.rank)
-          .where('technology', '==', technology);
-
-        if (startDate) individualQuery = individualQuery.where('date', '>=', startDate);
-        if (params.end) individualQuery = individualQuery.where('date', '<=', params.end);
-
-        const snapshot = await individualQuery.get();
-        const results = [];
-        snapshot.forEach(doc => results.push(doc.data()));
-        return results;
-      });
-
-      const results = await Promise.all(queryPromises);
-      const data = results.flat();
-
-      // Cache the result
-      setCachedQueryResult(cacheKey, data);
-
-      res.statusCode = 200;
-      res.end(JSON.stringify(data));
+      res.statusCode = 400;
+      res.end(JSON.stringify({
+        success: false,
+        errors: [{ technology: 'Too many technologies specified. Maximum 30 allowed.' }]
+      }));
       return;
     }
 
@@ -101,7 +81,10 @@ const listAdoptionData = async (req, res) => {
     if (startDate) query = query.where('date', '>=', startDate);
     if (params.end) query = query.where('date', '<=', params.end);
 
-    // Execute single optimized query
+    // Apply field projection to exclude geo/rank
+    query = query.select('date', 'technology', 'adoption');
+
+    // Execute query
     const snapshot = await query.get();
     const data = [];
     snapshot.forEach(doc => {
@@ -111,7 +94,7 @@ const listAdoptionData = async (req, res) => {
     // Cache the result
     setCachedQueryResult(cacheKey, data);
 
-    // Direct response without wrapper functions
+    // Direct response
     res.statusCode = 200;
     res.end(JSON.stringify(data));
   } catch (error) {

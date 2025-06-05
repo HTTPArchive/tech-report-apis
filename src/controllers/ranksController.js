@@ -17,13 +17,11 @@ const listRanks = async (req, res) => {
       return;
     }
 
-    const snapshot = await firestore.collection('ranks').orderBy('mobile_origins', 'desc').get();
+    const snapshot = await firestore.collection('ranks').orderBy('mobile_origins', 'desc').select('rank').get();
     const data = [];
 
-    // Extract only the 'rank' property from each document
     snapshot.forEach(doc => {
-      const docData = doc.data();
-      data.push({ rank: docData.rank });
+      data.push(doc.data());
     });
 
     // Cache the result
