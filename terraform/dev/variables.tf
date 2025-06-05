@@ -30,5 +30,5 @@ variable "google_service_account_api_gateway" {
 variable "min_instances" {
   description = "(Optional) The limit on the minimum number of function instances that may coexist at a given time."
   type        = number
-  default     = 1
+  default     = 1 // TODO: Update this to 0
 }

@@ -59,6 +59,39 @@ const CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
 const queryResultCache = new Map();
 const QUERY_CACHE_TTL = 10 * 60 * 1000; // 10 minutes for query results
 
+// Cache size limit
+const MAX_CACHE_SIZE = 3000; // Maximum number of cache entries
+
+/**
+ * Clean up cache when it exceeds size limit (LRU-style cleanup)
+ * Removes oldest entries first, including expired ones
+ */
+const cleanupCacheToSize = () => {
+  const targetSize = Math.floor(MAX_CACHE_SIZE * 0.5); // Clean to 50% of max size
+  if (queryResultCache.size <= targetSize) return 0;
+
+  const now = Date.now();
+  const entries = Array.from(queryResultCache.entries());
+
+  // Sort by timestamp (oldest first), prioritizing expired entries
+  entries.sort((a, b) => {
+    const aExpired = (now - a[1].timestamp) > QUERY_CACHE_TTL;
+    const bExpired = (now - b[1].timestamp) > QUERY_CACHE_TTL;
+
+    // If one is expired and the other isn't, prioritize expired for deletion
+    if (aExpired && !bExpired) return -1;
+    if (!aExpired && bExpired) return 1;
+
+    // If both have same expiry status, sort by timestamp (oldest first)
+    return a[1].timestamp - b[1].timestamp;
+  });
+
+  const deleteCount = queryResultCache.size - targetSize;
+  for (let i = 0; i < deleteCount && i < entries.length; i++) {
+    queryResultCache.delete(entries[i][0]);
+  }
+};
+
 /**
  * Generate a cache key for a query
  * @param {string} collection - Collection name
@@ -88,6 +121,11 @@ const getCachedQueryResult = (cacheKey) => {
  * @param {Array} data - Query result data
  */
 const setCachedQueryResult = (cacheKey, data) => {
+  // Clean up if cache is getting too large before adding new entry
+  if (queryResultCache.size >= MAX_CACHE_SIZE) {
+    cleanupCacheToSize();
+  }
+
   queryResultCache.set(cacheKey, {
     data: data,
     timestamp: Date.now()
@@ -238,6 +276,54 @@ const selectFields = (data, fieldsParam) => {
 };
 
 /**
+ * Get cache statistics for monitoring
+ * @returns {Object} Cache statistics
+ */
+const getCacheStats = () => {
+  const now = Date.now();
+
+  // Count valid vs expired entries
+  let queryValidCount = 0;
+  let queryExpiredCount = 0;
+  for (const [key, value] of queryResultCache) {
+    if (now - value.timestamp < QUERY_CACHE_TTL) {
+      queryValidCount++;
+    } else {
+      queryExpiredCount++;
+    }
+  }
+
+  let dateValidCount = 0;
+  let dateExpiredCount = 0;
+  for (const [key, value] of latestDateCache) {
+    if (now - value.timestamp < CACHE_TTL) {
+      dateValidCount++;
+    } else {
+      dateExpiredCount++;
+    }
+  }
+
+  return {
+    queryCache: {
+      total: queryResultCache.size,
+      valid: queryValidCount,
+      expired: queryExpiredCount,
+      ttl: QUERY_CACHE_TTL
+    },
+    dateCache: {
+      total: latestDateCache.size,
+      valid: dateValidCount,
+      expired: dateExpiredCount,
+      ttl: CACHE_TTL
+    },
+    config: {
+      maxCacheSize: MAX_CACHE_SIZE,
+      cleanupStrategy: 'size-based-lru'
+    }
+  };
+};
+
+/**
  * Handle controller errors with consistent error response format
  * @param {Object} res - Response object
  * @param {Error} error - Error object
@@ -264,5 +350,6 @@ export {
   handleControllerError,
   generateQueryCacheKey,
   getCachedQueryResult,
-  setCachedQueryResult
+  setCachedQueryResult,
+  getCacheStats
 };

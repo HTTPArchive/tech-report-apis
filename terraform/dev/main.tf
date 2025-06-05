@@ -18,7 +18,6 @@ resource "google_api_gateway_api" "api" {
   project      = var.project
 }
 
-# A Configuration, consisting of an OpenAPI specification
 resource "google_api_gateway_api_config" "api_config" {
   provider             = google-beta
   api                  = google_api_gateway_api.api.api_id
@@ -109,7 +108,7 @@ EOF
     }
   }
 }
-# The actual API Gateway
+
 resource "google_api_gateway_gateway" "gateway" {
   provider     = google-beta
   project      = var.project
