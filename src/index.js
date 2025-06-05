@@ -27,16 +27,10 @@ const getController = async (name) => {
         controllers[name] = await import('./controllers/categoriesController.js');
         break;
       case 'adoption':
-        controllers[name] = await import('./controllers/adoptionController.js');
-        break;
       case 'cwvtech':
-        controllers[name] = await import('./controllers/cwvtechController.js');
-        break;
       case 'lighthouse':
-        controllers[name] = await import('./controllers/lighthouseController.js');
-        break;
       case 'pageWeight':
-        controllers[name] = await import('./controllers/pageWeightController.js');
+        controllers[name] = await import('./controllers/reportController.js');
         break;
       case 'ranks':
         controllers[name] = await import('./controllers/ranksController.js');
