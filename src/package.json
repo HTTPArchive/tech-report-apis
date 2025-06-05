@@ -19,7 +19,6 @@
   "devDependencies": {
     "@jest/transform": "^30.0.0-beta.3",
     "jest": "29.7.0",
-    "nodemon": "3.0.1",
     "supertest": "^7.1.0"
   },
   "jest": {
@@ -43,7 +42,9 @@
       "__filename": false,
       "__dirname": false
     },
-    "transformIgnorePatterns": ["node_modules/(?!(.*\\.mjs$))"],
+    "transformIgnorePatterns": [
+      "node_modules/(?!(.*\\.mjs$))"
+    ],
     "transform": {}
   }
 }

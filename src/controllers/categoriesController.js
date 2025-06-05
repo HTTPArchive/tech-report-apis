@@ -1,7 +1,6 @@
 import { firestore } from '../utils/db.js';
 import {
   applyArrayFilter,
-  selectFields,
   generateQueryCacheKey,
   getCachedQueryResult,
   setCachedQueryResult

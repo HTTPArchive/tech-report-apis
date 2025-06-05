@@ -252,29 +252,6 @@ const applyArrayFilter = (query, field, value, operator = 'in') => {
 };
 
 /**
- * Select specific fields from an object based on comma-separated field names
- * @param {Object} data - Source data object
- * @param {string} fieldsParam - Comma-separated field names (e.g., "technology,category")
- * @returns {Object} - Object containing only requested fields
- */
-const selectFields = (data, fieldsParam) => {
-  if (!fieldsParam) return data;
-
-  const fields = convertToArray(fieldsParam);
-
-  if (fields.length === 0) return data;
-
-  const result = {};
-  fields.forEach(field => {
-    if (data.hasOwnProperty(field)) {
-      result[field] = data[field];
-    }
-  });
-
-  return result;
-};
-
-/**
  * Get cache statistics for monitoring
  * @returns {Object} Cache statistics
  */
@@ -345,7 +322,6 @@ export {
   applyStandardFilters,
   preprocessParams,
   applyArrayFilter,
-  selectFields,
   handleControllerError,
   generateQueryCacheKey,
   getCachedQueryResult,
