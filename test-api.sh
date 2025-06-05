@@ -4,7 +4,7 @@
 test_endpoint() {
   local endpoint=$1
   local params=$2
-  local url="http://localhost:8080${endpoint}${params}"
+  local url="http://localhost:3000${endpoint}${params}"
 
   echo "Testing endpoint: ${url}"
   response=$(curl -s -w "\n%{http_code}" "${url}")
@@ -27,7 +27,7 @@ test_endpoint() {
 # Function to test CORS preflight with OPTIONS request
 test_cors_preflight() {
   local endpoint=$1
-  local url="http://localhost:8080${endpoint}"
+  local url="http://localhost:3000${endpoint}"
 
   echo "Testing CORS preflight for: ${url}"
 

@@ -4,7 +4,7 @@ variable "project" {
   default     = "httparchive"
 }
 variable "region" {
-  default = "us-east1"
+  default = "us-central1"
   type    = string
 }
 variable "environment" {
@@ -15,7 +15,7 @@ variable "environment" {
 variable "project_database" {
   type        = string
   description = "The database name"
-  default     = "tech-report-apis-prod"
+  default     = "tech-report-api-prod"
 }
 
 variable "google_service_account_cloud_functions" {
