@@ -318,6 +318,50 @@ const validateTechnologyArray = (technologyParam) => {
   }
 };
 
+/**
+ * Generic BigQuery-enabled query executor
+ * Handles caching, query execution, and response for BigQuery queries
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @param {string} queryName - Query name for caching and error handling
+ * @param {Function} queryExecutor - Function that executes BigQuery and returns results
+ * @param {Function} dataProcessor - Optional function to process results
+ */
+const executeBigQuery = async (req, res, queryName, queryExecutor, dataProcessor = null) => {
+  try {
+    const params = req.query;
+
+    // Generate cache key
+    const cacheKey = generateQueryCacheKey(`bq_${queryName}`, params);
+
+    // Check cache first
+    const cachedResult = getCachedQueryResult(cacheKey);
+    if (cachedResult) {
+      res.statusCode = 200;
+      res.end(JSON.stringify(cachedResult));
+      return;
+    }
+
+    // Execute BigQuery
+    let data = await queryExecutor(params);
+
+    // Process data if processor provided
+    if (dataProcessor) {
+      data = dataProcessor(data, params);
+    }
+
+    // Cache the result
+    setCachedQueryResult(cacheKey, data);
+
+    // Send response
+    res.statusCode = 200;
+    res.end(JSON.stringify(data));
+
+  } catch (error) {
+    handleControllerError(res, error, `executing BigQuery ${queryName}`);
+  }
+};
+
 export {
   REQUIRED_PARAMS,
   FIRESTORE_IN_LIMIT,
@@ -331,5 +375,6 @@ export {
   setCachedQueryResult,
   getCacheStats,
   executeQuery,
+  executeBigQuery,
   validateTechnologyArray
 };
