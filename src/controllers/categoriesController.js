@@ -6,6 +6,7 @@ import { executeQuery, validateArrayParameter } from '../utils/controllerHelpers
  */
 const listCategories = async (req, res) => {
   const queryBuilder = async (params) => {
+    /*
     // Validate parameters
     const supportedParams = ['category', 'onlyname', 'fields'];
     const providedParams = Object.keys(params);
@@ -16,6 +17,7 @@ const listCategories = async (req, res) => {
       error.statusCode = 400;
       throw error;
     }
+    */
 
     const isOnlyNames = params.onlyname || typeof params.onlyname === 'string';
     const hasCustomFields = params.fields && !isOnlyNames;

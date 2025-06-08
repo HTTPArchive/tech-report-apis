@@ -6,6 +6,7 @@ import { executeQuery, validateTechnologyArray, FIRESTORE_IN_LIMIT } from '../ut
  */
 const listVersions = async (req, res) => {
   const queryBuilder = async (params) => {
+    /*
     // Validate parameters
     const supportedParams = ['version', 'technology', 'category', 'onlyname', 'fields'];
     const providedParams = Object.keys(params);
@@ -16,6 +17,7 @@ const listVersions = async (req, res) => {
       error.statusCode = 400;
       throw error;
     }
+    */
 
     let query = firestore.collection('versions');
 

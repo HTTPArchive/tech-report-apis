@@ -105,6 +105,14 @@ const handleRequest = async (req, res) => {
       return;
     }
 
+    // Validate URL to skip XSS attacks
+    const unsafe = /onerror|onload|javascript:/i;
+    if (unsafe.test(req.url)) {
+      res.statusCode = 400
+      res.end(JSON.stringify({ error: 'Invalid input' }));
+      return;
+    }
+
     // Parse URL
     const parsedUrl = url.parse(req.url, true);
     const pathname = parsedUrl.pathname;

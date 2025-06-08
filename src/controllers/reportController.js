@@ -49,6 +49,7 @@ const createReportController = (reportType) => {
         try {
             const params = req.query;
 
+            /*
             // Validate supported parameters
             const supportedParams = ['technology', 'geo', 'rank', 'start', 'end'];
             const providedParams = Object.keys(params);
@@ -59,6 +60,7 @@ const createReportController = (reportType) => {
                 error.statusCode = 400;
                 throw error;
             }
+            */
 
             // Validate required parameters using shared utility
             const errors = validateRequiredParams(params, [
