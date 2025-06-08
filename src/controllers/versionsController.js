@@ -6,6 +6,17 @@ import { executeQuery, validateTechnologyArray, FIRESTORE_IN_LIMIT } from '../ut
  */
 const listVersions = async (req, res) => {
   const queryBuilder = async (params) => {
+    // Validate parameters
+    const supportedParams = ['version', 'technology', 'category', 'onlyname', 'fields'];
+    const providedParams = Object.keys(params);
+    const unsupportedParams = providedParams.filter(param => !supportedParams.includes(param));
+
+    if (unsupportedParams.length > 0) {
+      const error = new Error(`Unsupported parameters: ${unsupportedParams.join(', ')}.`);
+      error.statusCode = 400;
+      throw error;
+    }
+
     let query = firestore.collection('versions');
 
     // Apply technology filter with validation

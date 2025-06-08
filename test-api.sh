@@ -85,6 +85,7 @@ test_endpoint "/" ""
 
 # Test technologies endpoint
 test_cors_preflight "/v1/technologies"
+test_endpoint "/v1/technologies" "?onlyname=true"
 test_endpoint "/v1/technologies" "?technology=WordPress&onlyname=true"
 test_endpoint "/v1/technologies" "?technology=WordPress&onlyname=true&fields=technology,icon"
 test_endpoint "/v1/technologies" "?technology=WordPress&category=CMS&fields=technology,icon"

@@ -49,6 +49,17 @@ const createReportController = (reportType) => {
         try {
             const params = req.query;
 
+            // Validate supported parameters
+            const supportedParams = ['technology', 'geo', 'rank', 'start', 'end'];
+            const providedParams = Object.keys(params);
+            const unsupportedParams = providedParams.filter(param => !supportedParams.includes(param));
+
+            if (unsupportedParams.length > 0) {
+                const error = new Error(`Unsupported parameters: ${unsupportedParams.join(', ')}.`);
+                error.statusCode = 400;
+                throw error;
+            }
+
             // Validate required parameters using shared utility
             const errors = validateRequiredParams(params, [
                 REQUIRED_PARAMS.GEO,

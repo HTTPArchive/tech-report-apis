@@ -335,8 +335,10 @@ describe('API Routes', () => {
 
     it('should handle invalid query parameters gracefully', async () => {
       const res = await request(app).get('/v1/technologies?invalid=parameter');
-      expect(res.statusCode).toEqual(200);
-      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.statusCode).toEqual(400);
+      expect(res.body).toHaveProperty('errors');
+      expect(res.body.errors[0]).toHaveProperty('error');
+      expect(res.body.errors[0].error).toContain('Unsupported parameters: ');
     });
   });
 

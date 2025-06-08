@@ -230,9 +230,14 @@ const getCacheStats = () => {
  */
 const handleControllerError = (res, error, operation) => {
   console.error(`Error ${operation}:`, error);
-  res.statusCode = 500;
+  const statusCode = error.statusCode || 500;
+  res.statusCode = statusCode;
+
+  // Use custom error message for client errors (4xx), generic message for server errors (5xx)
+  const errorMessage = statusCode >= 400 && statusCode < 500 ? error.message : `Failed to ${operation}`;
+
   res.end(JSON.stringify({
-    errors: [{ error: `Failed to ${operation}` }]
+    errors: [{ error: errorMessage }]
   }));
 };
 

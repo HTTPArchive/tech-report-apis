@@ -6,6 +6,17 @@ import { executeQuery, validateTechnologyArray, validateArrayParameter, FIRESTOR
  */
 const listTechnologies = async (req, res) => {
   const queryBuilder = async (params) => {
+    // Validate parameters
+    const supportedParams = ['technology', 'category', 'onlyname', 'fields'];
+    const providedParams = Object.keys(params);
+    const unsupportedParams = providedParams.filter(param => !supportedParams.includes(param));
+
+    if (unsupportedParams.length > 0) {
+      const error = new Error(`Unsupported parameters: ${unsupportedParams.join(', ')}.`);
+      error.statusCode = 400;
+      throw error;
+    }
+
     const isOnlyNames = params.onlyname || typeof params.onlyname === 'string';
     const hasCustomFields = params.fields && !isOnlyNames;
 
