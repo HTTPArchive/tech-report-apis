@@ -1,7 +1,7 @@
 terraform {
   backend "gcs" {
-    bucket = "tf-state-backingapi-20230314"
-    prefix = "dev"
+    bucket = "tfstate-httparchive"
+    prefix = "tech-report-apis/dev"
   }
 }
 
