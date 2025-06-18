@@ -520,6 +520,32 @@ Returns a JSON object with the following schema:
 }
 ```
 
+### `POST /v1/cache-reset`
+
+Resets all caches in the API. This endpoint requires a POST request.
+
+```bash
+curl --request POST \
+  --url 'https://{{HOST}}/v1/cache-reset'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+{
+    "success": true,
+    "message": "All caches have been reset",
+    "before": {
+        "queryCache": 150,
+        "dateCache": 12
+    },
+    "after": {
+        "queryCache": 0,
+        "dateCache": 0
+    }
+}
+```
+
 ## Testing
 
 ```bash

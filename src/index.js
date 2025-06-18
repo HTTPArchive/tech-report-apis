@@ -51,7 +51,7 @@ const getController = async (name) => {
 // Helper function to set CORS headers
 const setCORSHeaders = (res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Timing-Allow-Origin');
   res.setHeader('Access-Control-Max-Age', '86400');
 };
@@ -163,6 +163,11 @@ const handleRequest = async (req, res) => {
       const { getCacheStats } = await import('./utils/controllerHelpers.js');
       const stats = getCacheStats();
       sendJSONResponse(res, stats);
+    } else if (pathname === '/v1/cache-reset' && req.method === 'POST') {
+      // Cache reset endpoint
+      const { resetCache } = await import('./utils/controllerHelpers.js');
+      const result = resetCache();
+      sendJSONResponse(res, result);
     } else {
       // 404 Not Found
       res.statusCode = 404;

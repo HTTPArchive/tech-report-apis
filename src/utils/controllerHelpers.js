@@ -318,6 +318,31 @@ const validateTechnologyArray = (technologyParam) => {
   }
 };
 
+/**
+ * Reset all caches
+ * @returns {Object} Reset operation result
+ */
+const resetCache = () => {
+  const beforeStats = {
+    queryCache: queryResultCache.size,
+    dateCache: latestDateCache.size
+  };
+
+  // Clear both caches
+  queryResultCache.clear();
+  latestDateCache.clear();
+
+  return {
+    success: true,
+    message: 'All caches have been reset',
+    before: beforeStats,
+    after: {
+      queryCache: queryResultCache.size,
+      dateCache: latestDateCache.size
+    }
+  };
+};
+
 export {
   REQUIRED_PARAMS,
   FIRESTORE_IN_LIMIT,
@@ -331,5 +356,6 @@ export {
   setCachedQueryResult,
   getCacheStats,
   executeQuery,
-  validateTechnologyArray
+  validateTechnologyArray,
+  resetCache
 };
