@@ -113,4 +113,7 @@ test_endpoint "/v1/lighthouse" "?technology=WordPress&geo=ALL&rank=ALL&start=lat
 # Test page-weight endpoint
 test_endpoint "/v1/page-weight" "?technology=WordPress&geo=ALL&rank=ALL&start=latest"
 
+# Test audits endpoint
+test_endpoint "/v1/audits" "?technology=WordPress&geo=ALL&rank=ALL&start=latest"
+
 echo "API tests complete! All endpoints returned 200 status code and CORS is properly configured."

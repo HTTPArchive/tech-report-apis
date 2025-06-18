@@ -32,6 +32,10 @@ const REPORT_CONFIGS = {
     cwv: {
         table: 'core_web_vitals',
         dataField: 'vitals'
+    },
+    audits: {
+        table: 'audits',
+        dataField: 'audits'
     }
 };
 
@@ -146,7 +150,10 @@ const createReportController = (reportType) => {
 };
 
 // Export individual controller functions
+export const listAuditsData = createReportController('audits');
 export const listAdoptionData = createReportController('adoption');
-export const listPageWeightData = createReportController('pageWeight');
-export const listLighthouseData = createReportController('lighthouse');
 export const listCWVTechData = createReportController('cwv');
+export const listLighthouseData = createReportController('lighthouse');
+export const listPageWeightData = createReportController('pageWeight');
+
+

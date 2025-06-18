@@ -1,5 +1,5 @@
 locals {
-  bucketName = "tf-cloudfunctions-backingapi-20230314"
+  bucketName = "gcf-v2-uploads-226352634162-us-central1"
 }
 data "archive_file" "source" {
   type        = "zip"

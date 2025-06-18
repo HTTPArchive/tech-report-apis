@@ -11,6 +11,7 @@ const controllers = {
   cwvtech: null,
   lighthouse: null,
   pageWeight: null,
+  audits: null,
   ranks: null,
   geos: null,
   versions: null
@@ -30,6 +31,7 @@ const getController = async (name) => {
       case 'cwvtech':
       case 'lighthouse':
       case 'pageWeight':
+      case 'audits':
         controllers[name] = await import('./controllers/reportController.js');
         break;
       case 'ranks':
@@ -144,6 +146,9 @@ const handleRequest = async (req, res) => {
     } else if (pathname === '/v1/page-weight' && req.method === 'GET') {
       const { listPageWeightData } = await getController('pageWeight');
       await listPageWeightData(req, res);
+    } else if (pathname === '/v1/audits' && req.method === 'GET') {
+      const { listAuditsData } = await getController('audits');
+      await listAuditsData(req, res);
     } else if (pathname === '/v1/ranks' && req.method === 'GET') {
       const { listRanks } = await getController('ranks');
       await listRanks(req, res);

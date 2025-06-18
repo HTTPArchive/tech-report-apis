@@ -174,9 +174,9 @@ Lists available versions.
 
 #### Versions Parameters
 
-- `version` (optional): Filter by version name(s) - comma-separated list
 - `technology` (optional): Filter by technology name(s) - comma-separated list
 - `category` (optional): Filter by category - comma-separated list
+- `version` (optional): Filter by version name(s) - comma-separated list
 - `onlyname` (optional): If present, returns only version names
 - `fields` (optional): Comma-separated list of fields to include in the response (see [Field Selection API Documentation](#field-selection-api-documentation) for details)
 
@@ -209,10 +209,10 @@ Provides technology adoption data.
 #### Adoption Parameters
 
 - `technology` (required): Filter by technology name(s) - comma-separated list
+- `geo` (required): Filter by geographic location
+- `rank` (required): Filter by rank
 - `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
 - `end` (optional): Filter by date range end (YYYY-MM-DD)
-- `geo` (optional): Filter by geographic location
-- `rank` (optional): Filter by rank
 
 #### Adoption Response
 
@@ -334,8 +334,8 @@ Provides Page Weight metrics for technologies.
 #### Page Weight Parameters
 
 - `technology` (required): Filter by technology name(s) - comma-separated list
-- `geo` (optional): Filter by geographic location
-- `rank` (optional): Filter by rank
+- `geo` (required): Filter by geographic location
+- `rank` (required): Filter by rank
 - `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
 - `end` (optional): Filter by date range end (YYYY-MM-DD)
 
@@ -379,6 +379,70 @@ Returns a JSON object with the following schema:
                     "median_bytes": 1296673
                 },
                 "name": "images"
+            }
+        ],
+        "technology": "WordPress"
+    },
+    ...
+]
+```
+
+
+### `GET /audits`
+
+Provides Lighthouse audits for technologies.
+
+#### Audits Parameters
+
+- `technology` (required): Filter by technology name(s) - comma-separated list
+- `geo` (required): Filter by geographic location
+- `rank` (required): Filter by rank
+- `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
+- `end` (optional): Filter by date range end (YYYY-MM-DD)
+
+#### Audits Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/audits?start=latest&geo=ALL&technology=WordPress&rank=ALL'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+[
+    {
+        "date": "2025-06-01",
+        "audits": [
+            {
+                "desktop": {
+                    "pass_origins": 2428028
+                },
+                "mobile": {
+                    "pass_origins": 2430912
+                },
+                "id": "first-contentful-paint",
+                "category": "performance"
+            },
+            {
+                "desktop": {
+                    "pass_origins": 490451
+                },
+                "mobile": {
+                    "pass_origins": 477218
+                },
+                "id": "largest-contentful-paint",
+                "category": "performance"
+            },
+            {
+                "desktop": {
+                    "pass_origins": 1221876
+                },
+                "mobile": {
+                    "pass_origins": 1296673
+                },
+                "id": "cumulative-layout-shift",
+                "category": "performance"
             }
         ],
         "technology": "WordPress"
