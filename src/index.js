@@ -35,10 +35,10 @@ const getController = async (name) => {
         controllers[name] = await import('./controllers/reportController.js');
         break;
       case 'ranks':
-        controllers[name] = await import('./controllers/ranksBQController.js');
+        controllers[name] = await import('./controllers/ranksController.js');
         break;
       case 'geos':
-        controllers[name] = await import('./controllers/geosBQController.js');
+        controllers[name] = await import('./controllers/geosController.js');
         break;
       case 'versions':
         controllers[name] = await import('./controllers/versionsController.js');
