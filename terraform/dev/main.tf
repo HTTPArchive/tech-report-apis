@@ -52,14 +52,14 @@ paths:
   /v1/adoption:
     get:
       summary: adoption
-      operationId: getadoptionReports
+      operationId: getAdoptionReports
       responses:
         200:
           description: String
   /v1/page-weight:
     get:
       summary: pageWeight
-      operationId: getpageWeight
+      operationId: getPageWeightReports
       responses:
         200:
           description: String
@@ -73,7 +73,7 @@ paths:
   /v1/cwv:
     get:
       summary: cwv
-      operationId: getCwv
+      operationId: getCWVReports
       responses:
         200:
           description: String
@@ -95,6 +95,13 @@ paths:
     get:
       summary: technologies
       operationId: getTechnologies
+      responses:
+        200:
+          description: String
+  /v1/audits:
+    get:
+      summary: audits
+      operationId: getAuditReports
       responses:
         200:
           description: String
