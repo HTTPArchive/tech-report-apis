@@ -62,7 +62,9 @@ const listCategories = async (req, res) => {
   // Include onlyname and fields in cache key calculation
   const customCacheKeyData = {
     onlyname: req.query.onlyname || false,
-    fields: req.query.fields
+    fields: req.query.fields,
+    category: req.query.category ? validateArrayParameter(req.query.category, 'category') : [],
+    client: req.query.client || 'mobile',
   };
 
   await executeQuery(req, res, 'categories', queryBuilder, dataProcessor, customCacheKeyData);
