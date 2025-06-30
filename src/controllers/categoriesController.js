@@ -20,6 +20,7 @@ const listCategories = async (req, res) => {
     */
 
     const isOnlyNames = params.onlyname || typeof params.onlyname === 'string';
+    const client = params.client || 'mobile'; // Default client if not provided
     const hasCustomFields = params.fields && !isOnlyNames;
 
     let query = firestore.collection('categories').orderBy('category', 'asc');
@@ -30,6 +31,11 @@ const listCategories = async (req, res) => {
       if (categories.length > 0) {
         query = query.where('category', 'in', categories);
       }
+    }
+
+    // Apply client filter
+    if (client) {
+      query = query.where('client', '==', client);
     }
 
     // Apply field selection
