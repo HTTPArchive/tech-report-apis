@@ -1,5 +1,4 @@
-import { firestoreOld } from '../utils/db.js';
-const firestore = firestoreOld;
+import { firestore } from '../utils/db.js';
 
 import {
     REQUIRED_PARAMS,
@@ -117,9 +116,9 @@ const createReportController = (reportType) => {
 
             // Apply version filter with special handling for 'ALL' case
             if (params.version && techArray.length === 1) {
-                //query = query.where('version', '==', params.version); // TODO: Uncomment when migrating to a new data schema
+                query = query.where('version', '==', params.version);
             } else {
-                //query = query.where('version', '==', 'ALL');
+                query = query.where('version', '==', 'ALL');
             }
 
             // Apply date filters
