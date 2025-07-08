@@ -1,6 +1,10 @@
-name: Tech Report API Pipeline
+name: Deployment
 
-on: [push]
+on:
+  push:
+    branches:
+      - development
+      - main
 
 env:
   PIPELINE_SA_KEY: ${{ secrets.GCP_SA_KEY }}
@@ -112,4 +116,3 @@ jobs:
           terraform apply -var="google_service_account_cloud_functions=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_CLOUD_FUNCTIONS }}" \
                           -var="google_service_account_api_gateway=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_API_GATEWAY }}" \
                           -auto-approve
-
