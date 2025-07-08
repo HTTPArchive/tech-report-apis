@@ -208,6 +208,7 @@ Provides technology adoption data.
 - `rank` (required): Filter by rank
 - `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
 - `end` (optional): Filter by date range end (YYYY-MM-DD)
+- `version` (optional): Filter by version name(s) - comma-separated list (only when single technology is specified)
 
 #### Adoption Response
 
@@ -243,6 +244,7 @@ Provides Core Web Vitals metrics for technologies.
 - `rank` (required): Filter by rank
 - `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
 - `end` (optional): Filter by date range end (YYYY-MM-DD)
+- `version` (optional): Filter by version name(s) - comma-separated list (only when single technology is specified)
 
 #### CWV Response
 
@@ -286,6 +288,7 @@ Provides Lighthouse scores for technologies.
 - `rank` (required): Filter by rank
 - `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
 - `end` (optional): Filter by date range end (YYYY-MM-DD)
+- `version` (optional): Filter by version name(s) - comma-separated list (only when single technology is specified)
 
 #### Lighthouse Response
 
@@ -333,6 +336,7 @@ Provides Page Weight metrics for technologies.
 - `rank` (required): Filter by rank
 - `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
 - `end` (optional): Filter by date range end (YYYY-MM-DD)
+- `version` (optional): Filter by version name(s) - comma-separated list (only when single technology is specified)
 
 #### Page Weight Response
 
@@ -394,6 +398,7 @@ Provides Lighthouse audits for technologies.
 - `rank` (required): Filter by rank
 - `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
 - `end` (optional): Filter by date range end (YYYY-MM-DD)
+- `version` (optional): Filter by version name(s) - comma-separated list (only when single technology is specified)
 
 #### Audits Response
 

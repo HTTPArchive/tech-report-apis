@@ -233,6 +233,12 @@ describe('API Routes', () => {
       expect(Array.isArray(res.body)).toBe(true);
     });
 
+    it('should return adoption data with version parameter', async () => {
+      const res = await request(app).get('/v1/adoption?technology=WordPress&geo=ALL&rank=ALL&start=latest&version=5.0');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
     it('should handle missing required parameters', async () => {
       const res = await request(app).get('/v1/adoption');
       expect(res.statusCode).toEqual(400);
