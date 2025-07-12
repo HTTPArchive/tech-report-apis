@@ -14,21 +14,3 @@ variable "service_account_email" {
   description = "Email of the service account associated with and to run the API Gateway"
   type        = string
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

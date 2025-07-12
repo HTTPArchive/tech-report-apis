@@ -8,8 +8,6 @@ on:
 
 env:
   PIPELINE_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-  PIPELINE_GOOGLE_SERVICE_ACCOUNT_CLOUD_FUNCTIONS: ${{ secrets.GCP_SERVICE_ACCOUNT_CLOUD_FUNCTIONS }}
-  PIPELINE_GOOGLE_SERVICE_ACCOUNT_API_GATEWAY: ${{ secrets.GCP_SERVICE_ACCOUNT_API_GATEWAY }}
 
 jobs:
   test:
@@ -54,8 +52,7 @@ jobs:
       - name: Terraform Plan
         id: plan
         run: |
-          terraform plan -no-color -var="google_service_account_cloud_functions=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_CLOUD_FUNCTIONS }}" \
-                                   -var="google_service_account_api_gateway=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_API_GATEWAY }}"
+          terraform plan -no-color
         continue-on-error: true
 
       - name: Terraform Plan status
@@ -65,9 +62,7 @@ jobs:
       - name: Terraform Apply
         id: apply
         run: |
-          terraform apply -var="google_service_account_cloud_functions=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_CLOUD_FUNCTIONS }}" \
-                          -var="google_service_account_api_gateway=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_API_GATEWAY }}" \
-                          -auto-approve
+          terraform apply -auto-approve
 
   deploy_production:
     if: github.ref == 'refs/heads/main'
@@ -102,8 +97,7 @@ jobs:
       - name: Terraform Plan
         id: plan
         run: |
-          terraform plan -no-color -var="google_service_account_cloud_functions=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_CLOUD_FUNCTIONS }}" \
-                                    -var="google_service_account_api_gateway=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_API_GATEWAY }}"
+          terraform plan -no-color
         continue-on-error: true
 
       - name: Terraform Plan status
@@ -113,6 +107,4 @@ jobs:
       - name: Terraform Apply
         id: apply
         run: |
-          terraform apply -var="google_service_account_cloud_functions=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_CLOUD_FUNCTIONS }}" \
-                          -var="google_service_account_api_gateway=${{ env.PIPELINE_GOOGLE_SERVICE_ACCOUNT_API_GATEWAY }}" \
-                          -auto-approve
+          terraform apply -auto-approve
