@@ -6,7 +6,7 @@ locals {
 
 # Build Docker image
 resource "docker_image" "function_image" {
-  name = "${var.region}-docker.pkg.dev/${var.project}/cloud-run/${var.function_name}:${local.source_hash}"
+  name = "${var.region}-docker.pkg.dev/${var.project}/tech-report-api/${var.function_name}:${local.source_hash}"
 
   build {
     context    = var.source_directory
