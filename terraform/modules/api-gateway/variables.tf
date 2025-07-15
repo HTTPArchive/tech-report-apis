@@ -6,10 +6,12 @@ variable "environment" {
 variable "project" {
   description = "The ID of the project in which the resource belongs. If it is not provided, the provider project is used."
   type        = string
+  default     = "httparchive"
 }
 variable "region" {
   description = "The Region of this resource"
   type        = string
+  default     = "us-central1"
 }
 variable "service_account_email" {
   description = "Email of the service account associated with and to run the API Gateway"

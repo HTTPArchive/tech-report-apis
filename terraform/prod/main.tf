@@ -22,7 +22,6 @@ provider "google-beta" {
   region  = var.region
 }
 
-
 # Get current Google Cloud access token
 data "google_client_config" "default" {}
 
@@ -35,13 +34,9 @@ provider "docker" {
   }
 }
 
-
-
 module "gateway" {
-  source                = "./../modules/api-gateway"
-  project               = var.project
+  source                = "../modules/api-gateway"
   environment           = var.environment
-  region                = var.region
   service_account_email = var.google_service_account_api_gateway
   spec_yaml             = <<EOF
 swagger: "2.0"
@@ -125,13 +120,10 @@ EOF
 }
 
 module "endpoints" {
-  source                      = "./../modules/run-service"
-  entry_point                 = "app"
-  project                     = var.project
+  source                      = "../modules/run-service"
   environment                 = var.environment
   source_directory            = "../../src"
-  function_name               = "tech-report-api"
-  region                      = var.region
+  service_name               = "tech-report-api"
   service_account_email       = var.google_service_account_cloud_functions
   service_account_api_gateway = var.google_service_account_api_gateway
   min_instances               = var.min_instances
@@ -140,7 +132,6 @@ module "endpoints" {
     "DATABASE" = var.project_database
   }
 }
-
 
 moved {
   from = google_api_gateway_api.api

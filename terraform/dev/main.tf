@@ -36,7 +36,7 @@ provider "docker" {
 }
 
 module "gateway" {
-  source                = "./../modules/api-gateway"
+  source                = "../modules/api-gateway"
   project               = var.project
   environment           = var.environment
   region                = var.region
@@ -130,12 +130,11 @@ EOF
 }
 
 module "endpoints" {
-  source                      = "./../modules/run-service"
-  entry_point                 = "app"
+  source                      = "../modules/run-service"
   project                     = var.project
   environment                 = var.environment
   source_directory            = "../../src"
-  function_name               = "tech-report-api"
+  service_name               = "tech-report-api"
   region                      = var.region
   service_account_email       = var.google_service_account_cloud_functions
   service_account_api_gateway = var.google_service_account_api_gateway

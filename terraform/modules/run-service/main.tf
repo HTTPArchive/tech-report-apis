@@ -7,12 +7,33 @@ terraform {
   }
 }
 
+# Calculate hash of source files to determine if rebuild is needed
+locals {
+  source_files = fileset(path.root, "${var.source_directory}/*")
+  source_hash  = substr(sha1(join("", [for f in local.source_files : filesha1(f)])), 0, 8)
+}
+
+# Build Docker image
+resource "docker_image" "function_image" {
+  name = "${var.region}-docker.pkg.dev/${var.project}/tech-report-api/${var.service_name}:${local.source_hash}"
+
+  build {
+    context    = var.source_directory
+    dockerfile = "Dockerfile"
+    platform   = "linux/amd64"
+  }
+}
+
+resource "docker_registry_image" "registry_image" {
+  name = docker_image.function_image.name
+}
+
 resource "google_cloud_run_v2_service" "service" {
-  name     = "${var.function_name}-${var.environment}"
+  name     = "${var.service_name}-${var.environment}"
   location = var.region
 
   deletion_protection = false
-  ingress             = var.ingress_settings
+  ingress             = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
 
   template {
     service_account = var.service_account_email
@@ -32,16 +53,11 @@ resource "google_cloud_run_v2_service" "service" {
           value = env.value
         }
       }
-
     }
-
-
     timeout                          = var.timeout
     max_instance_request_concurrency = var.max_instance_request_concurrency
-
   }
   scaling {
-
     min_instance_count = var.min_instances
   }
   traffic {
