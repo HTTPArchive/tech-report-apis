@@ -1,6 +1,3 @@
-variable "secrets" {
-  default = []
-}
 variable "region" {
   default = "us-central1"
   type    = string
@@ -21,7 +18,7 @@ variable "entry_point" {
   description = "The entry point; This is either what is registered with 'http' or exported from the code as a handler!"
   type        = string
 }
-variable "available_memory_mb" {
+variable "available_memory_gb" {
   default     = "2Gi"
   type        = string
   description = "The amount of memory for the Cloud Function"
@@ -33,7 +30,7 @@ variable "available_cpu" {
 }
 variable "ingress_settings" {
   type        = string
-  default     = "ALLOW_ALL"
+  default     = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
   description = "String value that controls what traffic can reach the function. Allowed values are ALLOW_ALL, ALLOW_INTERNAL_AND_GCLB and ALLOW_INTERNAL_ONLY. Check ingress documentation to see the impact of each settings value. Changes to this field will recreate the cloud function."
 }
 variable "vpc_connector_egress_settings" {
@@ -46,9 +43,9 @@ variable "project" {
   type        = string
 }
 variable "timeout" {
-  default     = 60
-  type        = number
-  description = "Timeout (in seconds) for the function. Default value is 60 seconds. Cannot be more than 540 seconds."
+  default     = "60s"
+  type        = string
+  description = "Timeout for the service. Default value is 60 seconds. Cannot be more than 540 seconds."
 }
 variable "service_account_email" {
   type        = string

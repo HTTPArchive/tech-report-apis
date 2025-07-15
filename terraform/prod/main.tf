@@ -3,6 +3,12 @@ terraform {
     bucket = "tfstate-httparchive"
     prefix = "tech-report-apis/prod"
   }
+  required_providers {
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = ">= 3.6.2"
+    }
+  }
 }
 
 provider "google" {
@@ -11,23 +17,33 @@ provider "google" {
   request_timeout = "60m"
 }
 
-resource "google_api_gateway_api" "api" {
-  provider     = google-beta
-  api_id       = "reports-api-prod"
-  display_name = "Reports API Gateway PROD"
-  project      = var.project
+provider "google-beta" {
+  project         = var.project
+  region          = var.region
 }
 
-resource "google_api_gateway_api_config" "api_config" {
-  provider             = google-beta
-  api                  = google_api_gateway_api.api.api_id
-  api_config_id_prefix = "reports-api-config-prod"
-  project              = var.project
-  display_name         = "Reports API Config PROD"
-  openapi_documents {
-    document {
-      path = "spec.yaml"
-      contents = base64encode(<<-EOF
+
+# Get current Google Cloud access token
+data "google_client_config" "default" {}
+
+# Configure Docker provider with Artifact Registry authentication
+provider "docker" {
+  registry_auth {
+    address  = "${var.region}-docker.pkg.dev"
+    username = "oauth2accesstoken"
+    password = data.google_client_config.default.access_token
+  }
+}
+
+
+
+module "gateway" {
+  source                      = "./../modules/api-gateway"
+  project                     = var.project
+  environment                 = var.environment
+  region                      = var.region
+  service_account_email       = var.google_service_account_api_gateway
+  spec_yaml                   = <<EOF
 swagger: "2.0"
 info:
   title: reports_api_config_prod
@@ -106,33 +122,6 @@ paths:
         200:
           description: String
 EOF
-      )
-    }
-  }
-  gateway_config {
-    backend_config {
-      google_service_account = var.google_service_account_api_gateway
-    }
-  }
-}
-
-resource "google_api_gateway_gateway" "gateway" {
-  provider     = google-beta
-  project      = var.project
-  region       = var.region
-  api_config   = google_api_gateway_api_config.api_config.id
-  gateway_id   = "reports-prod"
-  display_name = "Reports API Gateway PROD"
-  labels = {
-    owner       = "tech_report_api"
-    environment = var.environment
-  }
-  depends_on = [google_api_gateway_api_config.api_config]
-  lifecycle {
-    replace_triggered_by = [
-      google_api_gateway_api_config.api_config
-    ]
-  }
 }
 
 module "endpoints" {
@@ -150,4 +139,20 @@ module "endpoints" {
     "PROJECT"  = var.project
     "DATABASE" = var.project_database
   }
+}
+
+
+moved {
+  from = google_api_gateway_api.api
+  to = module.gateway.google_api_gateway_api.api
+}
+
+moved {
+  from = google_api_gateway_api_config.api_config
+  to = module.gateway.google_api_gateway_api_config.api_config
+}
+
+moved {
+  from = google_api_gateway_gateway.gateway
+  to = module.gateway.google_api_gateway_gateway.gateway
 }
