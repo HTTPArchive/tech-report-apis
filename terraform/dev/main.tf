@@ -19,8 +19,8 @@ provider "google" {
 }
 
 provider "google-beta" {
-  project         = var.project
-  region          = var.region
+  project = var.project
+  region  = var.region
 }
 
 # Get current Google Cloud access token
@@ -36,12 +36,12 @@ provider "docker" {
 }
 
 module "gateway" {
-  source                      = "./../modules/api-gateway"
-  project                     = var.project
-  environment                 = var.environment
-  region                      = var.region
-  service_account_email       = var.google_service_account_api_gateway
-  spec_yaml                   = <<EOF
+  source                = "./../modules/api-gateway"
+  project               = var.project
+  environment           = var.environment
+  region                = var.region
+  service_account_email = var.google_service_account_api_gateway
+  spec_yaml             = <<EOF
 swagger: "2.0"
 info:
   title: reports_api_config_dev
@@ -148,15 +148,15 @@ module "endpoints" {
 
 moved {
   from = google_api_gateway_api.api
-  to = module.gateway.google_api_gateway_api.api
+  to   = module.gateway.google_api_gateway_api.api
 }
 
 moved {
   from = google_api_gateway_api_config.api_config
-  to = module.gateway.google_api_gateway_api_config.api_config
+  to   = module.gateway.google_api_gateway_api_config.api_config
 }
 
 moved {
   from = google_api_gateway_gateway.gateway
-  to = module.gateway.google_api_gateway_gateway.gateway
+  to   = module.gateway.google_api_gateway_gateway.gateway
 }

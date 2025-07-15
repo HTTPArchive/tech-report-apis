@@ -1,7 +1,7 @@
 variable "environment" {
   description = "The 'Environment' that is being created/deployed. Applied as a suffix to many resources."
   type        = string
-  default = "dev"
+  default     = "dev"
 }
 variable "project" {
   description = "The ID of the project in which the resource belongs. If it is not provided, the provider project is used."

@@ -54,28 +54,12 @@ resource "google_cloud_run_v2_service" "service" {
   }
 }
 
-resource "google_cloudfunctions2_function_iam_member" "variable_service_account_function_invoker" {
-  project        = google_cloud_run_v2_service.service.project
-  location       = google_cloud_run_v2_service.service.location
-  cloud_function = google_cloud_run_v2_service.service.name
-  role           = "roles/cloudfunctions.invoker"
-  member         = "serviceAccount:${var.service_account_email}"
-}
-
 resource "google_cloud_run_v2_service_iam_member" "variable_service_account_run_invoker" {
   project  = var.project
   location = var.region
   name     = google_cloud_run_v2_service.service.name
   role     = "roles/run.invoker"
   member   = "serviceAccount:${var.service_account_email}"
-}
-
-resource "google_cloudfunctions2_function_iam_member" "api_gw_variable_service_account_function_invoker" {
-  project        = google_cloud_run_v2_service.service.project
-  location       = google_cloud_run_v2_service.service.location
-  cloud_function = google_cloud_run_v2_service.service.name
-  role           = "roles/cloudfunctions.invoker"
-  member         = "serviceAccount:${var.service_account_api_gateway}"
 }
 
 resource "google_cloud_run_v2_service_iam_member" "api_gw_variable_service_account_run_invoker" {
