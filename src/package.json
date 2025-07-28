@@ -19,7 +19,7 @@
   "devDependencies": {
     "@jest/transform": "^30.0.4",
     "jest": "30.0.4",
-    "supertest": "7.1.3"
+    "supertest": "7.1.4"
   },
   "jest": {
     "testEnvironment": "node",
