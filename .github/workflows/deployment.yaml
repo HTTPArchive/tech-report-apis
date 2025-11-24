@@ -13,7 +13,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: |
           cd src
           npm ci
@@ -27,7 +27,7 @@ jobs:
       run:
         working-directory: ./terraform/dev
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Google Cloud Auth
         uses: 'google-github-actions/auth@v2'
         with:
@@ -72,7 +72,7 @@ jobs:
       run:
         working-directory: ./terraform/prod
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Google Cloud Auth
         uses: 'google-github-actions/auth@v2'
         with:
