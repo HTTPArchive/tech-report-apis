@@ -44,6 +44,7 @@ const getController = async (name) => {
       case 'versions':
         controllers[name] = await import('./controllers/versionsController.js');
         break;
+      // Handles CDN-related endpoints and logic
       case 'cdn':
         controllers[name] = await import('./controllers/cdnController.js');
         break;
