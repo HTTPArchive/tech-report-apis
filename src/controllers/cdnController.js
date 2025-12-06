@@ -36,15 +36,14 @@ function getMimeType(filePath) {
 
 /**
  * Proxy endpoint to serve files from private GCS bucket
- * GET /v1/reports/*
+ * GET /v1/static/*
  *
- * This serves as a proxy for files stored in gs://httparchive/reports/
- * The request path after /v1/reports/ maps directly to the GCS object path
+ * This serves as a proxy for files stored in gs://httparchive/
+ * The request path after /v1/static/ maps directly to the GCS object path
  */
 export const proxyReportsFile = async (req, res, filePath) => {
     try {
         const BUCKET_NAME = process.env.GCS_BUCKET_NAME || 'httparchive';
-        const BASE_PATH = process.env.GCS_REPORTS_PATH || 'reports';
 
         // Validate file path to prevent directory traversal
         if (filePath.includes('..') || filePath.includes('//')) {
@@ -53,11 +52,8 @@ export const proxyReportsFile = async (req, res, filePath) => {
             return;
         }
 
-        // Remove leading slash if present
-        const cleanPath = filePath.startsWith('/') ? filePath.slice(1) : filePath;
-
-        // Construct the full GCS object path
-        const objectPath = `${BASE_PATH}/${cleanPath}`;
+        // Remove leading slash if present - use path directly without base path prefix
+        const objectPath = filePath.startsWith('/') ? filePath.slice(1) : filePath;
 
         // Get the file from GCS
         const bucket = storage.bucket(BUCKET_NAME);

@@ -47,8 +47,6 @@ const getController = async (name) => {
       case 'cdn':
         controllers[name] = await import('./controllers/cdnController.js');
         break;
-      default:
-        throw new Error(`Unknown controller: ${name}`);
     }
   }
   return controllers[name];
@@ -174,9 +172,9 @@ const handleRequest = async (req, res) => {
       const { resetCache } = await import('./utils/controllerHelpers.js');
       const result = resetCache();
       sendJSONResponse(res, result);
-    } else if (pathname.startsWith('/v1/reports/') && req.method === 'GET') {
+    } else if (pathname.startsWith('/v1/static/') && req.method === 'GET') {
       // GCS proxy endpoint for reports files
-      const filePath = pathname.replace('/v1/reports/', '');
+      const filePath = pathname.replace('/v1/static/', '');
       if (!filePath) {
         res.statusCode = 400;
         res.end(JSON.stringify({ error: 'File path required' }));
