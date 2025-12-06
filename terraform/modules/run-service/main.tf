@@ -92,9 +92,3 @@ resource "google_cloud_run_v2_service_iam_member" "api_gw_variable_service_accou
   role     = "roles/run.invoker"
   member   = "serviceAccount:${var.service_account_api_gateway}"
 }
-
-resource "google_storage_bucket_iam_member" "service_account_storage_object_viewer" {
-  bucket = "httparchive"
-  role   = "roles/storage.objectViewer"
-  member = "serviceAccount:${var.service_account_email}"
-}
