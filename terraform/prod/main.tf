@@ -105,6 +105,25 @@ paths:
       responses:
         200:
           description: String
+  /v1/versions:
+    get:
+      summary: versions
+      operationId: getVersions
+      responses:
+        200:
+          description: String
+  /v1/static/{filePath=**}:
+    get:
+      summary: static
+      operationId: getStaticFile
+      parameters:
+        - name: filePath
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: File content
 EOF
       )
     }

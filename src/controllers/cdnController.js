@@ -6,24 +6,11 @@ const storage = new Storage();
 // MIME type mapping for common file extensions
 const MIME_TYPES = {
     '.json': 'application/json',
-    '.html': 'text/html',
-    '.css': 'text/css',
     '.js': 'application/javascript',
     '.png': 'image/png',
-    '.jpg': 'image/jpeg',
-    '.jpeg': 'image/jpeg',
-    '.gif': 'image/gif',
     '.svg': 'image/svg+xml',
-    '.webp': 'image/webp',
-    '.ico': 'image/x-icon',
-    '.txt': 'text/plain',
     '.csv': 'text/csv',
-    '.xml': 'application/xml',
-    '.pdf': 'application/pdf',
-    '.woff': 'font/woff',
-    '.woff2': 'font/woff2',
-    '.ttf': 'font/ttf',
-    '.eot': 'application/vnd.ms-fontobject'
+    '.pdf': 'application/pdf'
 };
 
 /**

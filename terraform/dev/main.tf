@@ -112,7 +112,7 @@ paths:
       responses:
         200:
           description: String
-  /v1/static/{filePath}:
+  /v1/static/{filePath=**}:
     get:
       summary: static
       operationId: getStaticFile
@@ -123,9 +123,7 @@ paths:
           type: string
       responses:
         200:
-          description: String
-          schema:
-            type: string
+          description: File content
 EOF
       )
     }

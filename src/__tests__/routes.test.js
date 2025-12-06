@@ -447,7 +447,7 @@ describe('API Routes', () => {
       });
 
       it('should infer MIME type from file extension when not in metadata', async () => {
-        const fileContent = '<html></html>';
+        const fileContent = '{"test": true}';
         const readable = Readable.from([fileContent]);
 
         mockFileExists.mockResolvedValue([true]);
@@ -458,10 +458,10 @@ describe('API Routes', () => {
         mockCreateReadStream.mockReturnValue(readable);
 
         const res = await request(app)
-          .get('/v1/static/reports/page.html')
+          .get('/v1/static/reports/data.json')
           .expect(200);
 
-        expect(res.headers['content-type']).toContain('text/html');
+        expect(res.headers['content-type']).toContain('application/json');
       });
 
       it('should handle CORS preflight requests', async () => {
