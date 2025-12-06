@@ -105,6 +105,25 @@ paths:
       responses:
         200:
           description: String
+  /v1/versions:
+    get:
+      summary: versions
+      operationId: getVersions
+      responses:
+        200:
+          description: String
+  /v1/static/{filePath=**}:
+    get:
+      summary: static
+      operationId: getStaticFile
+      parameters:
+        - name: filePath
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: File content
 EOF
       )
     }
@@ -136,16 +155,16 @@ resource "google_api_gateway_gateway" "gateway" {
 }
 
 module "endpoints" {
-  source                           = "./../modules/run-service"
-  entry_point                      = "app"
-  project                          = var.project
-  environment                      = var.environment
-  source_directory                 = "../../src"
-  function_name                    = "tech-report-api"
-  region                           = var.region
-  service_account_email            = var.google_service_account_cloud_functions
-  service_account_api_gateway      = var.google_service_account_api_gateway
-  min_instances                    = var.min_instances
+  source                      = "./../modules/run-service"
+  entry_point                 = "app"
+  project                     = var.project
+  environment                 = var.environment
+  source_directory            = "../../src"
+  function_name               = "tech-report-api"
+  region                      = var.region
+  service_account_email       = var.google_service_account_cloud_functions
+  service_account_api_gateway = var.google_service_account_api_gateway
+  min_instances               = var.min_instances
   environment_variables = {
     "PROJECT"  = var.project
     "DATABASE" = var.project_database

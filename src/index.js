@@ -14,7 +14,8 @@ const controllers = {
   audits: null,
   ranks: null,
   geos: null,
-  versions: null
+  versions: null,
+  static: null
 };
 
 // Helper function to dynamically import controllers
@@ -42,6 +43,9 @@ const getController = async (name) => {
         break;
       case 'versions':
         controllers[name] = await import('./controllers/versionsController.js');
+        break;
+      case 'static':
+        controllers[name] = await import('./controllers/cdnController.js');
         break;
     }
   }
@@ -168,6 +172,16 @@ const handleRequest = async (req, res) => {
       const { resetCache } = await import('./utils/controllerHelpers.js');
       const result = resetCache();
       sendJSONResponse(res, result);
+    } else if (pathname.startsWith('/v1/static/') && req.method === 'GET') {
+      // GCS proxy endpoint for reports files
+      const filePath = pathname.replace('/v1/static/', '');
+      if (!filePath) {
+        res.statusCode = 400;
+        res.end(JSON.stringify({ error: 'File path required' }));
+        return;
+      }
+      const { proxyReportsFile } = await getController('static');
+      await proxyReportsFile(req, res, filePath);
     } else {
       // 404 Not Found
       res.statusCode = 404;
