@@ -168,6 +168,16 @@ const handleRequest = async (req, res) => {
       const { resetCache } = await import('./utils/controllerHelpers.js');
       const result = resetCache();
       sendJSONResponse(res, result);
+    } else if (pathname.startsWith('/v1/reports/') && req.method === 'GET') {
+      // GCS proxy endpoint for reports files
+      const filePath = pathname.replace('/v1/reports/', '');
+      if (!filePath) {
+        res.statusCode = 400;
+        res.end(JSON.stringify({ error: 'File path required' }));
+        return;
+      }
+      const { proxyReportsFile } = await getController('cdn');
+      await proxyReportsFile(req, res, filePath);
     } else {
       // 404 Not Found
       res.statusCode = 404;
