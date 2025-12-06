@@ -14,7 +14,8 @@ const controllers = {
   audits: null,
   ranks: null,
   geos: null,
-  versions: null
+  versions: null,
+  cdn: null
 };
 
 // Helper function to dynamically import controllers
@@ -43,6 +44,11 @@ const getController = async (name) => {
       case 'versions':
         controllers[name] = await import('./controllers/versionsController.js');
         break;
+      case 'cdn':
+        controllers[name] = await import('./controllers/cdnController.js');
+        break;
+      default:
+        throw new Error(`Unknown controller: ${name}`);
     }
   }
   return controllers[name];
