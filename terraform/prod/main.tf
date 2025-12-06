@@ -109,6 +109,13 @@ paths:
       responses:
         200:
           description: String
+  /v1/versions:
+    get:
+      summary: versions
+      operationId: getVersions
+      responses:
+        200:
+          description: String
   /v1/audits:
     get:
       summary: audits
