@@ -81,8 +81,8 @@ resource "google_cloudfunctions2_function_iam_member" "api_gw_variable_service_a
   location       = google_cloudfunctions2_function.function.location
   cloud_function = google_cloudfunctions2_function.function.name
   role           = "roles/cloudfunctions.invoker"
-  member     = "serviceAccount:${var.service_account_api_gateway}"
-  depends_on = [google_cloudfunctions2_function.function]
+  member         = "serviceAccount:${var.service_account_api_gateway}"
+  depends_on     = [google_cloudfunctions2_function.function]
 }
 
 resource "google_cloud_run_v2_service_iam_member" "api_gw_variable_service_account_run_invoker" {
