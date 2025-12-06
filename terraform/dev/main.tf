@@ -112,10 +112,10 @@ paths:
       responses:
         200:
           description: String
-  /v1/reports/{filePath}:
+  /v1/static/{filePath}:
     get:
-      summary: reports
-      operationId: getReportsFile
+      summary: static
+      operationId: getStaticFile
       parameters:
         - name: filePath
           in: path

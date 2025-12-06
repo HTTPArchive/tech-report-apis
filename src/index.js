@@ -15,7 +15,7 @@ const controllers = {
   ranks: null,
   geos: null,
   versions: null,
-  cdn: null
+  static: null
 };
 
 // Helper function to dynamically import controllers
@@ -44,8 +44,7 @@ const getController = async (name) => {
       case 'versions':
         controllers[name] = await import('./controllers/versionsController.js');
         break;
-      // Handles CDN-related endpoints and logic
-      case 'cdn':
+      case 'static':
         controllers[name] = await import('./controllers/cdnController.js');
         break;
     }
@@ -181,7 +180,7 @@ const handleRequest = async (req, res) => {
         res.end(JSON.stringify({ error: 'File path required' }));
         return;
       }
-      const { proxyReportsFile } = await getController('cdn');
+      const { proxyReportsFile } = await getController('static');
       await proxyReportsFile(req, res, filePath);
     } else {
       // 404 Not Found
