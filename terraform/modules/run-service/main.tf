@@ -61,11 +61,13 @@ resource "google_cloudfunctions2_function_iam_member" "variable_service_account_
   member         = "serviceAccount:${var.service_account_email}"
   depends_on     = [google_cloudfunctions2_function.function]
 }
+
 data "google_cloud_run_service" "run-service" {
   name       = google_cloudfunctions2_function.function.name
   location   = var.region
   depends_on = [google_cloudfunctions2_function.function]
 }
+
 resource "google_cloud_run_v2_service_iam_member" "variable_service_account_run_invoker" {
   project  = var.project
   location = var.region
@@ -91,9 +93,8 @@ resource "google_cloud_run_v2_service_iam_member" "api_gw_variable_service_accou
   member   = "serviceAccount:${var.service_account_api_gateway}"
 }
 
-
-
-
-
-
-
+resource "google_storage_bucket_iam_member" "service_account_storage_object_viewer" {
+  bucket = "httparchive"
+  role   = "roles/storage.objectViewer"
+  member = "serviceAccount:${var.service_account_email}"
+}
