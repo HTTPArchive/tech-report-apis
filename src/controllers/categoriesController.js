@@ -42,7 +42,7 @@ const listCategories = async (req, res) => {
     if (isOnlyNames) {
       query = query.select('category');
     } else if (hasCustomFields) {
-      const requestedFields = params.fields.split(',').map(f => f.trim()) || ['category', 'description', 'technologies', 'origins'];
+      const requestedFields = params.fields ? params.fields.split(',').map(f => f.trim()) : ['category', 'description', 'technologies', 'origins'];
       query = query.select(...requestedFields);
     }
 
