@@ -14,7 +14,8 @@ const controllers = {
   audits: null,
   ranks: null,
   geos: null,
-  versions: null
+  versions: null,
+  cdn: null
 };
 
 // Helper function to dynamically import controllers
@@ -42,6 +43,9 @@ const getController = async (name) => {
         break;
       case 'versions':
         controllers[name] = await import('./controllers/versionsController.js');
+        break;
+      case 'cdn':
+        controllers[name] = await import('./controllers/cdnController.js');
         break;
     }
   }
@@ -168,6 +172,10 @@ const handleRequest = async (req, res) => {
       const { resetCache } = await import('./utils/controllerHelpers.js');
       const result = resetCache();
       sendJSONResponse(res, result);
+    } else if (pathname === '/v1/cdn/signed-params' && req.method === 'GET') {
+      // CDN signed URL parameters endpoint
+      const { getSignedParams } = await getController('cdn');
+      await getSignedParams(req, res);
     } else {
       // 404 Not Found
       res.statusCode = 404;
