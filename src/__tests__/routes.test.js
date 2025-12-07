@@ -451,7 +451,6 @@ describe('API Routes', () => {
         const res = await request(app)
           .get('/v1/static/reports/..hidden/passwd')
           .expect(400);
-          .expect(400);
         expect(res.body).toHaveProperty('error', 'Invalid file path');
       });
 
