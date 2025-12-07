@@ -33,7 +33,7 @@ variable "available_cpu" {
 }
 variable "ingress_settings" {
   type        = string
-  default     = "ALLOW_ALL"
+  default     = "ALLOW_INTERNAL_AND_GCLB"
   description = "String value that controls what traffic can reach the function. Allowed values are ALLOW_ALL, ALLOW_INTERNAL_AND_GCLB and ALLOW_INTERNAL_ONLY. Check ingress documentation to see the impact of each settings value. Changes to this field will recreate the cloud function."
 }
 variable "vpc_connector_egress_settings" {
