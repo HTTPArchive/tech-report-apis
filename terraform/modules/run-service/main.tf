@@ -92,3 +92,11 @@ resource "google_cloud_run_v2_service_iam_member" "api_gw_variable_service_accou
   role     = "roles/run.invoker"
   member   = "serviceAccount:${var.service_account_api_gateway}"
 }
+
+resource "google_cloud_run_v2_service_iam_member" "allow_unauthenticated" {
+  project  = var.project
+  location = var.region
+  name     = data.google_cloud_run_service.run-service.name
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
