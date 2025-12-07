@@ -62,10 +62,6 @@ export const proxyReportsFile = async (req, res, filePath) => {
 
         // Set response headers
         res.setHeader('Content-Type', contentType);
-        res.setHeader('Cache-Control', 'public, max-age=86400'); // 24 hours
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
         if (metadata.etag) {
             res.setHeader('ETag', metadata.etag);

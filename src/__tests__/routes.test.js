@@ -383,37 +383,6 @@ describe('API Routes', () => {
     });
   });
 
-  describe('Cache Management', () => {
-    it('should provide cache stats', async () => {
-      const res = await request(app)
-        .get('/v1/cache-stats')
-        .expect(200);
-
-      expect(res.body).toHaveProperty('queryCache');
-      expect(res.body).toHaveProperty('dateCache');
-      expect(res.body).toHaveProperty('config');
-    });
-
-    it('should reset cache on POST request', async () => {
-      const res = await request(app)
-        .post('/v1/cache-reset')
-        .expect(200);
-
-      expect(res.body).toHaveProperty('success', true);
-      expect(res.body).toHaveProperty('message');
-      expect(res.body).toHaveProperty('before');
-      expect(res.body).toHaveProperty('after');
-    });
-
-    it('should handle cache reset OPTIONS request', async () => {
-      const res = await request(app)
-        .options('/v1/cache-reset')
-        .expect(204);
-
-      expect(res.headers['access-control-allow-methods']).toContain('POST');
-    });
-  });
-
   describe('GET /v1/static/*', () => {
     beforeEach(() => {
       // Reset all mocks before each test

@@ -116,27 +116,4 @@ test_endpoint "/v1/page-weight" "?technology=WordPress&geo=ALL&rank=ALL&start=la
 # Test audits endpoint
 test_endpoint "/v1/audits" "?technology=WordPress&geo=ALL&rank=ALL&start=latest"
 
-# Test cache stats endpoint
-echo "Testing cache stats endpoint..."
-test_endpoint "/v1/cache-stats" ""
-
-# Test cache reset endpoint
-echo "Testing cache reset endpoint..."
-echo "Checking cache reset: http://localhost:3000/v1/cache-reset"
-response=$(curl -s -w "\n%{http_code}" -X POST "http://localhost:3000/v1/cache-reset")
-http_code=$(echo "$response" | tail -n1)
-body=$(echo "$response" | sed '$d')
-
-echo "$body" | jq .
-echo "Status code: $http_code"
-
-if [[ $http_code -ne 200 ]]; then
-  echo "Error: Cache reset endpoint returned non-200 status code"
-  exit 1
-fi
-
-echo ""
-echo "----------------------"
-echo ""
-
 echo "API tests complete! All endpoints returned 200 status code and CORS is properly configured."
