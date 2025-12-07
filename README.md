@@ -6,7 +6,7 @@ This is an HTTP Archive Reporting API that provides reporting data via various e
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - npm
 - Google Cloud account with necessary permissions
 - Set environment variables:
