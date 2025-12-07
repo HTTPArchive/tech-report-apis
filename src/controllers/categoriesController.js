@@ -53,13 +53,7 @@ const listCategories = async (req, res) => {
     return data;
   };
 
-  // Include onlyname and fields in cache key calculation
-  const customCacheKeyData = {
-    onlyname: req.query.onlyname || false,
-    fields: req.query.fields
-  };
-
-  await executeQuery(req, res, 'categories', queryBuilder, dataProcessor, customCacheKeyData);
+  await executeQuery(req, res, 'categories', queryBuilder, dataProcessor);
 };
 
 export { listCategories };

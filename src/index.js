@@ -162,16 +162,6 @@ const handleRequest = async (req, res) => {
     } else if (pathname === '/v1/versions' && req.method === 'GET') {
       const { listVersions } = await getController('versions');
       await listVersions(req, res);
-    } else if (pathname === '/v1/cache-stats' && req.method === 'GET') {
-      // Cache monitoring endpoint
-      const { getCacheStats } = await import('./utils/controllerHelpers.js');
-      const stats = getCacheStats();
-      sendJSONResponse(res, stats);
-    } else if (pathname === '/v1/cache-reset' && req.method === 'POST') {
-      // Cache reset endpoint
-      const { resetCache } = await import('./utils/controllerHelpers.js');
-      const result = resetCache();
-      sendJSONResponse(res, result);
     } else if (pathname.startsWith('/v1/static/') && req.method === 'GET') {
       // GCS proxy endpoint for reports files
       const filePath = pathname.replace('/v1/static/', '');
