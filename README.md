@@ -500,6 +500,49 @@ Returns a JSON object with the following schema:
 ]
 ```
 
+### `GET /static/*`
+
+Proxy endpoint to serve files from the private Google Cloud Storage bucket. The request path after `/v1/static/` maps directly to the GCS object path.
+
+#### Static File Features
+
+- **Conditional Requests**: Supports `If-None-Match` header for cache validation (returns 304 if unchanged)
+- **Content Type Detection**: Automatically detects MIME type based on file extension
+- **Streaming**: Files are streamed directly from GCS for efficient memory usage
+- **ETag Support**: Returns ETag header for cache validation
+
+#### Supported File Types
+
+| Extension | MIME Type |
+|-----------|-----------|
+| `.json` | `application/json` |
+| `.js` | `application/javascript` |
+| `.png` | `image/png` |
+| `.svg` | `image/svg+xml` |
+| `.csv` | `text/csv` |
+| `.pdf` | `application/pdf` |
+
+#### Static File Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/static/reports/2023/example.json'
+```
+
+Returns the file content with appropriate headers:
+
+```http
+Content-Type: application/json
+ETag: "abc123..."
+Content-Length: 1234
+```
+
+#### Error Responses
+
+- **400 Bad Request**: Invalid file path (e.g., contains `..` or `//`)
+- **404 Not Found**: File does not exist in the bucket
+- **500 Internal Server Error**: Failed to retrieve or stream the file
+
 ## Testing
 
 ```bash
