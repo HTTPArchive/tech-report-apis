@@ -22,12 +22,12 @@ variable "entry_point" {
   type        = string
 }
 variable "available_memory_mb" {
-  default     = "2Gi"
+  default     = "1Gi"
   type        = string
   description = "The amount of memory for the Cloud Function"
 }
 variable "available_cpu" {
-  default     = "2"
+  default     = "1"
   type        = string
   description = "The amount of CPU for the Cloud Function"
 }
@@ -59,7 +59,7 @@ variable "service_account_api_gateway" {
   description = "API Gateway service account who can invoke this function. This is required!"
 }
 variable "max_instances" {
-  default     = 10
+  default     = 2
   type        = number
   description = "(Optional) The limit on the maximum number of function instances that may coexist at a given time."
 }
