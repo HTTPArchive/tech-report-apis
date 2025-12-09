@@ -80,7 +80,9 @@ jest.unstable_mockModule('../utils/db.js', () => {
 });
 
 // Import app after mocking
-const { app } = await import('../index.js');
+await import('../index.js');
+import { getTestServer } from '@google-cloud/functions-framework/testing';
+const app = getTestServer('app');
 
 describe('API Routes', () => {
   describe('Health Check', () => {

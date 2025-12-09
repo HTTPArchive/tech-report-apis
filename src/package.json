@@ -8,7 +8,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "start": "export DATABASE=tech-report-api-prod && node index.js",
+    "start": "DATABASE=tech-report-api-prod functions-framework --target=app",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:live": "bash ../test-api.sh"
   },
