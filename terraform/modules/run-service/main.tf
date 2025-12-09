@@ -53,44 +53,10 @@ resource "google_cloudfunctions2_function" "function" {
   ]
 }
 
-resource "google_cloudfunctions2_function_iam_member" "variable_service_account_function_invoker" {
-  project        = google_cloudfunctions2_function.function.project
-  location       = google_cloudfunctions2_function.function.location
-  cloud_function = google_cloudfunctions2_function.function.name
-  role           = "roles/cloudfunctions.invoker"
-  member         = "serviceAccount:${var.service_account_email}"
-  depends_on     = [google_cloudfunctions2_function.function]
-}
-
 data "google_cloud_run_service" "run-service" {
   name       = google_cloudfunctions2_function.function.name
   location   = var.region
   depends_on = [google_cloudfunctions2_function.function]
-}
-
-resource "google_cloud_run_v2_service_iam_member" "variable_service_account_run_invoker" {
-  project  = var.project
-  location = var.region
-  name     = data.google_cloud_run_service.run-service.name
-  role     = "roles/run.invoker"
-  member   = "serviceAccount:${var.service_account_email}"
-}
-
-resource "google_cloudfunctions2_function_iam_member" "api_gw_variable_service_account_function_invoker" {
-  project        = google_cloudfunctions2_function.function.project
-  location       = google_cloudfunctions2_function.function.location
-  cloud_function = google_cloudfunctions2_function.function.name
-  role           = "roles/cloudfunctions.invoker"
-  member         = "serviceAccount:${var.service_account_api_gateway}"
-  depends_on     = [google_cloudfunctions2_function.function]
-}
-
-resource "google_cloud_run_v2_service_iam_member" "api_gw_variable_service_account_run_invoker" {
-  project  = var.project
-  location = var.region
-  name     = data.google_cloud_run_service.run-service.name
-  role     = "roles/run.invoker"
-  member   = "serviceAccount:${var.service_account_api_gateway}"
 }
 
 resource "google_cloud_run_v2_service_iam_member" "allow_unauthenticated" {
