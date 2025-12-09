@@ -147,7 +147,7 @@ const handleRequest = async (req, res) => {
       await listVersions(req, res);
     } else if (pathname.startsWith('/v1/static/') && req.method === 'GET') {
       // GCS proxy endpoint for reports files
-      const filePath = pathname.replace('/v1/static/', '');
+      const filePath = decodeURIComponent(pathname.replace('/v1/static/', ''));
       if (!filePath) {
         res.statusCode = 400;
         res.end(JSON.stringify({ error: 'File path required' }));
