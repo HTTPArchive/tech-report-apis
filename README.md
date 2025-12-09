@@ -22,7 +22,7 @@ This is an HTTP Archive Reporting API that provides reporting data via various e
   npm run start
   ```
 
-The API will be available at <http://localhost:3000>
+The API will be available at <http://localhost:8080>
 
 ## API Endpoints
 
