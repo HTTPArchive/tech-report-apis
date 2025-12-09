@@ -62,6 +62,7 @@ export const proxyReportsFile = async (req, res, filePath) => {
 
         // Set response headers
         res.setHeader('Content-Type', contentType);
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 
         if (metadata.etag) {
             res.setHeader('ETag', metadata.etag);
