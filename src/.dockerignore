@@ -1,0 +1,11 @@
+node_modules/
+npm-debug.log
+.git
+.gitignore
+.env
+.nyc_output
+*.md
+.DS_Store
+cloudbuild.yaml
+__tests__/
+coverage/

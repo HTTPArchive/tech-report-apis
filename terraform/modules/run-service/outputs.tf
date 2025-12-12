@@ -1,5 +1,5 @@
 
 output "name" {
-  description = "Name of the Cloud Function"
-  value       = google_cloudfunctions2_function.function.name
+  description = "Name of the Cloud Run service"
+  value       = google_cloud_run_v2_service.service.name
 }

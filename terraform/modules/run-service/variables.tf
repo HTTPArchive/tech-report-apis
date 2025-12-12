@@ -5,6 +5,11 @@ variable "region" {
   default = "us-central1"
   type    = string
 }
+variable "service_name" {
+  description = "Optional: Can be used to create more than function from the same package"
+  type        = string
+  default     = "report-api"
+}
 variable "environment" {
   description = "The 'Environment' that is being created/deployed. Applied as a suffix to many resources."
   type        = string
@@ -21,7 +26,7 @@ variable "entry_point" {
   description = "The entry point; This is either what is registered with 'http' or exported from the code as a handler!"
   type        = string
 }
-variable "available_memory_mb" {
+variable "available_memory" {
   default     = "1Gi"
   type        = string
   description = "The amount of memory for the Cloud Function"
@@ -46,8 +51,8 @@ variable "project" {
   type        = string
 }
 variable "timeout" {
-  default     = 60
-  type        = number
+  default     = "60s"
+  type        = string
   description = "Timeout (in seconds) for the function. Default value is 60 seconds. Cannot be more than 540 seconds."
 }
 variable "service_account_email" {
