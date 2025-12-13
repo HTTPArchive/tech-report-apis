@@ -34,3 +34,25 @@ module "endpoints" {
     "DATABASE" = var.project_database
   }
 }
+
+module "cdn_glb" {
+  source = "./../modules/cdn-glb"
+
+  project     = var.project
+  region      = var.region
+  environment = var.environment
+
+  cloud_run_service_name = module.endpoints.name
+  domain                 = var.cdn_domain
+  load_balancer_name     = var.load_balancer_name
+  name_prefix            = "report-api"
+
+  # Resource name overrides to match existing resources
+  neg_name                   = "report-api-prod"
+  backend_service_name       = "report-api"
+  ssl_cert_name              = "google-managed2"
+  https_proxy_name           = "httparchive-load-balancer-target-proxy-2"
+  http_proxy_name            = "httparchive-load-balancer-target-proxy"
+  https_forwarding_rule_name = "httparchive-load-balancer-forwarding-rule-2"
+  http_forwarding_rule_name  = "httparchive-load-balancer-forwarding-rule"
+}

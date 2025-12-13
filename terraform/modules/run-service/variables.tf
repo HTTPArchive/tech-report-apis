@@ -58,7 +58,7 @@ variable "timeout" {
 variable "service_account_email" {
   type        = string
   description = "Service account who can invoke this function. This is required!"
-  default = "cloud-function@httparchive.iam.gserviceaccount.com"
+  default     = "cloud-function@httparchive.iam.gserviceaccount.com"
 }
 variable "max_instances" {
   default     = 2

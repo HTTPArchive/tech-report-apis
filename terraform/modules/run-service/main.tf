@@ -134,10 +134,13 @@ resource "google_cloud_run_v2_service" "service" {
 
   template {
     service_account = var.service_account_email
+    timeout                          = var.timeout
+    max_instance_request_concurrency = var.max_instance_request_concurrency
 
     containers {
       image = docker_registry_image.registry_image.name
       resources {
+        cpu_idle = var.environment == "prod" ? false : true
         limits = {
           cpu    = var.available_cpu
           memory = var.available_memory
@@ -151,10 +154,9 @@ resource "google_cloud_run_v2_service" "service" {
         }
       }
     }
-    timeout                          = var.timeout
-    max_instance_request_concurrency = var.max_instance_request_concurrency
   }
   scaling {
+    scaling_mode       = "AUTOMATIC"
     min_instance_count = var.min_instances
   }
   traffic {

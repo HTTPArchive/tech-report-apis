@@ -22,3 +22,15 @@ variable "min_instances" {
   type        = number
   default     = 1
 }
+
+variable "cdn_domain" {
+  description = "The domain name for the CDN SSL certificate"
+  type        = string
+  default     = "cdn.httparchive.org"
+}
+
+variable "load_balancer_name" {
+  description = "The name for the load balancer (URL map)"
+  type        = string
+  default     = "httparchive-load-balancer"
+}
