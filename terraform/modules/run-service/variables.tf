@@ -41,7 +41,7 @@ variable "ingress_settings" {
 variable "timeout" {
   default     = "60s"
   type        = string
-  description = "Timeout (in seconds) for the function. Default value is 60 seconds. Cannot be more than 540 seconds."
+  description = "Timeout for the service. Default value is 60 seconds. Cannot be more than 540 seconds."
 }
 variable "service_account_email" {
   type        = string
