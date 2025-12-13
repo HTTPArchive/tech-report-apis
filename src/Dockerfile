@@ -9,9 +9,11 @@ COPY package*.json ./
 # Install dependencies (this layer will be cached unless package files change)
 RUN npm ci --only=production --quiet --no-fund --no-audit && npm cache clean --force
 
-ENV DATABASE=tech-report-api-prod
-
 # Copy source code
 COPY . .
 
-CMD ["node", "index.js"]
+# Cloud Run expects the container to listen on PORT (default 8080)
+ENV PORT=8080
+
+# Use Functions Framework to serve the app
+CMD ["npx", "functions-framework", "--target=app"]

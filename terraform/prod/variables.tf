@@ -4,8 +4,8 @@ variable "project" {
   default     = "httparchive"
 }
 variable "region" {
-  default = "us-central1"
   type    = string
+  default = "us-central1"
 }
 variable "environment" {
   description = "The environment name"
@@ -17,18 +17,20 @@ variable "project_database" {
   description = "The database name"
   default     = "tech-report-api-prod"
 }
-variable "google_service_account_cloud_functions" {
-  type        = string
-  description = "Service account for Cloud Functions"
-  default     = "cloud-function@httparchive.iam.gserviceaccount.com"
-}
-variable "google_service_account_api_gateway" {
-  type        = string
-  description = "Service account for API Gateway"
-  default     = "api-gateway@httparchive.iam.gserviceaccount.com"
-}
 variable "min_instances" {
   description = "(Optional) The limit on the minimum number of function instances that may coexist at a given time."
   type        = number
   default     = 1
+}
+
+variable "cdn_domain" {
+  description = "The domain name for the CDN SSL certificate"
+  type        = string
+  default     = "cdn.httparchive.org"
+}
+
+variable "load_balancer_name" {
+  description = "The name for the load balancer (URL map)"
+  type        = string
+  default     = "httparchive-load-balancer"
 }

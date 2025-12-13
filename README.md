@@ -6,7 +6,7 @@ This is an HTTP Archive Reporting API that provides reporting data via various e
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - npm
 - Google Cloud account with necessary permissions
 - Set environment variables:
@@ -22,7 +22,7 @@ This is an HTTP Archive Reporting API that provides reporting data via various e
   npm run start
   ```
 
-The API will be available at <http://localhost:3000>
+The API will be available at <http://localhost:8080>
 
 ## API Endpoints
 
@@ -30,7 +30,6 @@ The API will be available at <http://localhost:3000>
 - **Cache Headers**: 6-hour cache control for static data
 - **Health Check**: GET `/` returns health status
 - **RESTful API**: All endpoints follow REST conventions
-- **Backend caching**: Some responses are cached on the backend for 1 hours to improve latency
 
 ### `GET /`
 
@@ -501,50 +500,48 @@ Returns a JSON object with the following schema:
 ]
 ```
 
-### `GET /cache-stats`
+### `GET /static/*`
 
-Provides statistics about the API's cache.
+Proxy endpoint to serve files from the private Google Cloud Storage bucket. The request path after `/v1/static/` maps directly to the GCS object path.
+
+#### Static File Features
+
+- **Conditional Requests**: Supports `If-None-Match` header for cache validation (returns 304 if unchanged)
+- **Content Type Detection**: Automatically detects MIME type based on file extension
+- **Streaming**: Files are streamed directly from GCS for efficient memory usage
+- **ETag Support**: Returns ETag header for cache validation
+
+#### Supported File Types
+
+| Extension | MIME Type |
+|-----------|-----------|
+| `.json` | `application/json` |
+| `.js` | `application/javascript` |
+| `.png` | `image/png` |
+| `.svg` | `image/svg+xml` |
+| `.csv` | `text/csv` |
+| `.pdf` | `application/pdf` |
+
+#### Static File Response
 
 ```bash
 curl --request GET \
-  --url 'https://{{HOST}}/v1/cache-stats'
+  --url 'https://{{HOST}}/v1/static/reports/2023/example.json'
 ```
 
-Returns a JSON object with the following schema:
+Returns the file content with appropriate headers:
 
-```json
-{
-    "cache_hits": 12345,
-    "cache_misses": 6789,
-    "last_cleared": "2023-10-01T12:00:00Z"
-}
+```http
+Content-Type: application/json
+ETag: "abc123..."
+Content-Length: 1234
 ```
 
-### `POST /v1/cache-reset`
+#### Error Responses
 
-Resets all caches in the API. This endpoint requires a POST request.
-
-```bash
-curl --request POST \
-  --url 'https://{{HOST}}/v1/cache-reset'
-```
-
-Returns a JSON object with the following schema:
-
-```json
-{
-    "success": true,
-    "message": "All caches have been reset",
-    "before": {
-        "queryCache": 150,
-        "dateCache": 12
-    },
-    "after": {
-        "queryCache": 0,
-        "dateCache": 0
-    }
-}
-```
+- **400 Bad Request**: Invalid file path (e.g., contains `..` or `//`)
+- **404 Not Found**: File does not exist in the bucket
+- **500 Internal Server Error**: Failed to retrieve or stream the file
 
 ## Testing
 
@@ -667,34 +664,4 @@ Response:
 }
 ```
 
-## Cache Stats Private Endpoint
 
-The Cache Stats private endpoint provides information about the API's cache performance, including cache hits, misses, and the last time the cache was cleared. This endpoint is useful for monitoring and debugging cache behavior.
-
-```bash
-curl "https://tech-report-api-dev-226352634162.us-central1.run.app/v1/cache-stats" \
-  -H "Authorization: bearer $(gcloud auth print-identity-token)"
-```
-
-Returns a JSON object with the following schema:
-
-```json
-{
-    "queryCache": {
-        "total": 3220,
-        "valid": 2437,
-        "expired": 783,
-        "ttl": 3600000
-    },
-    "dateCache": {
-        "total": 4,
-        "valid": 4,
-        "expired": 0,
-        "ttl": 3600000
-    },
-    "config": {
-        "maxCacheSize": 5000,
-        "cleanupStrategy": "size-based-lru"
-    }
-}
-```

@@ -66,15 +66,7 @@ const listTechnologies = async (req, res) => {
     return data;
   };
 
-  // Include onlyname and fields in cache key calculation
-  const customCacheKeyData = {
-    onlyname: req.query.onlyname || false,
-    fields: req.query.fields,
-    technology: req.query.technology ? validateTechnologyArray(req.query.technology) : [],
-    category: req.query.category ? validateArrayParameter(req.query.category, 'category') : [],
-  };
-
-  await executeQuery(req, res, 'technologies', queryBuilder, dataProcessor, customCacheKeyData);
+  await executeQuery(req, res, 'technologies', queryBuilder, dataProcessor);
 };
 
 export {

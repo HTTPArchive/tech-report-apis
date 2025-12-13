@@ -6,7 +6,10 @@ terraform {
   required_providers {
     docker = {
       source  = "kreuzwerker/docker"
-      version = ">= 3.6.2"
+      version = "3.6.2"
+    }
+    google = {
+      source = "hashicorp/google"
     }
   }
 }
@@ -17,140 +20,39 @@ provider "google" {
   request_timeout = "60m"
 }
 
-provider "google-beta" {
-  project = var.project
-  region  = var.region
-}
-
-# Get current Google Cloud access token
-data "google_client_config" "default" {}
-
-# Configure Docker provider with Artifact Registry authentication
-provider "docker" {
-  registry_auth {
-    address  = "${var.region}-docker.pkg.dev"
-    username = "oauth2accesstoken"
-    password = data.google_client_config.default.access_token
-  }
-}
-
-module "gateway" {
-  source                = "../modules/api-gateway"
-  environment           = var.environment
-  service_account_email = var.google_service_account_api_gateway
-  spec_yaml             = <<EOF
-swagger: "2.0"
-info:
-  title: reports_api_config_prod
-  version: 1.0.0
-schemes:
-  - https
-produces:
-  - application/json
-x-google-backend:
-  address: https://us-central1-httparchive.cloudfunctions.net/tech-report-api-prod
-  deadline: 60
-  path_translation: APPEND_PATH_TO_ADDRESS
-  protocol: h2
-paths:
-  /v1/categories:
-    get:
-      summary: categories
-      operationId: getCategories
-      responses:
-        200:
-          description: String
-  /v1/adoption:
-    get:
-      summary: adoption
-      operationId: getAdoptionReports
-      responses:
-        200:
-          description: String
-  /v1/page-weight:
-    get:
-      summary: pageWeight
-      operationId: getPageWeightReports
-      responses:
-        200:
-          description: String
-  /v1/lighthouse:
-    get:
-      summary: lighthouse
-      operationId: getLighthouseReports
-      responses:
-        200:
-          description: String
-  /v1/cwv:
-    get:
-      summary: cwv
-      operationId: getCWVReports
-      responses:
-        200:
-          description: String
-  /v1/ranks:
-    get:
-      summary: ranks
-      operationId: getRanks
-      responses:
-        200:
-          description: String
-  /v1/geos:
-    get:
-      summary: geos
-      operationId: getGeos
-      responses:
-        200:
-          description: String
-  /v1/technologies:
-    get:
-      summary: technologies
-      operationId: getTechnologies
-      responses:
-        200:
-          description: String
-  /v1/versions:
-    get:
-      summary: versions
-      operationId: getVersions
-      responses:
-        200:
-          description: String
-  /v1/audits:
-    get:
-      summary: audits
-      operationId: getAuditReports
-      responses:
-        200:
-          description: String
-EOF
-}
-
 module "endpoints" {
-  source                      = "../modules/run-service"
-  environment                 = var.environment
-  source_directory            = "../../src"
-  service_name               = "tech-report-api"
-  service_account_email       = var.google_service_account_cloud_functions
-  service_account_api_gateway = var.google_service_account_api_gateway
-  min_instances               = var.min_instances
+  source           = "./../modules/run-service"
+  entry_point      = "app"
+  project          = var.project
+  environment      = var.environment
+  source_directory = "../../src"
+  function_name    = "tech-report-api"
+  region           = var.region
+  min_instances    = var.min_instances
   environment_variables = {
     "PROJECT"  = var.project
     "DATABASE" = var.project_database
   }
 }
 
-moved {
-  from = google_api_gateway_api.api
-  to   = module.gateway.google_api_gateway_api.api
-}
+module "cdn_glb" {
+  source = "./../modules/cdn-glb"
 
-moved {
-  from = google_api_gateway_api_config.api_config
-  to   = module.gateway.google_api_gateway_api_config.api_config
-}
+  project     = var.project
+  region      = var.region
+  environment = var.environment
 
-moved {
-  from = google_api_gateway_gateway.gateway
-  to   = module.gateway.google_api_gateway_gateway.gateway
+  cloud_run_service_name = module.endpoints.name
+  domain                 = var.cdn_domain
+  load_balancer_name     = var.load_balancer_name
+  name_prefix            = "report-api"
+
+  # Resource name overrides to match existing resources
+  neg_name                   = "report-api-prod"
+  backend_service_name       = "report-api"
+  ssl_cert_name              = "google-managed2"
+  https_proxy_name           = "httparchive-load-balancer-target-proxy-2"
+  http_proxy_name            = "httparchive-load-balancer-target-proxy"
+  https_forwarding_rule_name = "httparchive-load-balancer-forwarding-rule-2"
+  http_forwarding_rule_name  = "httparchive-load-balancer-forwarding-rule"
 }

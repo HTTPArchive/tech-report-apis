@@ -1,5 +1,25 @@
 import request from 'supertest';
 import { jest } from '@jest/globals';
+import { Readable } from 'stream';
+
+// Mock the GCS Storage module
+const mockFileExists = jest.fn();
+const mockGetMetadata = jest.fn();
+const mockCreateReadStream = jest.fn();
+const mockFile = jest.fn(() => ({
+  exists: mockFileExists,
+  getMetadata: mockGetMetadata,
+  createReadStream: mockCreateReadStream
+}));
+const mockBucket = jest.fn(() => ({
+  file: mockFile
+}));
+
+jest.unstable_mockModule('@google-cloud/storage', () => ({
+  Storage: jest.fn(() => ({
+    bucket: mockBucket
+  }))
+}));
 
 // Mock the entire utils/db module using ESM-compatible mocking
 jest.unstable_mockModule('../utils/db.js', () => {
@@ -60,7 +80,9 @@ jest.unstable_mockModule('../utils/db.js', () => {
 });
 
 // Import app after mocking
-const { app } = await import('../index.js');
+await import('../index.js');
+import { getTestServer } from '@google-cloud/functions-framework/testing';
+const app = getTestServer('app');
 
 describe('API Routes', () => {
   describe('Health Check', () => {
@@ -369,34 +391,579 @@ describe('API Routes', () => {
     });
   });
 
-  describe('Cache Management', () => {
-    it('should provide cache stats', async () => {
-      const res = await request(app)
-        .get('/v1/cache-stats')
-        .expect(200);
-
-      expect(res.body).toHaveProperty('queryCache');
-      expect(res.body).toHaveProperty('dateCache');
-      expect(res.body).toHaveProperty('config');
+  describe('GET /v1/static/*', () => {
+    beforeEach(() => {
+      // Reset all mocks before each test
+      mockFileExists.mockReset();
+      mockGetMetadata.mockReset();
+      mockCreateReadStream.mockReset();
+      mockFile.mockClear();
+      mockBucket.mockClear();
     });
 
-    it('should reset cache on POST request', async () => {
-      const res = await request(app)
-        .post('/v1/cache-reset')
-        .expect(200);
+    describe('Valid file requests', () => {
+      it('should return file content for valid path', async () => {
+        const fileContent = JSON.stringify({ data: 'test' });
+        const readable = Readable.from([fileContent]);
 
-      expect(res.body).toHaveProperty('success', true);
-      expect(res.body).toHaveProperty('message');
-      expect(res.body).toHaveProperty('before');
-      expect(res.body).toHaveProperty('after');
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockResolvedValue([{
+          contentType: 'application/json',
+          etag: '"abc123"',
+          size: fileContent.length
+        }]);
+        mockCreateReadStream.mockReturnValue(readable);
+
+        const res = await request(app)
+          .get('/v1/static/reports/2024/data.json')
+          .expect(200);
+
+        expect(res.headers['content-type']).toContain('application/json');
+        expect(res.headers['cache-control']).toContain('public');
+        expect(res.headers['access-control-allow-origin']).toEqual('*');
+      });
+
+      it('should infer MIME type from file extension when not in metadata', async () => {
+        const fileContent = '{"test": true}';
+        const readable = Readable.from([fileContent]);
+
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockResolvedValue([{
+          etag: '"abc123"',
+          size: fileContent.length
+        }]);
+        mockCreateReadStream.mockReturnValue(readable);
+
+        const res = await request(app)
+          .get('/v1/static/reports/data.json')
+          .expect(200);
+
+        expect(res.headers['content-type']).toContain('application/json');
+      });
+
+      it('should handle CORS preflight requests', async () => {
+        const res = await request(app)
+          .options('/v1/static/reports/data.json')
+          .set('Origin', 'http://example.com')
+          .set('Access-Control-Request-Method', 'GET')
+          .set('Access-Control-Request-Headers', 'Content-Type');
+
+        expect(res.statusCode).toEqual(204);
+        expect(res.headers['access-control-allow-origin']).toEqual('*');
+      });
     });
 
-    it('should handle cache reset OPTIONS request', async () => {
-      const res = await request(app)
-        .options('/v1/cache-reset')
-        .expect(204);
+    describe('Invalid file paths (directory traversal attempts)', () => {
+      it('should reject paths containing double dot sequences', async () => {
+        // Test with '..' embedded in the path that won't be normalized away
+        const res = await request(app)
+          .get('/v1/static/reports/..hidden/passwd')
+          .expect(400);
+        expect(res.body).toHaveProperty('error', 'Invalid file path');
+      });
 
-      expect(res.headers['access-control-allow-methods']).toContain('POST');
+      it('should reject paths with double slashes', async () => {
+        const res = await request(app)
+          .get('/v1/static/reports//data.json')
+          .expect(400);
+
+        expect(res.body).toHaveProperty('error', 'Invalid file path');
+      });
+
+      it('should reject paths with encoded double dots', async () => {
+        // URL-encoded '..' = %2e%2e
+        mockFileExists.mockResolvedValue([false]); // Will be checked after validation
+
+        const res = await request(app)
+          .get('/v1/static/reports/%2e%2e/secret/passwd');
+
+        // Should either be rejected as invalid or not found
+        expect([400, 404]).toContain(res.statusCode);
+      });
+    });
+
+    describe('Non-existent files (404 handling)', () => {
+      it('should return 404 for non-existent files', async () => {
+        mockFileExists.mockResolvedValue([false]);
+
+        const res = await request(app)
+          .get('/v1/static/reports/nonexistent.json')
+          .expect(404);
+
+        expect(res.body).toHaveProperty('error', 'File not found');
+      });
+
+      it('should return 400 for empty file path', async () => {
+        const res = await request(app)
+          .get('/v1/static/')
+          .expect(400);
+
+        expect(res.body).toHaveProperty('error', 'File path required');
+      });
+    });
+
+    describe('Conditional requests (ETag/If-None-Match)', () => {
+      it('should return 304 when ETag matches If-None-Match header', async () => {
+        const etag = '"abc123"';
+
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockResolvedValue([{
+          contentType: 'application/json',
+          etag: etag,
+          size: 100
+        }]);
+
+        const res = await request(app)
+          .get('/v1/static/reports/data.json')
+          .set('If-None-Match', etag)
+          .expect(304);
+
+        // 304 responses have no body
+        expect(res.text).toEqual('');
+      });
+
+      it('should return 200 with content when ETag does not match', async () => {
+        const fileContent = JSON.stringify({ data: 'test' });
+        const readable = Readable.from([fileContent]);
+
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockResolvedValue([{
+          contentType: 'application/json',
+          etag: '"abc123"',
+          size: fileContent.length
+        }]);
+        mockCreateReadStream.mockReturnValue(readable);
+
+        const res = await request(app)
+          .get('/v1/static/reports/data.json')
+          .set('If-None-Match', '"different-etag"')
+          .expect(200);
+
+        expect(res.headers['etag']).toEqual('"abc123"');
+      });
+
+      it('should include ETag in response headers', async () => {
+        const fileContent = JSON.stringify({ data: 'test' });
+        const readable = Readable.from([fileContent]);
+
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockResolvedValue([{
+          contentType: 'application/json',
+          etag: '"abc123"',
+          size: fileContent.length
+        }]);
+        mockCreateReadStream.mockReturnValue(readable);
+
+        const res = await request(app)
+          .get('/v1/static/reports/data.json')
+          .expect(200);
+
+        expect(res.headers).toHaveProperty('etag', '"abc123"');
+      });
+    });
+
+    describe('Error scenarios (GCS failures)', () => {
+      it('should handle GCS exists() failure', async () => {
+        mockFileExists.mockRejectedValue(new Error('GCS connection failed'));
+
+        const res = await request(app)
+          .get('/v1/static/reports/data.json')
+          .expect(500);
+
+        expect(res.body).toHaveProperty('error', 'Failed to retrieve file');
+        expect(res.body).toHaveProperty('details');
+      });
+
+      it('should handle GCS getMetadata() failure', async () => {
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockRejectedValue(new Error('Metadata retrieval failed'));
+
+        const res = await request(app)
+          .get('/v1/static/reports/data.json')
+          .expect(500);
+
+        expect(res.body).toHaveProperty('error', 'Failed to retrieve file');
+      });
+
+      it('should handle stream errors during file read', async () => {
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockResolvedValue([{
+          contentType: 'application/json',
+          etag: '"abc123"',
+          size: 100
+        }]);
+
+        // Create a stream that emits an error after a delay
+        const errorStream = new Readable({
+          read() {
+            // Emit error asynchronously
+            process.nextTick(() => {
+              this.destroy(new Error('Stream read error'));
+            });
+          }
+        });
+        mockCreateReadStream.mockReturnValue(errorStream);
+
+        // Use try-catch since stream errors may cause connection issues
+        try {
+          const res = await request(app)
+            .get('/v1/static/reports/data.json')
+            .timeout(1000);
+
+          // If we get a response, verify error handling
+          expect([200, 500]).toContain(res.statusCode);
+        } catch (err) {
+          // Connection aborted due to stream error is expected behavior
+          expect(err.message).toMatch(/aborted|ECONNRESET|socket hang up/i);
+        }
+      });
+    });
+
+    describe('MIME type detection', () => {
+      it('should detect application/json for .json files', async () => {
+        const content = '{"test":true}';
+        const readable = Readable.from([content]);
+
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockResolvedValue([{ size: content.length }]);
+        mockCreateReadStream.mockReturnValue(readable);
+
+        const res = await request(app)
+          .get('/v1/static/reports/data.json')
+          .expect(200);
+
+        expect(res.headers['content-type']).toContain('application/json');
+      });
+
+      it('should detect image/png for .png files', async () => {
+        const content = Buffer.from([0x89, 0x50, 0x4E, 0x47]); // PNG magic bytes
+        const readable = Readable.from([content]);
+
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockResolvedValue([{ size: content.length }]);
+        mockCreateReadStream.mockReturnValue(readable);
+
+        const res = await request(app)
+          .get('/v1/static/reports/chart.png')
+          .buffer(true)
+          .parse((res, callback) => {
+            const chunks = [];
+            res.on('data', chunk => chunks.push(chunk));
+            res.on('end', () => callback(null, Buffer.concat(chunks)));
+          });
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.headers['content-type']).toContain('image/png');
+      });
+
+      it('should use application/octet-stream for unknown extensions', async () => {
+        const content = Buffer.from([0x00, 0x01, 0x02]);
+        const readable = Readable.from([content]);
+
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockResolvedValue([{ size: content.length }]);
+        mockCreateReadStream.mockReturnValue(readable);
+
+        const res = await request(app)
+          .get('/v1/static/reports/file.xyz')
+          .buffer(true)
+          .parse((res, callback) => {
+            const chunks = [];
+            res.on('data', chunk => chunks.push(chunk));
+            res.on('end', () => callback(null, Buffer.concat(chunks)));
+          });
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.headers['content-type']).toContain('application/octet-stream');
+      });
+    });
+  });
+
+  describe('GET /v1/static/*', () => {
+    beforeEach(() => {
+      // Reset all mocks before each test
+      mockFileExists.mockReset();
+      mockGetMetadata.mockReset();
+      mockCreateReadStream.mockReset();
+      mockFile.mockClear();
+      mockBucket.mockClear();
+    });
+
+    describe('Valid file requests', () => {
+      it('should return file content for valid path', async () => {
+        const fileContent = JSON.stringify({ data: 'test' });
+        const readable = Readable.from([fileContent]);
+
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockResolvedValue([{
+          contentType: 'application/json',
+          etag: '"abc123"',
+          size: fileContent.length
+        }]);
+        mockCreateReadStream.mockReturnValue(readable);
+
+        const res = await request(app)
+          .get('/v1/static/reports/2024/data.json')
+          .expect(200);
+
+        expect(res.headers['content-type']).toContain('application/json');
+        expect(res.headers['cache-control']).toContain('public');
+        expect(res.headers['access-control-allow-origin']).toEqual('*');
+      });
+
+      it('should infer MIME type from file extension when not in metadata', async () => {
+        const fileContent = '{"test": true}';
+        const readable = Readable.from([fileContent]);
+
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockResolvedValue([{
+          etag: '"abc123"',
+          size: fileContent.length
+        }]);
+        mockCreateReadStream.mockReturnValue(readable);
+
+        const res = await request(app)
+          .get('/v1/static/reports/data.json')
+          .expect(200);
+
+        expect(res.headers['content-type']).toContain('application/json');
+      });
+
+      it('should handle CORS preflight requests', async () => {
+        const res = await request(app)
+          .options('/v1/static/reports/data.json')
+          .set('Origin', 'http://example.com')
+          .set('Access-Control-Request-Method', 'GET')
+          .set('Access-Control-Request-Headers', 'Content-Type');
+
+        expect(res.statusCode).toEqual(204);
+        expect(res.headers['access-control-allow-origin']).toEqual('*');
+      });
+    });
+
+    describe('Invalid file paths (directory traversal attempts)', () => {
+      it('should reject paths containing double dot sequences', async () => {
+        // Test with '..' embedded in the path that won't be normalized away
+        const res = await request(app)
+          .get('/v1/static/reports/..hidden/passwd')
+
+        expect(res.body).toHaveProperty('error', 'Invalid file path');
+      });
+
+      it('should reject paths with double slashes', async () => {
+        const res = await request(app)
+          .get('/v1/static/reports//data.json')
+          .expect(400);
+
+        expect(res.body).toHaveProperty('error', 'Invalid file path');
+      });
+
+      it('should reject paths with encoded double dots', async () => {
+        // URL-encoded '..' = %2e%2e
+        mockFileExists.mockResolvedValue([false]); // Will be checked after validation
+
+        const res = await request(app)
+          .get('/v1/static/reports/%2e%2e/secret/passwd');
+
+        // Should either be rejected as invalid or not found
+        expect([400, 404]).toContain(res.statusCode);
+      });
+    });
+
+    describe('Non-existent files (404 handling)', () => {
+      it('should return 404 for non-existent files', async () => {
+        mockFileExists.mockResolvedValue([false]);
+
+        const res = await request(app)
+          .get('/v1/static/reports/nonexistent.json')
+          .expect(404);
+
+        expect(res.body).toHaveProperty('error', 'File not found');
+      });
+
+      it('should return 400 for empty file path', async () => {
+        const res = await request(app)
+          .get('/v1/static/')
+          .expect(400);
+
+        expect(res.body).toHaveProperty('error', 'File path required');
+      });
+    });
+
+    describe('Conditional requests (ETag/If-None-Match)', () => {
+      it('should return 304 when ETag matches If-None-Match header', async () => {
+        const etag = '"abc123"';
+
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockResolvedValue([{
+          contentType: 'application/json',
+          etag: etag,
+          size: 100
+        }]);
+
+        const res = await request(app)
+          .get('/v1/static/reports/data.json')
+          .set('If-None-Match', etag)
+          .expect(304);
+
+        // 304 responses have no body
+        expect(res.text).toEqual('');
+      });
+
+      it('should return 200 with content when ETag does not match', async () => {
+        const fileContent = JSON.stringify({ data: 'test' });
+        const readable = Readable.from([fileContent]);
+
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockResolvedValue([{
+          contentType: 'application/json',
+          etag: '"abc123"',
+          size: fileContent.length
+        }]);
+        mockCreateReadStream.mockReturnValue(readable);
+
+        const res = await request(app)
+          .get('/v1/static/reports/data.json')
+          .set('If-None-Match', '"different-etag"')
+          .expect(200);
+
+        expect(res.headers['etag']).toEqual('"abc123"');
+      });
+
+      it('should include ETag in response headers', async () => {
+        const fileContent = JSON.stringify({ data: 'test' });
+        const readable = Readable.from([fileContent]);
+
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockResolvedValue([{
+          contentType: 'application/json',
+          etag: '"abc123"',
+          size: fileContent.length
+        }]);
+        mockCreateReadStream.mockReturnValue(readable);
+
+        const res = await request(app)
+          .get('/v1/static/reports/data.json')
+          .expect(200);
+
+        expect(res.headers).toHaveProperty('etag', '"abc123"');
+      });
+    });
+
+    describe('Error scenarios (GCS failures)', () => {
+      it('should handle GCS exists() failure', async () => {
+        mockFileExists.mockRejectedValue(new Error('GCS connection failed'));
+
+        const res = await request(app)
+          .get('/v1/static/reports/data.json')
+          .expect(500);
+
+        expect(res.body).toHaveProperty('error', 'Failed to retrieve file');
+        expect(res.body).toHaveProperty('details');
+      });
+
+      it('should handle GCS getMetadata() failure', async () => {
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockRejectedValue(new Error('Metadata retrieval failed'));
+
+        const res = await request(app)
+          .get('/v1/static/reports/data.json')
+          .expect(500);
+
+        expect(res.body).toHaveProperty('error', 'Failed to retrieve file');
+      });
+
+      it('should handle stream errors during file read', async () => {
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockResolvedValue([{
+          contentType: 'application/json',
+          etag: '"abc123"',
+          size: 100
+        }]);
+
+        // Create a stream that emits an error after a delay
+        const errorStream = new Readable({
+          read() {
+            // Emit error asynchronously
+            process.nextTick(() => {
+              this.destroy(new Error('Stream read error'));
+            });
+          }
+        });
+        mockCreateReadStream.mockReturnValue(errorStream);
+
+        // Use try-catch since stream errors may cause connection issues
+        try {
+          const res = await request(app)
+            .get('/v1/static/reports/data.json')
+            .timeout(1000);
+
+          // If we get a response, verify error handling
+          expect([200, 500]).toContain(res.statusCode);
+        } catch (err) {
+          // Connection aborted due to stream error is expected behavior
+          expect(err.message).toMatch(/aborted|ECONNRESET|socket hang up/i);
+        }
+      });
+    });
+
+    describe('MIME type detection', () => {
+      it('should detect application/json for .json files', async () => {
+        const content = '{"test":true}';
+        const readable = Readable.from([content]);
+
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockResolvedValue([{ size: content.length }]);
+        mockCreateReadStream.mockReturnValue(readable);
+
+        const res = await request(app)
+          .get('/v1/static/reports/data.json')
+          .expect(200);
+
+        expect(res.headers['content-type']).toContain('application/json');
+      });
+
+      it('should detect image/png for .png files', async () => {
+        const content = Buffer.from([0x89, 0x50, 0x4E, 0x47]); // PNG magic bytes
+        const readable = Readable.from([content]);
+
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockResolvedValue([{ size: content.length }]);
+        mockCreateReadStream.mockReturnValue(readable);
+
+        const res = await request(app)
+          .get('/v1/static/reports/chart.png')
+          .buffer(true)
+          .parse((res, callback) => {
+            const chunks = [];
+            res.on('data', chunk => chunks.push(chunk));
+            res.on('end', () => callback(null, Buffer.concat(chunks)));
+          });
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.headers['content-type']).toContain('image/png');
+      });
+
+      it('should use application/octet-stream for unknown extensions', async () => {
+        const content = Buffer.from([0x00, 0x01, 0x02]);
+        const readable = Readable.from([content]);
+
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockResolvedValue([{ size: content.length }]);
+        mockCreateReadStream.mockReturnValue(readable);
+
+        const res = await request(app)
+          .get('/v1/static/reports/file.xyz')
+          .buffer(true)
+          .parse((res, callback) => {
+            const chunks = [];
+            res.on('data', chunk => chunks.push(chunk));
+            res.on('end', () => callback(null, Buffer.concat(chunks)));
+          });
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.headers['content-type']).toContain('application/octet-stream');
+      });
     });
   });
 });

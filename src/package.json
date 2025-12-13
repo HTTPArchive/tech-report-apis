@@ -8,15 +8,16 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "start": "export DATABASE=tech-report-api-prod && node index.js",
+    "start": "DATABASE=tech-report-api-prod functions-framework --target=app",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:live": "bash ../test-api.sh",
     "build": "docker build -t tech-report-api .",
     "run": "docker run -p 8080:8080 tech-report-api"
   },
   "dependencies": {
-    "@google-cloud/firestore": "7.11.6",
-    "@google-cloud/functions-framework": "4.0.0"
+    "@google-cloud/firestore": "8.0.0",
+    "@google-cloud/functions-framework": "^4.0.1",
+    "@google-cloud/storage": "7.18.0"
   },
   "devDependencies": {
     "@jest/transform": "^30.2.0",

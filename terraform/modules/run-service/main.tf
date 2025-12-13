@@ -2,8 +2,26 @@ terraform {
   required_providers {
     docker = {
       source  = "kreuzwerker/docker"
-      version = ">= 3.6.2"
+      version = "3.6.2"
     }
+    google = {
+      source = "hashicorp/google"
+    }
+    archive = {
+      source = "hashicorp/archive"
+    }
+  }
+}
+
+# Get access token for Artifact Registry authentication
+data "google_client_config" "default" {}
+
+# Configure Docker provider with GCP Artifact Registry authentication
+provider "docker" {
+  registry_auth {
+    address  = "${var.region}-docker.pkg.dev"
+    username = "oauth2accesstoken"
+    password = data.google_client_config.default.access_token
   }
 }
 
@@ -15,7 +33,7 @@ locals {
 
 # Build Docker image
 resource "docker_image" "function_image" {
-  name = "${var.region}-docker.pkg.dev/${var.project}/tech-report-api/${var.service_name}:${local.source_hash}"
+  name = "${var.region}-docker.pkg.dev/${var.project}/report-api/${var.service_name}:${local.source_hash}"
 
   build {
     context    = var.source_directory
@@ -37,13 +55,16 @@ resource "google_cloud_run_v2_service" "service" {
 
   template {
     service_account = var.service_account_email
+    timeout                          = var.timeout
+    max_instance_request_concurrency = var.max_instance_request_concurrency
 
     containers {
       image = docker_registry_image.registry_image.name
       resources {
+        cpu_idle = var.environment == "prod" ? false : true
         limits = {
           cpu    = var.available_cpu
-          memory = var.available_memory_gb
+          memory = var.available_memory
         }
       }
       dynamic "env" {
@@ -54,10 +75,9 @@ resource "google_cloud_run_v2_service" "service" {
         }
       }
     }
-    timeout                          = var.timeout
-    max_instance_request_concurrency = var.max_instance_request_concurrency
   }
   scaling {
+    scaling_mode       = "AUTOMATIC"
     min_instance_count = var.min_instances
   }
   traffic {
@@ -65,23 +85,15 @@ resource "google_cloud_run_v2_service" "service" {
     percent = 100
   }
   labels = {
-    owner       = "tech_report_api"
+    owner       = var.service_name
     environment = var.environment
   }
 }
 
-resource "google_cloud_run_v2_service_iam_member" "variable_service_account_run_invoker" {
+resource "google_cloud_run_v2_service_iam_member" "allow_unauthenticated_report_api" {
   project  = var.project
   location = var.region
   name     = google_cloud_run_v2_service.service.name
   role     = "roles/run.invoker"
-  member   = "serviceAccount:${var.service_account_email}"
-}
-
-resource "google_cloud_run_v2_service_iam_member" "api_gw_variable_service_account_run_invoker" {
-  project  = var.project
-  location = var.region
-  name     = google_cloud_run_v2_service.service.name
-  role     = "roles/run.invoker"
-  member   = "serviceAccount:${var.service_account_api_gateway}"
+  member   = "allUsers"
 }

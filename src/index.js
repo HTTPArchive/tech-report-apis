@@ -1,5 +1,3 @@
-import http from 'http';
-import url from 'url';
 import crypto from 'crypto';
 import functions from '@google-cloud/functions-framework';
 
@@ -14,7 +12,8 @@ const controllers = {
   audits: null,
   ranks: null,
   geos: null,
-  versions: null
+  versions: null,
+  static: null
 };
 
 // Helper function to dynamically import controllers
@@ -42,6 +41,9 @@ const getController = async (name) => {
         break;
       case 'versions':
         controllers[name] = await import('./controllers/versionsController.js');
+        break;
+      case 'static':
+        controllers[name] = await import('./controllers/cdnController.js');
         break;
     }
   }
@@ -81,18 +83,8 @@ const sendJSONResponse = (res, data, statusCode = 200) => {
 
 // Helper function to check if resource is modified
 const isModified = (req, etag) => {
-  const ifNoneMatch = req.headers['if-none-match'];
+  const ifNoneMatch = req.headers['if-none-match'] || req.get('if-none-match');
   return !ifNoneMatch || ifNoneMatch !== `"${etag}"`;
-};
-
-// Helper function to parse query parameters
-const parseQuery = (queryString) => {
-  const params = new URLSearchParams(queryString);
-  const result = {};
-  for (const [key, value] of params) {
-    result[key] = value;
-  }
-  return result;
 };
 
 // Route handler function
@@ -115,13 +107,8 @@ const handleRequest = async (req, res) => {
       return;
     }
 
-    // Parse URL
-    const parsedUrl = url.parse(req.url, true);
-    const pathname = parsedUrl.pathname;
-    const query = parsedUrl.query;
-
-    // Add query to req object for compatibility with existing controllers
-    req.query = query;
+    // Parse URL path
+    const pathname = req.path;
 
     // Route handling
     if (pathname === '/' && req.method === 'GET') {
@@ -158,16 +145,16 @@ const handleRequest = async (req, res) => {
     } else if (pathname === '/v1/versions' && req.method === 'GET') {
       const { listVersions } = await getController('versions');
       await listVersions(req, res);
-    } else if (pathname === '/v1/cache-stats' && req.method === 'GET') {
-      // Cache monitoring endpoint
-      const { getCacheStats } = await import('./utils/controllerHelpers.js');
-      const stats = getCacheStats();
-      sendJSONResponse(res, stats);
-    } else if (pathname === '/v1/cache-reset' && req.method === 'POST') {
-      // Cache reset endpoint
-      const { resetCache } = await import('./utils/controllerHelpers.js');
-      const result = resetCache();
-      sendJSONResponse(res, result);
+    } else if (pathname.startsWith('/v1/static/') && req.method === 'GET') {
+      // GCS proxy endpoint for reports files
+      const filePath = decodeURIComponent(pathname.replace('/v1/static/', ''));
+      if (!filePath) {
+        res.statusCode = 400;
+        res.end(JSON.stringify({ error: 'File path required' }));
+        return;
+      }
+      const { proxyReportsFile } = await getController('static');
+      await proxyReportsFile(req, res, filePath);
     } else {
       // 404 Not Found
       res.statusCode = 404;
@@ -182,22 +169,8 @@ const handleRequest = async (req, res) => {
   }
 };
 
-// Create HTTP server
-const server = http.createServer(handleRequest);
-
-// Export the server for testing
-export { server as app };
-
-// Register with Functions Framework for Cloud Functions
+// Register with Functions Framework
 functions.http('app', handleRequest);
 
-// For standalone server mode (local development)
-// Note: In ES modules, there's no require.main === module equivalent
-// We'll use import.meta.url to check if this is the main module
-const isMain = import.meta.url === `file://${process.argv[1]}`;
-if (isMain) {
-  const PORT = process.env.PORT || 3000;
-  server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
+// Export for testing using Functions Framework testing utilities
+export { handleRequest as app };

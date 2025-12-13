@@ -2,6 +2,11 @@ variable "region" {
   default = "us-central1"
   type    = string
 }
+variable "service_name" {
+  description = "Optional: Can be used to create more than function from the same package"
+  type        = string
+  default     = "report-api"
+}
 variable "environment" {
   description = "The 'Environment' that is being created/deployed. Applied as a suffix to many resources."
   type        = string
@@ -15,13 +20,17 @@ variable "service_name" {
   description = "Optional: Can be used to create more than function from the same package"
   type        = string
 }
-variable "available_memory_gb" {
-  default     = "2Gi"
+variable "entry_point" {
+  description = "The entry point; This is either what is registered with 'http' or exported from the code as a handler!"
+  type        = string
+}
+variable "available_memory" {
+  default     = "1Gi"
   type        = string
   description = "The amount of memory for the Cloud Function"
 }
 variable "available_cpu" {
-  default     = "2"
+  default     = "1"
   type        = string
   description = "The amount of CPU for the Cloud Function"
 }
@@ -38,12 +47,13 @@ variable "timeout" {
 variable "service_account_email" {
   type        = string
   description = "Service account who can invoke this function. This is required!"
+  default     = "cloud-function@httparchive.iam.gserviceaccount.com"
 }
-variable "service_account_api_gateway" {
-  type        = string
-  description = "API Gateway service account who can invoke this function. This is required!"
+variable "max_instances" {
+  default     = 2
+  type        = number
+  description = "(Optional) The limit on the maximum number of function instances that may coexist at a given time."
 }
-
 variable "min_instances" {
   description = "(Optional) The limit on the minimum number of function instances that may coexist at a given time."
   type        = number

@@ -5,9 +5,6 @@ import {
     validateRequiredParams,
     sendValidationError,
     getLatestDate,
-    generateQueryCacheKey,
-    getCachedQueryResult,
-    setCachedQueryResult,
     handleControllerError,
     validateArrayParameter
 } from '../utils/controllerHelpers.js';
@@ -93,25 +90,6 @@ const createReportController = (reportType) => {
                 startDate = await getLatestDate(firestore, config.table);
             }
 
-            // Create cache key for this specific query
-            const queryFilters = {
-                geo: params.geo,
-                rank: params.rank,
-                technology: technologiesArray,
-                version: versionsArray,
-                startDate: startDate,
-                endDate: params.end
-            };
-            const cacheKey = generateQueryCacheKey(config.table, queryFilters);
-
-            // Check cache first
-            const cachedResult = getCachedQueryResult(cacheKey);
-            if (cachedResult) {
-                res.statusCode = 200;
-                res.end(JSON.stringify(cachedResult));
-                return;
-            }
-
             // Build Firestore query
             let query = firestore.collection(config.table);
 
@@ -142,9 +120,6 @@ const createReportController = (reportType) => {
             snapshot.forEach(doc => {
                 data.push(doc.data());
             });
-
-            // Cache the result
-            setCachedQueryResult(cacheKey, data);
 
             // Send response
             res.statusCode = 200;
