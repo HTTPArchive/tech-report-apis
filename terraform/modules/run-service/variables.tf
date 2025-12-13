@@ -15,10 +15,6 @@ variable "service_name" {
   description = "Optional: Can be used to create more than function from the same package"
   type        = string
 }
-variable "service_name" {
-  description = "Optional: Can be used to create more than function from the same package"
-  type        = string
-}
 variable "source_directory" {
   description = "The folder of the package containing function that will be executed when the Google Cloud Function is triggered!"
   type        = string
