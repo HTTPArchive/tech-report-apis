@@ -18,15 +18,14 @@ provider "docker" {
   }
 }
 
-# Calculate hash of source files to determine if rebuild is needed
-locals {
-  source_files = fileset(path.root, "${var.source_directory}/*")
-  source_hash  = substr(sha1(join("", [for f in local.source_files : filesha1(f)])), 0, 8)
+# Calculate hash of source files using git (respects .gitignore)
+data "external" "source_hash" {
+  program = ["bash", "-c", "cd ${var.source_directory} && echo '{\"hash\":\"'$(git ls-files -s | sha1sum | cut -c1-8)'\"}'"]
 }
 
 # Build Docker image
 resource "docker_image" "function_image" {
-  name = "${var.region}-docker.pkg.dev/${var.project}/report-api/${var.service_name}:${local.source_hash}"
+  name = "${var.region}-docker.pkg.dev/${var.project}/report-api/${var.service_name}:${data.external.source_hash.result.hash}"
 
   build {
     context    = var.source_directory
