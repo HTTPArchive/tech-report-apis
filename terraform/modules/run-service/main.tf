@@ -2,13 +2,6 @@ terraform {
   required_providers {
     docker = {
       source  = "kreuzwerker/docker"
-      version = "3.6.2"
-    }
-    google = {
-      source = "hashicorp/google"
-    }
-    archive = {
-      source = "hashicorp/archive"
     }
   }
 }

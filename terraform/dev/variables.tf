@@ -17,8 +17,3 @@ variable "project_database" {
   description = "The database name"
   default     = "tech-report-api-dev"
 }
-variable "min_instances" {
-  description = "(Optional) The limit on the minimum number of function instances that may coexist at a given time."
-  type        = number
-  default     = 0
-}
