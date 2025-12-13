@@ -58,7 +58,7 @@ resource "google_compute_backend_service" "backend" {
 
   log_config {
     enable      = true
-    sample_rate = 1
+    sample_rate = 0.1
   }
 }
 
@@ -85,16 +85,12 @@ resource "google_compute_target_https_proxy" "https_proxy" {
   project          = var.project
   url_map          = google_compute_url_map.url_map.id
   ssl_certificates = [google_compute_managed_ssl_certificate.ssl_cert.id]
+  quic_override    = "ENABLE"
 }
 
-# HTTP Target Proxy (for HTTP to HTTPS redirect)
-resource "google_compute_target_http_proxy" "http_proxy" {
-  name    = coalesce(var.http_proxy_name, "${var.load_balancer_name}-http-proxy")
-  project = var.project
-  url_map = google_compute_url_map.url_map.id
-}
 
 # Global Forwarding Rule for HTTPS
+# Org constraint: Forwarding Rule projects/httparchive/global/forwardingRules/httparchive-load-balancer-http-forwarding-rule of type EXTERNAL_HTTP_HTTPS is not allowed
 resource "google_compute_global_forwarding_rule" "https_forwarding_rule" {
   name                                                         = coalesce(var.https_forwarding_rule_name, "${var.load_balancer_name}-https-forwarding-rule")
   project                                                      = var.project
@@ -107,18 +103,8 @@ resource "google_compute_global_forwarding_rule" "https_forwarding_rule" {
   load_balancing_scheme                                        = "EXTERNAL_MANAGED"
   external_managed_backend_bucket_migration_testing_percentage = 0
   network_tier                                                 = "PREMIUM"
-}
 
-# Global Forwarding Rule for HTTP
-resource "google_compute_global_forwarding_rule" "http_forwarding_rule" {
-  name                                                         = coalesce(var.http_forwarding_rule_name, "${var.load_balancer_name}-http-forwarding-rule")
-  project                                                      = var.project
-  target                                                       = google_compute_target_http_proxy.http_proxy.id
-  port_range                                                   = "80-80"
-  ip_protocol                                                  = "TCP"
-  ip_address                                                   = "35.190.48.74"
-  ip_version                                                   = "IPV4"
-  load_balancing_scheme                                        = "EXTERNAL_MANAGED"
-  external_managed_backend_bucket_migration_testing_percentage = 0
-  network_tier                                                 = "PREMIUM"
+  lifecycle {
+    prevent_destroy = true
+  }
 }

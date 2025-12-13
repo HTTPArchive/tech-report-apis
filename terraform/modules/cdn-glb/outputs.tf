@@ -1,9 +1,4 @@
-output "load_balancer_ip_http" {
-  description = "The IP address of the HTTP load balancer"
-  value       = google_compute_global_forwarding_rule.http_forwarding_rule.ip_address
-}
-
-output "load_balancer_ip_https" {
+output "load_balancer_ip" {
   description = "The IP address of the HTTPS load balancer"
   value       = google_compute_global_forwarding_rule.https_forwarding_rule.ip_address
 }
