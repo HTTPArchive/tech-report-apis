@@ -44,7 +44,7 @@ resource "google_cloud_run_v2_service" "service" {
   location = var.region
 
   deletion_protection = false
-  ingress             = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
+  ingress             = var.ingress_settings
 
   template {
     service_account = var.service_account_email
