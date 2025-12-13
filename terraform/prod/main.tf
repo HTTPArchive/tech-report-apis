@@ -26,7 +26,7 @@ module "endpoints" {
   project          = var.project
   environment      = var.environment
   source_directory = "../../src"
-  function_name    = "tech-report-api"
+  service_name    = "tech-report-api"
   region           = var.region
   min_instances    = var.min_instances
   environment_variables = {

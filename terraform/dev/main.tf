@@ -26,26 +26,11 @@ module "endpoints" {
   project          = var.project
   environment      = var.environment
   source_directory = "../../src"
-  function_name    = "tech-report-api"
+  service_name    = "tech-report-api"
   region           = var.region
   min_instances    = var.min_instances
   environment_variables = {
     "PROJECT"  = var.project
     "DATABASE" = var.project_database
   }
-}
-
-moved {
-  from = google_api_gateway_api.api
-  to   = module.gateway.google_api_gateway_api.api
-}
-
-moved {
-  from = google_api_gateway_api_config.api_config
-  to   = module.gateway.google_api_gateway_api_config.api_config
-}
-
-moved {
-  from = google_api_gateway_gateway.gateway
-  to   = module.gateway.google_api_gateway_gateway.gateway
 }
