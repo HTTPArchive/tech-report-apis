@@ -53,7 +53,7 @@ const getController = async (name) => {
 // Helper function to set CORS headers
 const setCORSHeaders = (res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Timing-Allow-Origin');
   res.setHeader('Access-Control-Max-Age', '86400');
 };
@@ -96,14 +96,6 @@ const handleRequest = async (req, res) => {
     if (req.method === 'OPTIONS') {
       res.statusCode = 204;
       res.end();
-      return;
-    }
-
-    // Validate URL to skip XSS attacks
-    const unsafe = /onerror|onload|javascript:/i;
-    if (unsafe.test(req.url)) {
-      res.statusCode = 400
-      res.end(JSON.stringify({ error: 'Invalid input' }));
       return;
     }
 
