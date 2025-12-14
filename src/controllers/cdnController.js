@@ -99,7 +99,7 @@ export const proxyReportsFile = async (req, res, filePath) => {
         if (!res.headersSent) {
             res.statusCode = 500;
             res.end(JSON.stringify({
-                error: 'Failed to retrieve file',
+                error: 'Server failed to respond',
                 details: error.message
             }));
         }

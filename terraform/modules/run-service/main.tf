@@ -25,15 +25,13 @@ data "external" "source_hash" {
 
 # Build Docker image
 resource "docker_image" "function_image" {
-  name = "${var.region}-docker.pkg.dev/${var.project}/report-api/${var.service_name}"
+  # hash added to image tag to force rebuilds ans service image updates when source changes
+  name = "${var.region}-docker.pkg.dev/${var.project}/report-api/${var.service_name}:${data.external.source_hash.result.hash}"
 
   build {
     context    = var.source_directory
     dockerfile = "Dockerfile"
     platform   = "linux/amd64"
-  }
-  triggers = {
-    source_hash = data.external.source_hash.result.hash
   }
 }
 
