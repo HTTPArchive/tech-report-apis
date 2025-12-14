@@ -1,7 +1,7 @@
 {
-  "name": "tech-report-api",
+  "name": "report-api",
   "version": "1.0.0",
-  "description": "API for HTTP Archive technology reports",
+  "description": "API for HTTP Archive reports",
   "main": "index.js",
   "type": "module",
   "engines": {
@@ -11,12 +11,12 @@
     "start": "DATABASE=tech-report-api-prod functions-framework --target=app",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:live": "bash ../test-api.sh",
-    "build": "docker build -t tech-report-api .",
-    "run": "docker run -p 8080:8080 tech-report-api"
+    "build": "docker build -t report-api .",
+    "run": "docker run -p 8080:8080 report-api"
   },
   "dependencies": {
     "@google-cloud/firestore": "8.0.0",
-    "@google-cloud/functions-framework": "^4.0.1",
+    "@google-cloud/functions-framework": "^4.0.0",
     "@google-cloud/storage": "7.18.0"
   },
   "devDependencies": {

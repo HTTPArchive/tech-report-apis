@@ -25,12 +25,15 @@ data "external" "source_hash" {
 
 # Build Docker image
 resource "docker_image" "function_image" {
-  name = "${var.region}-docker.pkg.dev/${var.project}/report-api/${var.service_name}:${data.external.source_hash.result.hash}"
+  name = "${var.region}-docker.pkg.dev/${var.project}/report-api/${var.service_name}"
 
   build {
     context    = var.source_directory
     dockerfile = "Dockerfile"
     platform   = "linux/amd64"
+  }
+  triggers = {
+    source_hash = data.external.source_hash.result.hash
   }
 }
 
