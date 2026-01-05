@@ -564,7 +564,7 @@ describe('API Routes', () => {
           .get('/v1/static/reports/data.json')
           .expect(500);
 
-        expect(res.body).toHaveProperty('error', 'Failed to retrieve file');
+        expect(res.body).toHaveProperty('error', 'Server failed to respond');
         expect(res.body).toHaveProperty('details');
       });
 
@@ -576,7 +576,8 @@ describe('API Routes', () => {
           .get('/v1/static/reports/data.json')
           .expect(500);
 
-        expect(res.body).toHaveProperty('error', 'Failed to retrieve file');
+        expect(res.body).toHaveProperty('error', 'Server failed to respond');
+        expect(res.body).toHaveProperty('details');
       });
 
       it('should handle stream errors during file read', async () => {
@@ -852,7 +853,7 @@ describe('API Routes', () => {
           .get('/v1/static/reports/data.json')
           .expect(500);
 
-        expect(res.body).toHaveProperty('error', 'Failed to retrieve file');
+        expect(res.body).toHaveProperty('error', 'Server failed to respond');
         expect(res.body).toHaveProperty('details');
       });
 
@@ -864,7 +865,8 @@ describe('API Routes', () => {
           .get('/v1/static/reports/data.json')
           .expect(500);
 
-        expect(res.body).toHaveProperty('error', 'Failed to retrieve file');
+        expect(res.body).toHaveProperty('error', 'Server failed to respond');
+        expect(res.body).toHaveProperty('details');
       });
 
       it('should handle stream errors during file read', async () => {
