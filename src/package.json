@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@google-cloud/firestore": "8.1.0",
-    "@google-cloud/functions-framework": "^4.0.0",
+    "@google-cloud/functions-framework": "^5.0.0",
     "@google-cloud/storage": "7.18.0"
   },
   "devDependencies": {
