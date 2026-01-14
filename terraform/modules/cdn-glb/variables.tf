@@ -38,7 +38,7 @@ variable "enable_cdn" {
 variable "cdn_cache_mode" {
   description = "CDN cache mode (CACHE_ALL_STATIC, USE_ORIGIN_HEADERS, FORCE_CACHE_ALL)"
   type        = string
-  default     = "CACHE_ALL_STATIC"
+  default     = "USE_ORIGIN_HEADERS"
 }
 variable "cdn_default_ttl" {
   description = "Default TTL for cached content in seconds"
@@ -53,12 +53,12 @@ variable "cdn_max_ttl" {
 variable "cdn_client_ttl" {
   description = "Client TTL for cached content in seconds (browser cache)"
   type        = number
-  default     = 28800 # 8 hours
+  default     = 3600 # 1 hour
 }
 variable "cdn_serve_while_stale" {
   description = "Time to serve stale content while revalidating in seconds"
   type        = number
-  default     = 0
+  default     = 86400 # 24 hours
 }
 variable "cdn_negative_caching" {
   description = "Whether to enable negative caching"

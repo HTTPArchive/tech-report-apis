@@ -62,7 +62,9 @@ const setCORSHeaders = (res) => {
 const setCommonHeaders = (res) => {
   setCORSHeaders(res);
   res.setHeader('Content-Type', 'application/json');
-  res.setHeader('Cache-Control', 'public, max-age=21600');
+  // Browser cache: 1 hour, CDN cache: 30 days
+  res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=2592000');
+  res.setHeader('Cloud-CDN-Cache-Tag', 'report-api');
   res.setHeader('Timing-Allow-Origin', '*');
 };
 
@@ -99,8 +101,8 @@ const handleRequest = async (req, res) => {
       return;
     }
 
-    // Parse URL path
-    const pathname = req.path;
+    // Parse URL path - robustly handle Express (req.path) or native Node (req.url)
+    const pathname = req.path || req.url.split('?')[0];
 
     // Route handling
     if (pathname === '/' && req.method === 'GET') {
