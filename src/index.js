@@ -54,7 +54,8 @@ const getController = async (name) => {
 const setCORSHeaders = (res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Timing-Allow-Origin');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, If-None-Match');
+  res.setHeader('Access-Control-Expose-Headers', '*');
   res.setHeader('Access-Control-Max-Age', '86400');
 };
 
@@ -85,7 +86,7 @@ const sendJSONResponse = (res, data, statusCode = 200) => {
 
 // Helper function to check if resource is modified
 const isModified = (req, etag) => {
-  const ifNoneMatch = req.headers['if-none-match'] || req.get('if-none-match');
+  const ifNoneMatch = req.headers['If-None-Match'] || req.get('If-None-Match');
   return !ifNoneMatch || ifNoneMatch !== `"${etag}"`;
 };
 

@@ -37,6 +37,10 @@ describe('CDN Headers', () => {
         expect(res.headers['cache-control']).toBe('public, max-age=3600, s-maxage=2592000');
         expect(res.headers['cloud-cdn-cache-tag']).toBe('report-api');
         expect(res.headers['access-control-allow-origin']).toBe('*');
+        expect(res.headers['access-control-allow-headers']).toContain('Content-Type');
+        expect(res.headers['access-control-allow-headers']).toContain('If-None-Match');
+        expect(res.headers['access-control-expose-headers']).toContain('ETag');
+        expect(res.headers['access-control-expose-headers']).toContain('Cloud-CDN-Cache-Tag');
     });
 
     it('should set correct headers for static file proxy', async () => {
