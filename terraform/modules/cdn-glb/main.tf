@@ -67,6 +67,13 @@ resource "google_compute_url_map" "url_map" {
   name            = var.load_balancer_name
   project         = var.project
   default_service = google_compute_backend_service.backend.id
+
+  test {
+    expected_redirect_response_code = 0
+    host                            = "cdn.httparchive.org"
+    path                            = "/v1/cwv?technology=ALL&geo=ALL&rank=ALL"
+    service                         = "projects/httparchive/global/backendServices/report-api"
+  }
 }
 
 # Google-managed SSL Certificate
