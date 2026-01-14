@@ -9,6 +9,7 @@ variable "region" {
 variable "environment" {
   description = "The 'Environment' that is being created/deployed. Applied as a suffix to many resources."
   type        = string
+  default     = "dev"
 }
 variable "service_name" {
   description = "Optional: Can be used to create more than function from the same package"

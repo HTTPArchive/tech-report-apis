@@ -8,7 +8,7 @@ const listCategories = async (req, res) => {
   const queryBuilder = async (params) => {
     /*
     // Validate parameters
-    const supportedParams = ['category', 'onlyname', 'fields'];
+    const supportedParams = ['category', 'onlyname', 'fields', 'client'];
     const providedParams = Object.keys(params);
     const unsupportedParams = providedParams.filter(param => !supportedParams.includes(param));
 
@@ -20,6 +20,7 @@ const listCategories = async (req, res) => {
     */
 
     const isOnlyNames = params.onlyname || typeof params.onlyname === 'string';
+    const client = params.client || 'mobile'; // Default client if not provided
     const hasCustomFields = params.fields && !isOnlyNames;
 
     let query = firestore.collection('categories').orderBy('category', 'asc');
@@ -32,11 +33,16 @@ const listCategories = async (req, res) => {
       }
     }
 
+    // Apply client filter
+    if (client) {
+      query = query.where('client', '==', client);
+    }
+
     // Apply field selection
     if (isOnlyNames) {
       query = query.select('category');
     } else if (hasCustomFields) {
-      const requestedFields = params.fields.split(',').map(f => f.trim());
+      const requestedFields = params.fields ? params.fields.split(',').map(f => f.trim()) : ['category', 'description', 'technologies', 'origins'];
       query = query.select(...requestedFields);
     }
 

@@ -55,6 +55,7 @@ Lists available categories.
 #### Categories Parameters
 
 - `category` (optional): Filter by category name(s) - comma-separated list
+- `client` (optional): Filter by client type (e.g., `mobile`, `desktop`) - defaults to `mobile`
 - `onlyname` (optional): If present, returns only category names
 - `fields` (optional): Comma-separated list of fields to include in the response (see [Field Selection API Documentation](#field-selection-api-documentation) for details)
 
@@ -62,7 +63,7 @@ Lists available categories.
 
 ```bash
 curl --request GET \
-  --url 'https://d{{HOST}}/v1/categories?category=Domain%20parking%2CCI'
+  --url 'https://{{HOST}}/v1/categories?category=Domain%20parking%2CCI&client=desktop'
 ```
 
 ```json
@@ -73,10 +74,7 @@ curl --request GET \
             "Jenkins",
             "TeamCity"
         ],
-        "origins": {
-            "mobile": 22,
-            "desktop": 35
-        },
+        "origins": 22,
         "category": "CI"
     },
     {
@@ -85,10 +83,7 @@ curl --request GET \
           "Cloudflare",
           "Arsys Domain Parking"
         ],
-        "origins": {
-            "mobile": 14,
-            "desktop": 8
-        },
+        "origins": 14,
         "category": "Domain parking"
     }
 ]
@@ -212,6 +207,7 @@ Provides technology adoption data.
 - `rank` (required): Filter by rank
 - `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
 - `end` (optional): Filter by date range end (YYYY-MM-DD)
+- `version` (optional): Filter by version name(s) - comma-separated list (only when single technology is specified)
 
 #### Adoption Response
 
@@ -247,6 +243,7 @@ Provides Core Web Vitals metrics for technologies.
 - `rank` (required): Filter by rank
 - `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
 - `end` (optional): Filter by date range end (YYYY-MM-DD)
+- `version` (optional): Filter by version name(s) - comma-separated list (only when single technology is specified)
 
 #### CWV Response
 
@@ -290,6 +287,7 @@ Provides Lighthouse scores for technologies.
 - `rank` (required): Filter by rank
 - `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
 - `end` (optional): Filter by date range end (YYYY-MM-DD)
+- `version` (optional): Filter by version name(s) - comma-separated list (only when single technology is specified)
 
 #### Lighthouse Response
 
@@ -337,6 +335,7 @@ Provides Page Weight metrics for technologies.
 - `rank` (required): Filter by rank
 - `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
 - `end` (optional): Filter by date range end (YYYY-MM-DD)
+- `version` (optional): Filter by version name(s) - comma-separated list (only when single technology is specified)
 
 #### Page Weight Response
 
@@ -398,6 +397,7 @@ Provides Lighthouse audits for technologies.
 - `rank` (required): Filter by rank
 - `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
 - `end` (optional): Filter by date range end (YYYY-MM-DD)
+- `version` (optional): Filter by version name(s) - comma-separated list (only when single technology is specified)
 
 #### Audits Response
 
@@ -585,7 +585,7 @@ The categories and technologies endpoints now support custom field selection, al
 - `category` - Category name
 - `description` - Category description
 - `technologies` - Array of technology names in the category
-- `origins` - Array of origin companies/organizations
+- `origins` - Number of origins
 
 Get only category names:
 
@@ -605,7 +605,7 @@ GET /v1/categories?fields=category,description
 - `category` - Category name
 - `description` - Technology description
 - `icon` - Icon filename
-- `origins` - Array of origin companies/organizations
+- `origins` - Dictionary with origins per client
 
 Get only technology names and categories:
 
@@ -640,7 +640,7 @@ GET /v1/technologies?category=JavaScript%20Frameworks&fields=technology,icon
 
 - `technology` - Technology name
 - `version` - Version name
-- `origins` - Mobile and desktop origins
+- `origins` - Dictionary with origins per client
 
 Get only technology and version names:
 
