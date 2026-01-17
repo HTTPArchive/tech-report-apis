@@ -22,8 +22,9 @@ const listVersions = async (req, res) => {
     let query = firestore.collection('versions');
 
     // Apply technology filter with validation
-    if (params.technology) {
-      const technologies = validateTechnologyArray(params.technology);
+    const technologyParam = params.technology || 'ALL';
+    if (technologyParam !== 'ALL') {
+      const technologies = validateTechnologyArray(technologyParam);
       if (technologies === null) {
         throw new Error(`Too many technologies specified. Maximum ${FIRESTORE_IN_LIMIT} allowed.`);
       }

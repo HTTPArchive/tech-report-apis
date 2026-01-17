@@ -106,8 +106,14 @@ describe('API Routes', () => {
   });
 
   describe('GET /v1/technologies', () => {
-    it('should return technologies', async () => {
+    it('should return technologies (defaults to ALL technology)', async () => {
       const res = await request(app).get('/v1/technologies');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('should handle empty technology parameter', async () => {
+      const res = await request(app).get('/v1/technologies?technology=');
       expect(res.statusCode).toEqual(200);
       expect(Array.isArray(res.body)).toBe(true);
     });
@@ -224,8 +230,14 @@ describe('API Routes', () => {
   });
 
   describe('GET /v1/versions', () => {
-    it('should return versions', async () => {
+    it('should return versions (defaults to ALL technology)', async () => {
       const res = await request(app).get('/v1/versions');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('should handle empty technology parameter', async () => {
+      const res = await request(app).get('/v1/versions?technology=');
       expect(res.statusCode).toEqual(200);
       expect(Array.isArray(res.body)).toBe(true);
     });
@@ -255,10 +267,21 @@ describe('API Routes', () => {
       expect(Array.isArray(res.body)).toBe(true);
     });
 
-    it('should handle missing required parameters', async () => {
-      const res = await request(app).get('/v1/adoption');
-      expect(res.statusCode).toEqual(400);
-      expect(res.body).toHaveProperty('errors');
+    it('should handle missing or empty parameters (defaults to ALL)', async () => {
+      // All missing
+      const res1 = await request(app).get('/v1/adoption');
+      expect(res1.statusCode).toEqual(200);
+      expect(Array.isArray(res1.body)).toBe(true);
+
+      // Technology empty, others missing
+      const res2 = await request(app).get('/v1/adoption?technology=');
+      expect(res2.statusCode).toEqual(200);
+      expect(Array.isArray(res2.body)).toBe(true);
+
+      // Geo and Rank empty
+      const res3 = await request(app).get('/v1/adoption?technology=WordPress&geo=&rank=');
+      expect(res3.statusCode).toEqual(200);
+      expect(Array.isArray(res3.body)).toBe(true);
     });
 
     it('should handle CORS preflight requests', async () => {
@@ -280,10 +303,10 @@ describe('API Routes', () => {
       expect(Array.isArray(res.body)).toBe(true);
     });
 
-    it('should handle missing required parameters', async () => {
+    it('should handle optional parameters being omitted', async () => {
       const res = await request(app).get('/v1/cwv');
-      expect(res.statusCode).toEqual(400);
-      expect(res.body).toHaveProperty('errors');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
     });
 
     it('should handle CORS preflight requests', async () => {
@@ -305,10 +328,10 @@ describe('API Routes', () => {
       expect(Array.isArray(res.body)).toBe(true);
     });
 
-    it('should handle missing required parameters', async () => {
+    it('should handle optional parameters being omitted', async () => {
       const res = await request(app).get('/v1/lighthouse');
-      expect(res.statusCode).toEqual(400);
-      expect(res.body).toHaveProperty('errors');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
     });
 
     it('should handle CORS preflight requests', async () => {
@@ -330,10 +353,10 @@ describe('API Routes', () => {
       expect(Array.isArray(res.body)).toBe(true);
     });
 
-    it('should handle missing required parameters', async () => {
+    it('should handle optional parameters being omitted', async () => {
       const res = await request(app).get('/v1/page-weight');
-      expect(res.statusCode).toEqual(400);
-      expect(res.body).toHaveProperty('errors');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
     });
 
     it('should handle CORS preflight requests', async () => {
