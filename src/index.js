@@ -86,7 +86,7 @@ const sendJSONResponse = (res, data, statusCode = 200) => {
 
 // Helper function to check if resource is modified
 const isModified = (req, etag) => {
-  const ifNoneMatch = req.headers['If-None-Match'] || req.get('If-None-Match');
+  const ifNoneMatch = req.headers['if-none-match'] || (req.get && req.get('if-none-match'));
   return !ifNoneMatch || ifNoneMatch !== `"${etag}"`;
 };
 
