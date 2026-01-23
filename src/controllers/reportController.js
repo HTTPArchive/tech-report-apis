@@ -64,19 +64,20 @@ const createReportController = (reportType) => {
             */
 
             // Validate required parameters using shared utility
-            const errors = validateRequiredParams(params, [
-                REQUIRED_PARAMS.GEO,
-                REQUIRED_PARAMS.RANK,
-                REQUIRED_PARAMS.TECHNOLOGY
-            ]);
+            const errors = validateRequiredParams(params, []);
 
             if (errors) {
                 sendValidationError(res, errors);
                 return;
             }
 
+            // Default technology, geo, and rank to 'ALL' if missing or empty
+            const technologyParam = params.technology || 'ALL';
+            const geoParam = params.geo || 'ALL';
+            const rankParam = params.rank || 'ALL';
+
             // Validate and process technology array
-            const techArray = validateArrayParameter(params.technology, 'technology');
+            const techArray = validateArrayParameter(technologyParam, 'technology');
 
             // Handle 'latest' date substitution
             let startDate = params.start;
@@ -88,8 +89,8 @@ const createReportController = (reportType) => {
             let query = firestore.collection(config.table);
 
             // Apply required filters
-            query = query.where('geo', '==', params.geo);
-            query = query.where('rank', '==', params.rank);
+            query = query.where('geo', '==', geoParam);
+            query = query.where('rank', '==', rankParam);
 
             // Apply technology filter with batch processing
             query = query.where('technology', 'in', techArray);

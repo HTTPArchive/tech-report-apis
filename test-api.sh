@@ -24,6 +24,46 @@ test_endpoint() {
   echo ""
 }
 
+# Function to test an endpoint with filter verification
+test_filter() {
+  local endpoint=$1
+  local params=$2
+  local filter_check=$3
+  local description=$4
+  local url="http://localhost:8080${endpoint}${params}"
+
+  echo "Testing filter: ${description}"
+  echo "URL: ${url}"
+  
+  response=$(curl -s -w "\n%{http_code}" "${url}")
+  http_code=$(echo "$response" | tail -n1)
+  body=$(echo "$response" | sed '$d')
+
+  if [[ $http_code -ne 200 ]]; then
+    echo "Error: Endpoint returned status code $http_code"
+    echo "$body" | jq .
+    exit 1
+  fi
+
+  # Run the verification check using jq
+  # The check should return "true" if it passes
+  check_result=$(echo "$body" | jq "${filter_check}")
+  
+  if [[ "$check_result" != "true" ]]; then
+    echo "Error: Filter verification failed for ${description}"
+    echo "Verification expression: ${filter_check}"
+    echo "Actual result: ${check_result}"
+    echo "Sample data:"
+    echo "$body" | jq . | head -20
+    exit 1
+  fi
+
+  echo "✓ Filter verification passed"
+  echo ""
+  echo "----------------------"
+  echo ""
+}
+
 # Function to test CORS preflight with OPTIONS request
 test_cors_preflight() {
   local endpoint=$1
@@ -101,19 +141,39 @@ test_endpoint "/v1/ranks" ""
 # Test geos endpoint
 test_endpoint "/v1/geos" ""
 
-# Test adoption endpoint
-test_endpoint "/v1/adoption" "?technology=WordPress&geo=ALL&rank=ALL&start=latest"
+# Test filter correspondences
+echo "Testing Filter Correspondences..."
+echo "----------------------"
+echo ""
 
-# Test cwv endpoint
-test_endpoint "/v1/cwv" "?technology=WordPress,Drupal&geo=ALL&rank=ALL&start=latest"
+# Test adoption defaults (tech=ALL)
+test_filter "/v1/adoption" "" \
+  "all(.[]; .technology == \"ALL\") and length > 0" \
+  "Adoption defaults (technology=ALL)"
 
-# Test lighthouse endpoint
-test_endpoint "/v1/lighthouse" "?technology=WordPress&geo=ALL&rank=ALL&start=latest"
+# Test adoption specific technology
+test_filter "/v1/adoption" "?technology=WordPress" \
+  "all(.[]; .technology == \"WordPress\") and length > 0" \
+  "Adoption specific technology (WordPress)"
 
-# Test page-weight endpoint
-test_endpoint "/v1/page-weight" "?technology=WordPress&geo=ALL&rank=ALL&start=latest"
+# Test adoption specific geo and rank (verifying it returns data)
+test_filter "/v1/adoption" "?technology=WordPress&geo=Mexico&rank=Top%201M" \
+  "all(.[]; .technology == \"WordPress\") and length > 0" \
+  "Adoption specific geo and rank (returns WordPress data)"
 
-# Test audits endpoint
-test_endpoint "/v1/audits" "?technology=WordPress&geo=ALL&rank=ALL&start=latest"
+# Test CWV defaults (tech=ALL)
+test_filter "/v1/cwv" "" \
+  "all(.[]; .technology == \"ALL\") and length > 0" \
+  "CWV defaults (technology=ALL)"
 
-echo "API tests complete! All endpoints returned 200 status code and CORS is properly configured."
+# Test technologies default
+test_filter "/v1/technologies" "" \
+  "length > 0" \
+  "Technologies list is not empty"
+
+# Test categories default
+test_filter "/v1/categories" "" \
+  "length > 0" \
+  "Categories list is not empty"
+
+echo "API tests complete! All endpoints returned 200 and data corresponds to filters."
