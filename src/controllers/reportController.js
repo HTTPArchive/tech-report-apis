@@ -20,7 +20,7 @@ const REPORT_CONFIGS = {
     },
     pageWeight: {
         table: 'page_weight',
-        dataField: 'pageWeight'
+        dataField: 'pageWeight'  // TODO: change to page_weight once migrated to new Firestore DB
     },
     lighthouse: {
         table: 'lighthouse',
