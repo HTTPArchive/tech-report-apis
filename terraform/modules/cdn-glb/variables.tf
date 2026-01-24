@@ -40,21 +40,6 @@ variable "cdn_cache_mode" {
   type        = string
   default     = "USE_ORIGIN_HEADERS"
 }
-variable "cdn_default_ttl" {
-  description = "Default TTL for cached content in seconds"
-  type        = number
-  default     = 2592000 # 30 days
-}
-variable "cdn_max_ttl" {
-  description = "Maximum TTL for cached content in seconds"
-  type        = number
-  default     = 2592000 # 30 days
-}
-variable "cdn_client_ttl" {
-  description = "Client TTL for cached content in seconds (browser cache)"
-  type        = number
-  default     = 3600 # 1 hour
-}
 variable "cdn_serve_while_stale" {
   description = "Time to serve stale content while revalidating in seconds"
   type        = number

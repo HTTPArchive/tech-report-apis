@@ -28,9 +28,6 @@ resource "google_compute_backend_service" "backend" {
     for_each = var.enable_cdn ? [1] : []
     content {
       cache_mode                   = var.cdn_cache_mode
-      default_ttl                  = var.cdn_default_ttl
-      max_ttl                      = var.cdn_max_ttl
-      client_ttl                   = var.cdn_client_ttl
       serve_while_stale            = var.cdn_serve_while_stale
       negative_caching             = var.cdn_negative_caching
       signed_url_cache_max_age_sec = 0
@@ -84,6 +81,10 @@ resource "google_compute_managed_ssl_certificate" "ssl_cert" {
   managed {
     domains = [var.domain]
   }
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # HTTPS Target Proxy
@@ -93,6 +94,10 @@ resource "google_compute_target_https_proxy" "https_proxy" {
   url_map          = google_compute_url_map.url_map.id
   ssl_certificates = [google_compute_managed_ssl_certificate.ssl_cert.id]
   quic_override    = "ENABLE"
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 
