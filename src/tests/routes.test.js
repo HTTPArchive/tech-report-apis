@@ -470,6 +470,48 @@ describe('API Routes', () => {
       });
     });
 
+    describe('Blocked paths (crawls and results)', () => {
+      it('should block access to crawls paths with 403', async () => {
+        const res = await request(app)
+          .get('/v1/static/crawls/chrome-Jan_1_2026/260113_Dx1LM_CCNR1.har.gz')
+          .expect(403);
+        expect(res.body).toHaveProperty('error', 'Access denied');
+      });
+
+      it('should block access to results paths with 403', async () => {
+        const res = await request(app)
+          .get('/v1/static/results/250114_Dx0_1.zip')
+          .expect(403);
+        expect(res.body).toHaveProperty('error', 'Access denied');
+      });
+
+      it('should block crawls paths at any depth', async () => {
+        const res = await request(app)
+          .get('/v1/static/crawls/some/nested/path/file.tar.gz')
+          .expect(403);
+        expect(res.body).toHaveProperty('error', 'Access denied');
+      });
+
+      it('should allow other paths like reports', async () => {
+        const fileContent = JSON.stringify({ data: 'test' });
+        const readable = Readable.from([fileContent]);
+
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockResolvedValue([{
+          contentType: 'application/json',
+          etag: '"abc123"',
+          size: fileContent.length
+        }]);
+        mockCreateReadStream.mockReturnValue(readable);
+
+        const res = await request(app)
+          .get('/v1/static/reports/2024/data.json')
+          .expect(200);
+
+        expect(res.headers['content-type']).toContain('application/json');
+      });
+    });
+
     describe('Invalid file paths (directory traversal attempts)', () => {
       it('should reject paths containing double dot sequences', async () => {
         // Test with '..' embedded in the path that won't be normalized away

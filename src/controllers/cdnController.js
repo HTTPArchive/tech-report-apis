@@ -32,6 +32,13 @@ export const proxyReportsFile = async (req, res, filePath) => {
     try {
         const BUCKET_NAME = process.env.GCS_BUCKET_NAME || 'httparchive';
 
+        // Block access to crawls and results paths
+        if (filePath.startsWith('crawls/') || filePath.startsWith('results/')) {
+            res.statusCode = 403;
+            res.end(JSON.stringify({ error: 'Access denied' }));
+            return;
+        }
+
         // Validate file path to prevent directory traversal
         if (filePath.includes('..') || filePath.includes('//')) {
             res.statusCode = 400;
