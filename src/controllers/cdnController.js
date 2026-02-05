@@ -34,8 +34,8 @@ export const proxyReportsFile = async (req, res, filePath) => {
 
         // Block access to crawls and results paths
         if (filePath.startsWith('crawls/') || filePath.startsWith('results/')) {
-            res.statusCode = 403;
-            res.end(JSON.stringify({ error: 'Access denied' }));
+            res.statusCode = 400;
+            res.end(JSON.stringify({ error: 'Not supported. Response size too large.' }));
             return;
         }
 

@@ -72,7 +72,9 @@ const validateArrayParameter = (value, fieldName = 'parameter') => {
   const valueArray = convertToArray(value);
 
   if (valueArray.length > FIRESTORE_IN_LIMIT) {
-    throw new Error(`Too many values specified for ${fieldName}. Maximum ${FIRESTORE_IN_LIMIT} allowed.`);
+    const error = new Error(`Too many values specified for ${fieldName}. Maximum ${FIRESTORE_IN_LIMIT} allowed.`);
+    error.statusCode = 400;
+    throw error;
   }
 
   return valueArray;

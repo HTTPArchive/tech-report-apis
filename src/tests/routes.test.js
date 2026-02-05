@@ -142,6 +142,16 @@ describe('API Routes', () => {
       expect(Array.isArray(res.body)).toBe(true);
     });
 
+    it('should return 400 when category filter exceeds limit', async () => {
+      const tooManyCategories = Array.from({ length: 31 }, (_, index) => `cat${index}`).join(',');
+      const res = await request(app).get(`/v1/technologies?category=${encodeURIComponent(tooManyCategories)}`);
+
+      expect(res.statusCode).toEqual(400);
+      expect(res.body).toHaveProperty('errors');
+      expect(res.body.errors[0]).toHaveProperty('error');
+      expect(res.body.errors[0].error).toContain('Too many values specified for category');
+    });
+
     it('should handle CORS preflight requests', async () => {
       const res = await request(app)
         .options('/v1/technologies')
@@ -471,25 +481,25 @@ describe('API Routes', () => {
     });
 
     describe('Blocked paths (crawls and results)', () => {
-      it('should block access to crawls paths with 403', async () => {
+      it('should block access to crawls paths with 400', async () => {
         const res = await request(app)
           .get('/v1/static/crawls/chrome-Jan_1_2026/260113_Dx1LM_CCNR1.har.gz')
-          .expect(403);
-        expect(res.body).toHaveProperty('error', 'Access denied');
+          .expect(400);
+        expect(res.body).toHaveProperty('error', 'Not supported. Response size too large.');
       });
 
-      it('should block access to results paths with 403', async () => {
+      it('should block access to results paths with 400', async () => {
         const res = await request(app)
           .get('/v1/static/results/250114_Dx0_1.zip')
-          .expect(403);
-        expect(res.body).toHaveProperty('error', 'Access denied');
+          .expect(400);
+        expect(res.body).toHaveProperty('error', 'Not supported. Response size too large.');
       });
 
       it('should block crawls paths at any depth', async () => {
         const res = await request(app)
           .get('/v1/static/crawls/some/nested/path/file.tar.gz')
-          .expect(403);
-        expect(res.body).toHaveProperty('error', 'Access denied');
+          .expect(400);
+        expect(res.body).toHaveProperty('error', 'Not supported. Response size too large.');
       });
 
       it('should allow other paths like reports', async () => {
