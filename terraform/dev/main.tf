@@ -11,15 +11,15 @@ terraform {
       version = ">=3.6.2"
     }
     google = {
-      source = "hashicorp/google"
+      source  = "hashicorp/google"
       version = ">=7.13.0"
     }
   }
 }
 
 provider "google" {
-  project         = var.project
-  region          = var.region
+  project = var.project
+  region  = var.region
 }
 
 module "endpoints" {
@@ -27,7 +27,7 @@ module "endpoints" {
   project          = var.project
   environment      = var.environment
   source_directory = "../../src"
-  service_name    = "report-api"
+  service_name     = "report-api"
   region           = var.region
   environment_variables = {
     "PROJECT"  = var.project
