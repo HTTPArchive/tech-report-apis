@@ -6,9 +6,6 @@ on:
       - development
       - main
 
-env:
-  GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -31,7 +28,7 @@ jobs:
         uses: 'google-github-actions/auth@v3'
         with:
           project_id: 'httparchive'
-          credentials_json: ${{ env.GCP_SA_KEY }}
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - uses: hashicorp/setup-terraform@v3
 
