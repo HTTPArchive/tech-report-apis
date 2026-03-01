@@ -70,14 +70,14 @@ const setCommonHeaders = (res) => {
 };
 
 // Helper function to generate ETag
-const generateETag = (data) => {
-  return crypto.createHash('md5').update(JSON.stringify(data)).digest('hex');
+const generateETag = (jsonData) => {
+  return crypto.createHash('md5').update(jsonData).digest('hex');
 };
 
 // Helper function to send JSON response with ETag support
 const sendJSONResponse = (res, data, statusCode = 200) => {
   const jsonData = JSON.stringify(data);
-  const etag = generateETag(data);
+  const etag = generateETag(jsonData);
 
   res.setHeader('ETag', `"${etag}"`);
   res.statusCode = statusCode;
