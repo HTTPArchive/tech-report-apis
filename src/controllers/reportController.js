@@ -1,4 +1,5 @@
-import { firestore } from '../utils/db.js';
+import { firestoreOld } from '../utils/db.js';
+const firestore = firestoreOld; // TODO: Remove once all controllers are migrated to new Firestore DB
 
 import {
     REQUIRED_PARAMS,
@@ -102,7 +103,8 @@ const createReportController = (reportType) => {
             query = query.where('technology', 'in', technologiesArray);
 
             // Apply version filter with batch processing
-            query = query.where('version', 'in', versionsArray);
+            // TODO: Implement processing for versions, currently only supports single version = 'ALL'
+            // query = query.where('version', 'in', versionsArray);
 
             // Apply date filters
             if (startDate) query = query.where('date', '>=', startDate);
@@ -111,7 +113,8 @@ const createReportController = (reportType) => {
             // Apply field projection to optimize query
             const selectFields = ['date', 'technology', config.dataField];
             if (!(versionsArray.length === 1 && versionsArray[0] === 'ALL')) {
-                selectFields.push('version');
+                // TODO: Add 'version' to selectFields once version filtering is implemented
+                // selectFields.push('version');
             }
             query = query.select(...selectFields);
 

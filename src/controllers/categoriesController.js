@@ -36,7 +36,8 @@ const listCategories = async (req, res) => {
 
     // Apply client filter
     if (client) {
-      query = query.where('client', '==', client);
+      // TODO: Implement client-based filtering in Firestore if needed. This may require restructuring the data to include a 'client' field in the documents.
+      // query = query.where('client', '==', client);
     }
 
     // Apply field selection
