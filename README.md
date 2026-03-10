@@ -54,7 +54,7 @@ Lists available categories.
 
 #### Categories Parameters
 
-- `category` (optional): Filter by category name(s) - comma-separated list
+- `category` (optional): Filter by category name(s) - comma-separated list (defaults to 'ALL')
 - `client` (optional): Filter by client type (e.g., `mobile`, `desktop`) - defaults to `mobile`
 - `onlyname` (optional): If present, returns only category names
 - `fields` (optional): Comma-separated list of fields to include in the response (see [Field Selection API Documentation](#field-selection-api-documentation) for details)
@@ -112,7 +112,7 @@ Lists available technologies with optional filtering.
 
 #### Parameters
 
-- `technology` (optional): Filter by technology name(s) - comma-separated list
+- `technology` (optional): Filter by technology name(s) - comma-separated list (defaults to 'ALL')
 - `category` (optional): Filter by category - comma-separated list
 - `onlyname` (optional): If present, returns only technology names
 - `fields` (optional): Comma-separated list of fields to include in the response (see [Field Selection API Documentation](#field-selection-api-documentation) for details)
@@ -168,7 +168,7 @@ Lists available versions.
 
 #### Versions Parameters
 
-- `technology` (optional): Filter by technology name(s) - comma-separated list
+- `technology` (optional): Filter by technology name(s) - comma-separated list (defaults to 'ALL')
 - `category` (optional): Filter by category - comma-separated list
 - `version` (optional): Filter by version name(s) - comma-separated list
 - `onlyname` (optional): If present, returns only version names
@@ -202,9 +202,9 @@ Provides technology adoption data.
 
 #### Adoption Parameters
 
-- `technology` (required): Filter by technology name(s) - comma-separated list
-- `geo` (required): Filter by geographic location
-- `rank` (required): Filter by rank
+- `technology` (optional): Filter by technology name(s) - comma-separated list (defaults to 'ALL')
+- `geo` (optional): Filter by geographic location (defaults to 'ALL')
+- `rank` (optional): Filter by rank (defaults to 'ALL')
 - `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
 - `end` (optional): Filter by date range end (YYYY-MM-DD)
 - `version` (optional): Filter by version name(s) - comma-separated list (only when single technology is specified)
@@ -238,9 +238,9 @@ Provides Core Web Vitals metrics for technologies.
 
 #### CWV Parameters
 
-- `technology` (required): Filter by technology name(s) - comma-separated list
-- `geo` (required): Filter by geographic location
-- `rank` (required): Filter by rank
+- `technology` (optional): Filter by technology name(s) - comma-separated list (defaults to 'ALL')
+- `geo` (optional): Filter by geographic location (defaults to 'ALL')
+- `rank` (optional): Filter by rank (defaults to 'ALL')
 - `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
 - `end` (optional): Filter by date range end (YYYY-MM-DD)
 - `version` (optional): Filter by version name(s) - comma-separated list (only when single technology is specified)
@@ -282,9 +282,9 @@ Provides Lighthouse scores for technologies.
 
 #### Lighthouse Parameters
 
-- `technology` (required): Filter by technology name(s) - comma-separated list
-- `geo` (required): Filter by geographic location
-- `rank` (required): Filter by rank
+- `technology` (optional): Filter by technology name(s) - comma-separated list (defaults to 'ALL')
+- `geo` (optional): Filter by geographic location (defaults to 'ALL')
+- `rank` (optional): Filter by rank (defaults to 'ALL')
 - `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
 - `end` (optional): Filter by date range end (YYYY-MM-DD)
 - `version` (optional): Filter by version name(s) - comma-separated list (only when single technology is specified)
@@ -330,9 +330,9 @@ Provides Page Weight metrics for technologies.
 
 #### Page Weight Parameters
 
-- `technology` (required): Filter by technology name(s) - comma-separated list
-- `geo` (required): Filter by geographic location
-- `rank` (required): Filter by rank
+- `technology` (optional): Filter by technology name(s) - comma-separated list (defaults to 'ALL')
+- `geo` (optional): Filter by geographic location (defaults to 'ALL')
+- `rank` (optional): Filter by rank (defaults to 'ALL')
 - `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
 - `end` (optional): Filter by date range end (YYYY-MM-DD)
 - `version` (optional): Filter by version name(s) - comma-separated list (only when single technology is specified)
@@ -392,9 +392,9 @@ Provides Lighthouse audits for technologies.
 
 #### Audits Parameters
 
-- `technology` (required): Filter by technology name(s) - comma-separated list
-- `geo` (required): Filter by geographic location
-- `rank` (required): Filter by rank
+- `technology` (optional): Filter by technology name(s) - comma-separated list (defaults to 'ALL')
+- `geo` (optional): Filter by geographic location (defaults to 'ALL')
+- `rank` (optional): Filter by rank (defaults to 'ALL')
 - `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
 - `end` (optional): Filter by date range end (YYYY-MM-DD)
 - `version` (optional): Filter by version name(s) - comma-separated list (only when single technology is specified)
@@ -513,14 +513,14 @@ Proxy endpoint to serve files from the private Google Cloud Storage bucket. The 
 
 #### Supported File Types
 
-| Extension | MIME Type |
-|-----------|-----------|
-| `.json` | `application/json` |
-| `.js` | `application/javascript` |
-| `.png` | `image/png` |
-| `.svg` | `image/svg+xml` |
-| `.csv` | `text/csv` |
-| `.pdf` | `application/pdf` |
+| Extension | MIME Type                |
+| --------- | ------------------------ |
+| `.json`   | `application/json`       |
+| `.js`     | `application/javascript` |
+| `.png`    | `image/png`              |
+| `.svg`    | `image/svg+xml`          |
+| `.csv`    | `text/csv`               |
+| `.pdf`    | `application/pdf`        |
 
 #### Static File Response
 

@@ -2,11 +2,15 @@ FROM node:22.21.1-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
+RUN chown node:node /app
 
-RUN --mount=type=cache,target=/root/.npm npm ci --only=production --quiet --no-fund --no-audit && npm cache clean --force
+USER node
 
-COPY . .
+COPY --chown=node:node package*.json ./
+
+RUN --mount=type=cache,target=/home/node/.npm,uid=1000,gid=1000 npm ci --only=production --quiet --no-fund --no-audit && npm cache clean --force
+
+COPY --chown=node:node . .
 
 ENV PORT=8080
 

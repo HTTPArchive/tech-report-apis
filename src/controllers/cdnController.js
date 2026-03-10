@@ -32,6 +32,13 @@ export const proxyReportsFile = async (req, res, filePath) => {
     try {
         const BUCKET_NAME = process.env.GCS_BUCKET_NAME || 'httparchive';
 
+        // Block access to crawls and results paths
+        if (filePath.startsWith('crawls/') || filePath.startsWith('results/')) {
+            res.statusCode = 400;
+            res.end(JSON.stringify({ error: 'Not supported. Response size too large.' }));
+            return;
+        }
+
         // Validate file path to prevent directory traversal
         if (filePath.includes('..') || filePath.includes('//')) {
             res.statusCode = 400;
@@ -63,6 +70,9 @@ export const proxyReportsFile = async (req, res, filePath) => {
         // Set response headers
         res.setHeader('Content-Type', contentType);
         res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+        res.setHeader('Cloud-CDN-Cache-Tag', 'bucket-proxy');
+        // Browser cache: 1 hour, CDN cache: 30 days
+        res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=2592000');
 
         if (metadata.etag) {
             res.setHeader('ETag', metadata.etag);

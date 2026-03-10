@@ -17,3 +17,15 @@ variable "project_database" {
   description = "The database name"
   default     = "tech-report-api-prod"
 }
+
+variable "name_prefix" {
+  description = "Prefix for resource naming"
+  type        = string
+  default     = "report-api"
+}
+
+variable "ssl_cert_name" {
+  description = "Name of the SSL certificate"
+  type        = string
+  default     = "google-managed2"
+}

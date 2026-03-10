@@ -19,7 +19,7 @@ const REPORT_CONFIGS = {
     },
     pageWeight: {
         table: 'page_weight',
-        dataField: 'pageWeight'
+        dataField: 'pageWeight'  // TODO: change to page_weight once migrated to new Firestore DB
     },
     lighthouse: {
         table: 'lighthouse',
@@ -63,19 +63,20 @@ const createReportController = (reportType) => {
             */
 
             // Validate required parameters using shared utility
-            const errors = validateRequiredParams(params, [
-                REQUIRED_PARAMS.GEO,
-                REQUIRED_PARAMS.RANK,
-                REQUIRED_PARAMS.TECHNOLOGY
-            ]);
+            const errors = validateRequiredParams(params, []);
 
             if (errors) {
                 sendValidationError(res, errors);
                 return;
             }
 
+            // Default technology, geo, and rank to 'ALL' if missing or empty
+            const technologyParam = params.technology || 'ALL';
+            const geoParam = params.geo || 'ALL';
+            const rankParam = params.rank || 'ALL';
+
             // Validate and process technologies
-            const technologiesArray = validateArrayParameter(params.technology, 'technology');
+            const technologiesArray = validateArrayParameter(technologyParam, 'technology');
 
             // Validate and process versions
             // Apply version filter with special handling for 'ALL' case
@@ -94,8 +95,8 @@ const createReportController = (reportType) => {
             let query = firestore.collection(config.table);
 
             // Apply required filters
-            query = query.where('geo', '==', params.geo);
-            query = query.where('rank', '==', params.rank);
+            query = query.where('geo', '==', geoParam);
+            query = query.where('rank', '==', rankParam);
 
             // Apply technology filter with batch processing
             query = query.where('technology', 'in', technologiesArray);
