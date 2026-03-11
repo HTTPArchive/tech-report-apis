@@ -30,7 +30,7 @@ jobs:
           project_id: 'httparchive'
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v4
 
       - name: Terraform fmt
         id: fmt
