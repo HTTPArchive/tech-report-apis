@@ -1,5 +1,5 @@
 import { firestoreOld } from '../utils/db.js';
-const firestore = firestoreOld;
+const firestore = firestoreOld; // TODO: Remove once all controllers are migrated to new Firestore DB
 
 import {
     REQUIRED_PARAMS,
@@ -52,7 +52,7 @@ const createReportController = (reportType) => {
 
             /*
             // Validate supported parameters
-            const supportedParams = ['technology', 'geo', 'rank', 'start', 'end'];
+            const supportedParams = ['technology', 'geo', 'rank', 'start', 'end', 'version'];
             const providedParams = Object.keys(params);
             const unsupportedParams = providedParams.filter(param => !supportedParams.includes(param));
 
@@ -76,8 +76,15 @@ const createReportController = (reportType) => {
             const geoParam = params.geo || 'ALL';
             const rankParam = params.rank || 'ALL';
 
-            // Validate and process technology array
-            const techArray = validateArrayParameter(technologyParam, 'technology');
+            // Validate and process technologies
+            const technologiesArray = validateArrayParameter(technologyParam, 'technology');
+
+            // Validate and process versions
+            // Apply version filter with special handling for 'ALL' case
+            let versionsArray = ['ALL'];
+            if (technologiesArray.length === 1 && params.version) {
+                versionsArray = validateArrayParameter(params.version, 'version');
+            }
 
             // Handle 'latest' date substitution
             let startDate = params.start;
@@ -93,21 +100,23 @@ const createReportController = (reportType) => {
             query = query.where('rank', '==', rankParam);
 
             // Apply technology filter with batch processing
-            query = query.where('technology', 'in', techArray);
+            query = query.where('technology', 'in', technologiesArray);
 
-            // Apply version filter with special handling for 'ALL' case
-            if (params.version && techArray.length === 1) {
-                //query = query.where('version', '==', params.version); // TODO: Uncomment when migrating to a new data schema
-            } else {
-                //query = query.where('version', '==', 'ALL');
-            }
+            // Apply version filter with batch processing
+            // TODO: Implement processing for versions, currently only supports single version = 'ALL'
+            // query = query.where('version', 'in', versionsArray);
 
             // Apply date filters
             if (startDate) query = query.where('date', '>=', startDate);
             if (params.end) query = query.where('date', '<=', params.end);
 
             // Apply field projection to optimize query
-            query = query.select('date', 'technology', config.dataField);
+            const selectFields = ['date', 'technology', config.dataField];
+            if (!(versionsArray.length === 1 && versionsArray[0] === 'ALL')) {
+                // TODO: Add 'version' to selectFields once version filtering is implemented
+                // selectFields.push('version');
+            }
+            query = query.select(...selectFields);
 
             // Execute query
             const snapshot = await query.get();
