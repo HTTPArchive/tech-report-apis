@@ -93,6 +93,23 @@ const isModified = (req, etag) => {
 // Route handler function
 const handleRequest = async (req, res) => {
   try {
+    // Parse URL path first so we can route /mcp before setting common headers
+    const pathname = req.path || req.url.split('?')[0];
+
+    // MCP endpoint — handled before common headers; transport owns the response
+    if (pathname === '/mcp') {
+      setCORSHeaders(res);
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+      if (req.method === 'OPTIONS') {
+        res.statusCode = 204;
+        res.end();
+        return;
+      }
+      const { handleMcp } = await import('./mcpHandler.js');
+      await handleMcp(req, res);
+      return;
+    }
+
     setCommonHeaders(res);
 
     // Handle OPTIONS requests for CORS preflight
@@ -101,9 +118,6 @@ const handleRequest = async (req, res) => {
       res.end();
       return;
     }
-
-    // Parse URL path - robustly handle Express (req.path) or native Node (req.url)
-    const pathname = req.path || req.url.split('?')[0];
 
     // Route handling
     if (pathname === '/' && req.method === 'GET') {
