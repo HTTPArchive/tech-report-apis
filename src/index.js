@@ -44,7 +44,7 @@ const getController = async (name) => {
         controllers[name] = await import('./controllers/versionsController.js');
         break;
       case 'geoBreakdown':
-        controllers[name] = await import('./controllers/geoBreakdownController.js');
+        controllers[name] = await import('./controllers/reportController.js');
         break;
       case 'static':
         controllers[name] = await import('./controllers/cdnController.js');
