@@ -33,5 +33,12 @@ jobs:
       - name: Terraform Apply
         id: apply
         run: |
-          ENV=${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
-          make tf_apply ENV=${{ env.ENV }}
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            ENV=prod
+          elif [ "${GITHUB_REF}" = "refs/heads/development" ]; then
+            ENV=dev
+          else
+            echo "Unsupported branch for deployment: ${GITHUB_REF}"
+            exit 1
+          fi
+          make tf_apply ENV="$ENV"
