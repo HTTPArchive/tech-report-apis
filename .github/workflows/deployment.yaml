@@ -19,9 +19,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: [test]
-    defaults:
-      run:
-        working-directory: ${{ github.ref == 'refs/heads/main' && './terraform/prod' || './terraform/dev' }}
 
     steps:
       - uses: actions/checkout@v6
@@ -33,19 +30,8 @@ jobs:
 
       - uses: hashicorp/setup-terraform@v4
 
-      - name: Set env vars
-        run: |
-          echo "ENV=${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}" >> $GITHUB_ENV
-
-      - name: Terraform fmt
-        id: fmt
-        run: terraform fmt -check
-
-      - name: Terraform Validate
-        id: validate
-        run: make tf_apply ENV=${{ env.ENV }}
-
       - name: Terraform Apply
         id: apply
         run: |
+          ENV=${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
           make tf_apply ENV=${{ env.ENV }}
