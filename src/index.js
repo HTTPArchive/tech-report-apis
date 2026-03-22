@@ -54,7 +54,8 @@ const getController = async (name) => {
 const setCORSHeaders = (res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Timing-Allow-Origin');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, If-None-Match');
+  res.setHeader('Access-Control-Expose-Headers', '*');
   res.setHeader('Access-Control-Max-Age', '86400');
 };
 
@@ -62,19 +63,21 @@ const setCORSHeaders = (res) => {
 const setCommonHeaders = (res) => {
   setCORSHeaders(res);
   res.setHeader('Content-Type', 'application/json');
-  res.setHeader('Cache-Control', 'public, max-age=21600');
+  // Browser cache: 1 hour, CDN cache: 30 days
+  res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=2592000');
+  res.setHeader('Cloud-CDN-Cache-Tag', 'report-api');
   res.setHeader('Timing-Allow-Origin', '*');
 };
 
 // Helper function to generate ETag
-const generateETag = (data) => {
-  return crypto.createHash('md5').update(JSON.stringify(data)).digest('hex');
+const generateETag = (jsonData) => {
+  return crypto.createHash('md5').update(jsonData).digest('hex');
 };
 
 // Helper function to send JSON response with ETag support
 const sendJSONResponse = (res, data, statusCode = 200) => {
   const jsonData = JSON.stringify(data);
-  const etag = generateETag(data);
+  const etag = generateETag(jsonData);
 
   res.setHeader('ETag', `"${etag}"`);
   res.statusCode = statusCode;
@@ -83,7 +86,7 @@ const sendJSONResponse = (res, data, statusCode = 200) => {
 
 // Helper function to check if resource is modified
 const isModified = (req, etag) => {
-  const ifNoneMatch = req.headers['if-none-match'] || req.get('if-none-match');
+  const ifNoneMatch = req.headers['if-none-match'] || (req.get && req.get('if-none-match'));
   return !ifNoneMatch || ifNoneMatch !== `"${etag}"`;
 };
 
@@ -99,8 +102,8 @@ const handleRequest = async (req, res) => {
       return;
     }
 
-    // Parse URL path
-    const pathname = req.path;
+    // Parse URL path - robustly handle Express (req.path) or native Node (req.url)
+    const pathname = req.path || req.url.split('?')[0];
 
     // Route handling
     if (pathname === '/' && req.method === 'GET') {

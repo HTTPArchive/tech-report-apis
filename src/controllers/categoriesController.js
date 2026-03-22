@@ -25,8 +25,9 @@ const listCategories = async (req, res) => {
     let query = firestore.collection('categories').orderBy('category', 'asc');
 
     // Apply category filter with validation
-    if (params.category) {
-      const categories = validateArrayParameter(params.category, 'category');
+    const categoryParam = params.category || 'ALL';
+    if (categoryParam !== 'ALL') {
+      const categories = validateArrayParameter(categoryParam, 'category');
       if (categories.length > 0) {
         query = query.where('category', 'in', categories);
       }

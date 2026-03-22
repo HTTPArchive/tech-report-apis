@@ -32,6 +32,13 @@ export const proxyReportsFile = async (req, res, filePath) => {
     try {
         const BUCKET_NAME = process.env.GCS_BUCKET_NAME || 'httparchive';
 
+        // Block access to crawls and results paths
+        if (filePath.startsWith('crawls/') || filePath.startsWith('results/')) {
+            res.statusCode = 400;
+            res.end(JSON.stringify({ error: 'Not supported. Response size too large.' }));
+            return;
+        }
+
         // Validate file path to prevent directory traversal
         if (filePath.includes('..') || filePath.includes('//')) {
             res.statusCode = 400;
@@ -63,12 +70,12 @@ export const proxyReportsFile = async (req, res, filePath) => {
         // Set response headers
         res.setHeader('Content-Type', contentType);
         res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+        res.setHeader('Cloud-CDN-Cache-Tag', 'bucket-proxy');
+        // Browser cache: 1 hour, CDN cache: 30 days
+        res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=2592000');
 
         if (metadata.etag) {
             res.setHeader('ETag', metadata.etag);
-        }
-        if (metadata.size) {
-            res.setHeader('Content-Length', metadata.size);
         }
 
         // Check for conditional request (If-None-Match)
@@ -82,7 +89,19 @@ export const proxyReportsFile = async (req, res, filePath) => {
         // Stream the file content to the response
         res.statusCode = 200;
 
-        const readStream = file.createReadStream();
+        // If the file is gzip-encoded in GCS, pass the compressed stream through
+        // directly so that Content-Length (compressed size) stays accurate.
+        // Without this, createReadStream() decompresses transparently while
+        // metadata.size still reflects the compressed size, truncating the response.
+        const isGzipEncoded = metadata.contentEncoding === 'gzip';
+        if (isGzipEncoded) {
+            res.setHeader('Content-Encoding', 'gzip');
+        }
+        if (metadata.size) {
+            res.setHeader('Content-Length', metadata.size);
+        }
+
+        const readStream = file.createReadStream({ decompress: !isGzipEncoded });
 
         readStream.on('error', (err) => {
             console.error('Error streaming file from GCS:', err);

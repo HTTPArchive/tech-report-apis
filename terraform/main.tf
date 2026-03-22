@@ -46,11 +46,16 @@ module "cdn_glb" {
   cloud_run_service_name = module.endpoints.name
   domain                 = "cdn.httparchive.org"
   load_balancer_name     = "httparchive-load-balancer"
-  name_prefix            = "report-api"
+  name_prefix            = var.name_prefix
 
   neg_name                   = "report-api-${var.environment}"
   backend_service_name       = "report-api"
-  ssl_cert_name              = "google-managed2"
+  ssl_cert_name              = var.ssl_cert_name
   https_proxy_name           = "httparchive-load-balancer-target-proxy-2"
   https_forwarding_rule_name = "httparchive-load-balancer-forwarding-rule-2"
+}
+
+moved {
+  from = module.cdn_glb
+  to   = module.cdn_glb[0]
 }
