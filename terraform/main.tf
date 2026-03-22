@@ -1,15 +1,16 @@
 terraform {
-  backend "gcs" {
-    bucket = "tfstate-httparchive"
-    prefix = "tech-report-apis/prod"
-  }
+  required_version = ">=1.11.0"
+
+  backend "gcs" {}
+
   required_providers {
     docker = {
       source  = "kreuzwerker/docker"
-      version = "3.6.2"
+      version = ">=3.6.2"
     }
     google = {
-      source = "hashicorp/google"
+      source  = "hashicorp/google"
+      version = ">=7.13.0"
     }
   }
 }
@@ -20,21 +21,23 @@ provider "google" {
 }
 
 module "endpoints" {
-  source           = "./../modules/run-service"
+  source           = "./run-service"
   project          = var.project
   environment      = var.environment
-  source_directory = "../../src"
+  source_directory = "../src"
   service_name     = "report-api"
   region           = var.region
-  min_instances    = 1
+  min_instances    = var.environment == "prod" ? 1 : 0
   environment_variables = {
     "PROJECT"  = var.project
-    "DATABASE" = var.project_database
+    "DATABASE" = "${var.project_database}prod" // TODO: Update this to use ${var.environment}
   }
 }
 
 module "cdn_glb" {
-  source = "./../modules/cdn-glb"
+  count = var.environment == "prod" ? 1 : 0
+
+  source = "./cdn-glb"
 
   project     = var.project
   region      = var.region
@@ -45,9 +48,14 @@ module "cdn_glb" {
   load_balancer_name     = "httparchive-load-balancer"
   name_prefix            = var.name_prefix
 
-  neg_name                   = "report-api-prod"
+  neg_name                   = "report-api-${var.environment}"
   backend_service_name       = "report-api"
   ssl_cert_name              = var.ssl_cert_name
   https_proxy_name           = "httparchive-load-balancer-target-proxy-2"
   https_forwarding_rule_name = "httparchive-load-balancer-forwarding-rule-2"
+}
+
+moved {
+  from = module.cdn_glb
+  to   = module.cdn_glb[0]
 }
