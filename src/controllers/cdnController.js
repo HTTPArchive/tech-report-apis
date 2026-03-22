@@ -77,9 +77,6 @@ export const proxyReportsFile = async (req, res, filePath) => {
         if (metadata.etag) {
             res.setHeader('ETag', metadata.etag);
         }
-        if (metadata.size) {
-            res.setHeader('Content-Length', metadata.size);
-        }
 
         // Check for conditional request (If-None-Match)
         const ifNoneMatch = req.headers['if-none-match'];
@@ -92,7 +89,19 @@ export const proxyReportsFile = async (req, res, filePath) => {
         // Stream the file content to the response
         res.statusCode = 200;
 
-        const readStream = file.createReadStream();
+        // If the file is gzip-encoded in GCS, pass the compressed stream through
+        // directly so that Content-Length (compressed size) stays accurate.
+        // Without this, createReadStream() decompresses transparently while
+        // metadata.size still reflects the compressed size, truncating the response.
+        const isGzipEncoded = metadata.contentEncoding === 'gzip';
+        if (isGzipEncoded) {
+            res.setHeader('Content-Encoding', 'gzip');
+        }
+        if (metadata.size) {
+            res.setHeader('Content-Length', metadata.size);
+        }
+
+        const readStream = file.createReadStream({ decompress: !isGzipEncoded });
 
         readStream.on('error', (err) => {
             console.error('Error streaming file from GCS:', err);
