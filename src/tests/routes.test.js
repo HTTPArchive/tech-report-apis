@@ -381,6 +381,49 @@ describe('API Routes', () => {
     });
   });
 
+  describe('GET /v1/geo-breakdown', () => {
+    it('should return geo breakdown data with default parameters', async () => {
+      const res = await request(app).get('/v1/geo-breakdown');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('should return geo breakdown data for a specific technology', async () => {
+      const res = await request(app).get('/v1/geo-breakdown?technology=WordPress');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('should accept an end date parameter', async () => {
+      const res = await request(app).get('/v1/geo-breakdown?technology=WordPress&end=2024-01-01');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('should accept a rank parameter', async () => {
+      const res = await request(app).get('/v1/geo-breakdown?technology=WordPress&rank=Top%201M');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('should handle empty technology parameter (defaults to ALL)', async () => {
+      const res = await request(app).get('/v1/geo-breakdown?technology=');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('should handle CORS preflight requests', async () => {
+      const res = await request(app)
+        .options('/v1/geo-breakdown')
+        .set('Origin', 'http://example.com')
+        .set('Access-Control-Request-Method', 'GET')
+        .set('Access-Control-Request-Headers', 'Content-Type');
+
+      expect(res.statusCode).toEqual(204);
+      expect(res.headers['access-control-allow-origin']).toEqual('*');
+    });
+  });
+
   describe('Error Handling', () => {
     it('should return 404 for unknown endpoints', async () => {
       const res = await request(app).get('/v1/unknown-endpoint');
