@@ -19,9 +19,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: [test]
-    defaults:
-      run:
-        working-directory: ${{ github.ref == 'refs/heads/main' && './terraform/prod' || './terraform/dev' }}
+
     steps:
       - uses: actions/checkout@v6
       - name: Google Cloud Auth
@@ -32,19 +30,15 @@ jobs:
 
       - uses: hashicorp/setup-terraform@v4
 
-      - name: Terraform fmt
-        id: fmt
-        run: terraform fmt -check
-
-      - name: Terraform Init
-        id: init
-        run: terraform init
-
-      - name: Terraform Validate
-        id: validate
-        run: terraform validate -no-color
-
       - name: Terraform Apply
         id: apply
         run: |
-          terraform apply -auto-approve
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            ENV=prod
+          elif [ "${GITHUB_REF}" = "refs/heads/development" ]; then
+            ENV=dev
+          else
+            echo "Unsupported branch for deployment: ${GITHUB_REF}"
+            exit 1
+          fi
+          make tf_apply ENV="$ENV"
