@@ -1,17 +1,14 @@
-import { firestore } from '../utils/db.js';
-import { executeQuery } from '../utils/controllerHelpers.js';
+import { handleControllerError } from '../utils/controllerHelpers.js';
+import { queryGeos } from '../utils/reportService.js';
 
-/**
- * List all geographic locations from database
- */
 const listGeos = async (req, res) => {
-  const queryBuilder = async () => {
-    return firestore.collection('geos').orderBy('mobile_origins', 'desc').select('geo');
-  };
-
-  await executeQuery(req, res, 'geos', queryBuilder);
+  try {
+    const data = await queryGeos();
+    res.statusCode = 200;
+    res.end(JSON.stringify(data));
+  } catch (error) {
+    handleControllerError(res, error, 'fetching geos');
+  }
 };
 
-export {
-  listGeos
-};
+export { listGeos };

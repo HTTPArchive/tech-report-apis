@@ -1,17 +1,14 @@
-import { firestore } from '../utils/db.js';
-import { executeQuery } from '../utils/controllerHelpers.js';
+import { handleControllerError } from '../utils/controllerHelpers.js';
+import { queryRanks } from '../utils/reportService.js';
 
-/**
- * List all rank options from database
- */
 const listRanks = async (req, res) => {
-  const queryBuilder = async () => {
-    return firestore.collection('ranks').orderBy('mobile_origins', 'desc').select('rank');
-  };
-
-  await executeQuery(req, res, 'ranks', queryBuilder);
+  try {
+    const data = await queryRanks();
+    res.statusCode = 200;
+    res.end(JSON.stringify(data));
+  } catch (error) {
+    handleControllerError(res, error, 'fetching ranks');
+  }
 };
 
-export {
-  listRanks
-};
+export { listRanks };
