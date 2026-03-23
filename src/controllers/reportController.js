@@ -38,9 +38,11 @@ const REPORT_CONFIGS = {
 
 /**
  * Generic report data controller factory
- * Creates controllers for adoption, pageWeight, lighthouse, and cwv data
+ * Creates controllers for adoption, pageWeight, lighthouse, and cwv data.
+ * Pass { crossGeo: true } to get a cross-geography snapshot (omits geo filter,
+ * includes geo in projection, returns a single month of data).
  */
-const createReportController = (reportType) => {
+const createReportController = (reportType, { crossGeo = false } = {}) => {
     const config = REPORT_CONFIGS[reportType];
     if (!config) {
         throw new Error(`Unknown report type: ${reportType}`);
@@ -79,20 +81,10 @@ const createReportController = (reportType) => {
             // Validate and process technology array
             const techArray = validateArrayParameter(technologyParam, 'technology');
 
-            // Handle 'latest' date substitution
-            let startDate = params.start;
-            if (startDate === 'latest') {
-                startDate = await getLatestDate(firestore, config.table);
-            }
-
             // Build Firestore query
             let query = firestore.collection(config.table);
 
-            // Apply required filters
-            query = query.where('geo', '==', geoParam);
             query = query.where('rank', '==', rankParam);
-
-            // Apply technology filter with batch processing
             query = query.where('technology', 'in', techArray);
 
             // Apply version filter with special handling for 'ALL' case
@@ -102,12 +94,27 @@ const createReportController = (reportType) => {
                 //query = query.where('version', '==', 'ALL');
             }
 
-            // Apply date filters
-            if (startDate) query = query.where('date', '>=', startDate);
-            if (params.end) query = query.where('date', '<=', params.end);
+            if (crossGeo) {
+                // Cross-geo: single-month snapshot, all geographies included.
+                // Use 'end' param if provided, otherwise default to latest available date.
+                const snapshotDate = params.end || await getLatestDate(firestore, config.table);
+                query = query.where('date', '==', snapshotDate);
+                query = query.select('date', 'technology', 'geo', config.dataField);
+            } else {
+                // Normal time-series: filter by geo, apply date range, no geo in projection.
+                query = query.where('geo', '==', geoParam);
 
-            // Apply field projection to optimize query
-            query = query.select('date', 'technology', config.dataField);
+                // Handle 'latest' date substitution
+                let startDate = params.start;
+                if (startDate === 'latest') {
+                    startDate = await getLatestDate(firestore, config.table);
+                }
+
+                if (startDate) query = query.where('date', '>=', startDate);
+                if (params.end) query = query.where('date', '<=', params.end);
+
+                query = query.select('date', 'technology', config.dataField);
+            }
 
             // Execute query
             const snapshot = await query.get();
@@ -132,5 +139,6 @@ export const listAdoptionData = createReportController('adoption');
 export const listCWVTechData = createReportController('cwv');
 export const listLighthouseData = createReportController('lighthouse');
 export const listPageWeightData = createReportController('pageWeight');
+export const listGeoBreakdownData = createReportController('cwv', { crossGeo: true });
 
 

@@ -13,6 +13,7 @@ const controllers = {
   ranks: null,
   geos: null,
   versions: null,
+  geoBreakdown: null,
   static: null
 };
 
@@ -41,6 +42,9 @@ const getController = async (name) => {
         break;
       case 'versions':
         controllers[name] = await import('./controllers/versionsController.js');
+        break;
+      case 'geoBreakdown':
+        controllers[name] = await import('./controllers/reportController.js');
         break;
       case 'static':
         controllers[name] = await import('./controllers/cdnController.js');
@@ -140,6 +144,9 @@ const handleRequest = async (req, res) => {
     } else if (pathname === '/v1/versions' && req.method === 'GET') {
       const { listVersions } = await getController('versions');
       await listVersions(req, res);
+    } else if (pathname === '/v1/geo-breakdown' && req.method === 'GET') {
+      const { listGeoBreakdownData } = await getController('geoBreakdown');
+      await listGeoBreakdownData(req, res);
     } else if (pathname.startsWith('/v1/static/') && req.method === 'GET') {
       // GCS proxy endpoint for reports files
       const filePath = decodeURIComponent(pathname.replace('/v1/static/', ''));
