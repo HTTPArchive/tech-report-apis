@@ -12,8 +12,8 @@ jest.unstable_mockModule('../controllers/cdnController.js', () => ({
     proxyReportsFile: jest.fn((req, res) => {
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-        res.setHeader('Cloud-CDN-Cache-Tag', 'bucket-proxy');
-        res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=2592000');
+        res.setHeader('Cache-Tag', 'bucket-proxy');
+        res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=86400');
         res.statusCode = 200;
         res.end(JSON.stringify({ mocked: true }));
     })
@@ -34,8 +34,8 @@ describe('CDN Headers', () => {
         const res = await request(app).get('/v1/technologies');
 
         expect(res.statusCode).toEqual(200);
-        expect(res.headers['cache-control']).toBe('public, max-age=3600, s-maxage=2592000');
-        expect(res.headers['cloud-cdn-cache-tag']).toBe('report-api');
+        expect(res.headers['cache-control']).toBe('public, max-age=3600, s-maxage=86400');
+        expect(res.headers['cache-tag']).toBe('report-api');
         expect(res.headers['access-control-allow-origin']).toBe('*');
         expect(res.headers['access-control-allow-headers']).toContain('Content-Type');
         expect(res.headers['access-control-allow-headers']).toContain('If-None-Match');
@@ -46,8 +46,8 @@ describe('CDN Headers', () => {
         const res = await request(app).get('/v1/static/test.json');
 
         expect(res.statusCode).toEqual(200);
-        expect(res.headers['cache-control']).toBe('public, max-age=3600, s-maxage=2592000');
-        expect(res.headers['cloud-cdn-cache-tag']).toBe('bucket-proxy');
+        expect(res.headers['cache-control']).toBe('public, max-age=3600, s-maxage=86400');
+        expect(res.headers['cache-tag']).toBe('bucket-proxy');
         expect(res.headers['cross-origin-resource-policy']).toBe('cross-origin');
     });
 
@@ -55,7 +55,7 @@ describe('CDN Headers', () => {
         const res = await request(app).get('/');
 
         expect(res.statusCode).toEqual(200);
-        expect(res.headers['cache-control']).toBe('public, max-age=3600, s-maxage=2592000');
-        expect(res.headers['cloud-cdn-cache-tag']).toBe('report-api');
+        expect(res.headers['cache-control']).toBe('public, max-age=3600, s-maxage=86400');
+        expect(res.headers['cache-tag']).toBe('report-api');
     });
 });

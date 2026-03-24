@@ -1,5 +1,5 @@
-import crypto from 'crypto';
 import functions from '@google-cloud/functions-framework';
+import { sendJSONResponse, isModified } from './utils/controllerHelpers.js';
 
 // Dynamic imports for better performance - only load when needed
 const controllers = {
@@ -67,31 +67,10 @@ const setCORSHeaders = (res) => {
 const setCommonHeaders = (res) => {
   setCORSHeaders(res);
   res.setHeader('Content-Type', 'application/json');
-  // Browser cache: 1 hour, CDN cache: 30 days
-  res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=2592000');
-  res.setHeader('Cloud-CDN-Cache-Tag', 'report-api');
+  // Browser cache: 1 hour, CDN cache: 1 day
+  res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=86400');
+  res.setHeader('Cache-Tag', 'report-api');
   res.setHeader('Timing-Allow-Origin', '*');
-};
-
-// Helper function to generate ETag
-const generateETag = (jsonData) => {
-  return crypto.createHash('md5').update(jsonData).digest('hex');
-};
-
-// Helper function to send JSON response with ETag support
-const sendJSONResponse = (res, data, statusCode = 200) => {
-  const jsonData = JSON.stringify(data);
-  const etag = generateETag(jsonData);
-
-  res.setHeader('ETag', `"${etag}"`);
-  res.statusCode = statusCode;
-  res.end(jsonData);
-};
-
-// Helper function to check if resource is modified
-const isModified = (req, etag) => {
-  const ifNoneMatch = req.headers['if-none-match'] || (req.get && req.get('if-none-match'));
-  return !ifNoneMatch || ifNoneMatch !== `"${etag}"`;
 };
 
 // Route handler function

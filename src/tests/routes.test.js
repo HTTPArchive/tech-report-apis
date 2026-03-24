@@ -455,6 +455,50 @@ describe('API Routes', () => {
       expect(res.headers).toHaveProperty('etag');
     });
 
+    it('should include ETag headers on executeQuery-based routes', async () => {
+      const res = await request(app).get('/v1/technologies');
+      expect(res.statusCode).toEqual(200);
+      expect(res.headers).toHaveProperty('etag');
+      expect(res.headers['etag']).toMatch(/^"[a-f0-9]+"$/);
+    });
+
+    it('should include ETag headers on reportController-based routes', async () => {
+      const res = await request(app).get('/v1/adoption');
+      expect(res.statusCode).toEqual(200);
+      expect(res.headers).toHaveProperty('etag');
+      expect(res.headers['etag']).toMatch(/^"[a-f0-9]+"$/);
+    });
+
+    it('should return 304 for executeQuery-based routes when ETag matches', async () => {
+      const first = await request(app).get('/v1/technologies');
+      expect(first.statusCode).toEqual(200);
+      const etag = first.headers['etag'];
+
+      const second = await request(app)
+        .get('/v1/technologies')
+        .set('If-None-Match', etag);
+      expect(second.statusCode).toEqual(304);
+    });
+
+    it('should return 304 for reportController-based routes when ETag matches', async () => {
+      const first = await request(app).get('/v1/adoption');
+      expect(first.statusCode).toEqual(200);
+      const etag = first.headers['etag'];
+
+      const second = await request(app)
+        .get('/v1/adoption')
+        .set('If-None-Match', etag);
+      expect(second.statusCode).toEqual(304);
+    });
+
+    it('should return 200 when If-None-Match does not match', async () => {
+      const res = await request(app)
+        .get('/v1/technologies')
+        .set('If-None-Match', '"stale-etag"');
+      expect(res.statusCode).toEqual(200);
+      expect(res.headers).toHaveProperty('etag');
+    });
+
     it('should include timing headers', async () => {
       const res = await request(app).get('/v1/technologies');
       expect(res.headers['timing-allow-origin']).toEqual('*');
