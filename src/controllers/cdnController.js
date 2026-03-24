@@ -70,9 +70,9 @@ export const proxyReportsFile = async (req, res, filePath) => {
         // Set response headers
         res.setHeader('Content-Type', contentType);
         res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-        res.setHeader('Cloud-CDN-Cache-Tag', 'bucket-proxy');
-        // Browser cache: 1 hour, CDN cache: 30 days
-        res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=2592000');
+        res.setHeader('Cache-Tag', 'bucket-proxy');
+        // Browser cache: 1 hour, CDN cache: 1 days
+        res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=86400');
 
         if (metadata.etag) {
             res.setHeader('ETag', metadata.etag);

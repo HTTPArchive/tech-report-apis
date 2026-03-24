@@ -69,7 +69,7 @@ const setCommonHeaders = (res) => {
   res.setHeader('Content-Type', 'application/json');
   // Browser cache: 1 hour, CDN cache: 1 day
   res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=86400');
-  res.setHeader('Cloud-CDN-Cache-Tag', 'report-api');
+  res.setHeader('Cache-Tag', 'report-api');
   res.setHeader('Timing-Allow-Origin', '*');
 };
 
