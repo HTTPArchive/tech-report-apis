@@ -7,7 +7,9 @@ import {
     sendValidationError,
     getLatestDate,
     handleControllerError,
-    validateArrayParameter
+    validateArrayParameter,
+    generateETag,
+    isModified
 } from '../utils/controllerHelpers.js';
 
 /**
@@ -123,9 +125,17 @@ const createReportController = (reportType, { crossGeo = false } = {}) => {
                 data.push(doc.data());
             });
 
-            // Send response
+            // Send response with ETag support
+            const jsonData = JSON.stringify(data);
+            const etag = generateETag(jsonData);
+            res.setHeader('ETag', `"${etag}"`);
+            if (!isModified(req, etag)) {
+                res.statusCode = 304;
+                res.end();
+                return;
+            }
             res.statusCode = 200;
-            res.end(JSON.stringify(data));
+            res.end(jsonData);
 
         } catch (error) {
             handleControllerError(res, error, `fetching ${reportType} data`);

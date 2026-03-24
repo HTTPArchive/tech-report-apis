@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { convertToArray } from './helpers.js';
 
 /**
@@ -99,6 +100,23 @@ const handleControllerError = (res, error, operation) => {
   }));
 };
 
+const generateETag = (jsonData) => {
+  return crypto.createHash('md5').update(jsonData).digest('hex');
+};
+
+const sendJSONResponse = (res, data, statusCode = 200) => {
+  const jsonData = JSON.stringify(data);
+  const etag = generateETag(jsonData);
+  res.setHeader('ETag', `"${etag}"`);
+  res.statusCode = statusCode;
+  res.end(jsonData);
+};
+
+const isModified = (req, etag) => {
+  const ifNoneMatch = req.headers['if-none-match'] || (req.get && req.get('if-none-match'));
+  return !ifNoneMatch || ifNoneMatch !== `"${etag}"`;
+};
+
 /**
  * Generic query executor
  * Handles query execution and response for simple queries
@@ -126,9 +144,17 @@ const executeQuery = async (req, res, collection, queryBuilder, dataProcessor = 
       data = dataProcessor(data, params);
     }
 
-    // Send response
+    // Send response with ETag support
+    const jsonData = JSON.stringify(data);
+    const etag = generateETag(jsonData);
+    res.setHeader('ETag', `"${etag}"`);
+    if (!isModified(req, etag)) {
+      res.statusCode = 304;
+      res.end();
+      return;
+    }
     res.statusCode = 200;
-    res.end(JSON.stringify(data));
+    res.end(jsonData);
 
   } catch (error) {
     // Handle validation errors specifically
@@ -170,5 +196,8 @@ export {
   validateArrayParameter,
   handleControllerError,
   executeQuery,
-  validateTechnologyArray
+  validateTechnologyArray,
+  generateETag,
+  sendJSONResponse,
+  isModified
 };
