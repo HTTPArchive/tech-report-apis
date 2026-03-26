@@ -53,16 +53,19 @@ export const proxyReportsFile = async (req, res, filePath) => {
         const bucket = storage.bucket(BUCKET_NAME);
         const file = bucket.file(objectPath);
 
-        // Check if file exists
-        const [exists] = await file.exists();
-        if (!exists) {
-            res.statusCode = 404;
-            res.end(JSON.stringify({ error: 'File not found' }));
-            return;
-        }
-
         // Get file metadata for content type and caching
-        const [metadata] = await file.getMetadata();
+        // This implicitly checks if the file exists, saving a network request
+        let metadata;
+        try {
+            [metadata] = await file.getMetadata();
+        } catch (error) {
+            if (error.code === 404) {
+                res.statusCode = 404;
+                res.end(JSON.stringify({ error: 'File not found' }));
+                return;
+            }
+            throw error;
+        }
 
         // Determine content type
         const contentType = metadata.contentType || getMimeType(objectPath);
