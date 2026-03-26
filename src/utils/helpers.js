@@ -1,13 +1,24 @@
 /**
  * Converts a comma-separated string to an array
- * @param {string} dataString - The string to convert
+ * @param {string|string[]} dataString - The string to convert
  * @returns {string[]} The resulting array
  */
 const convertToArray = (dataString) => {
   if (!dataString) return [];
 
-  // URL decode and split by comma
-  return decodeURIComponent(dataString).split(',');
+  if (Array.isArray(dataString)) return dataString;
+
+  try {
+    return decodeURIComponent(dataString)
+      .split(',')
+      .map(item => item.trim())
+      .filter(Boolean);
+  } catch (e) {
+    return dataString
+      .split(',')
+      .map(item => item.trim())
+      .filter(Boolean);
+  }
 };
 
 export { convertToArray };
