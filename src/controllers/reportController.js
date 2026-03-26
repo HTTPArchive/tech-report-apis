@@ -120,10 +120,7 @@ const createReportController = (reportType, { crossGeo = false } = {}) => {
 
             // Execute query
             const snapshot = await query.get();
-            const data = [];
-            snapshot.forEach(doc => {
-                data.push(doc.data());
-            });
+            const data = snapshot.docs.map(doc => doc.data());
 
             // Send response with ETag support
             const jsonData = JSON.stringify(data);
