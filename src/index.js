@@ -14,7 +14,8 @@ const controllers = {
   geos: null,
   versions: null,
   geoBreakdown: null,
-  static: null
+  static: null,
+  cwvDistribution: null
 };
 
 // Helper function to dynamically import controllers
@@ -48,6 +49,9 @@ const getController = async (name) => {
         break;
       case 'static':
         controllers[name] = await import('./controllers/cdnController.js');
+        break;
+      case 'cwvDistribution':
+        controllers[name] = await import('./controllers/cwvDistributionController.js');
         break;
     }
   }
@@ -126,6 +130,9 @@ const handleRequest = async (req, res) => {
     } else if (pathname === '/v1/geo-breakdown' && req.method === 'GET') {
       const { listGeoBreakdownData } = await getController('geoBreakdown');
       await listGeoBreakdownData(req, res);
+    } else if (pathname === '/v1/cwv-distribution' && req.method === 'GET') {
+      const { listCWVDistributionData } = await getController('cwvDistribution');
+      await listCWVDistributionData(req, res);
     } else if (pathname.startsWith('/v1/static/') && req.method === 'GET') {
       // GCS proxy endpoint for reports files
       const filePath = decodeURIComponent(pathname.replace('/v1/static/', ''));

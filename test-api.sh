@@ -195,4 +195,27 @@ test_filter "/v1/geo-breakdown" "?technology=WordPress" \
   "all(.[]; has(\"geo\")) and length > 0" \
   "Geo breakdown response includes geo field"
 
+# Test cwv-distribution endpoint
+test_cors_preflight "/v1/cwv-distribution"
+test_endpoint "/v1/cwv-distribution" "?technology=Wix&date=2026-02-01"
+test_endpoint "/v1/cwv-distribution" "?technology=Wix,WordPress&date=2026-02-01"
+test_endpoint "/v1/cwv-distribution" "?technology=Wix&date=2026-02-01&rank=10000"
+
+# Test cwv-distribution filter correspondences
+test_filter "/v1/cwv-distribution" "?technology=Wix&date=2026-02-01" \
+  "all(.[]; .technology == \"Wix\") and length > 0" \
+  "CWV distribution single technology (Wix)"
+
+test_filter "/v1/cwv-distribution" "?technology=Wix,WordPress&date=2026-02-01" \
+  "all(.[]; .technology == \"Wix\" or .technology == \"WordPress\") and length > 0" \
+  "CWV distribution multiple technologies (Wix, WordPress)"
+
+test_filter "/v1/cwv-distribution" "?technology=Wix&date=2026-02-01" \
+  "all(.[]; has(\"loading_bucket\") and has(\"lcp_origins\") and has(\"inp_origins\") and has(\"cls_origins\")) and length > 0" \
+  "CWV distribution response includes histogram bucket fields"
+
+test_filter "/v1/cwv-distribution" "?technology=Wix&date=2026-02-01" \
+  "[.[].client] | unique | sort == [\"desktop\", \"mobile\"]" \
+  "CWV distribution returns both desktop and mobile clients"
+
 echo "API tests complete! All endpoints returned 200 and data corresponds to filters."
