@@ -102,8 +102,7 @@ export const listCWVDistributionData = async (req, res) => {
         technologies: ['STRING'],
         date: 'STRING',
         ...(rankParam !== null && { rank: 'INT64' })
-      },
-      useLegacySql: false
+      }
     };
 
     const [rows] = await bigquery.query(queryOptions);
