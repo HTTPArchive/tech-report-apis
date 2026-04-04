@@ -142,6 +142,27 @@ export const queryReport = async (reportType, params = {}) => {
   return data;
 };
 
+export const queryGeoBreakdown = async (params = {}) => {
+  const config = REPORT_CONFIGS['cwv'];
+  const db = firestoreOld;
+  const technologyParam = params.technology || 'ALL';
+  const rankParam = params.rank || 'ALL';
+
+  const techArray = validateArrayParameter(technologyParam, 'technology');
+  const snapshotDate = params.end || await getLatestDate(db, config.table);
+
+  let query = db.collection(config.table);
+  query = query.where('rank', '==', rankParam);
+  query = query.where('technology', 'in', techArray);
+  query = query.where('date', '==', snapshotDate);
+  query = query.select('date', 'technology', 'geo', config.dataField);
+
+  const snapshot = await query.get();
+  const data = [];
+  snapshot.forEach(doc => data.push(doc.data()));
+  return data;
+};
+
 export const queryRanks = async () => {
   const snapshot = await firestore
     .collection('ranks')
