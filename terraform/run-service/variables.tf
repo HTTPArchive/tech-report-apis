@@ -35,7 +35,7 @@ variable "available_cpu" {
 }
 variable "ingress_settings" {
   type        = string
-  default     = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
+  default     = "INGRESS_TRAFFIC_ALL"
   description = "String value that controls what traffic can reach the function. Check ingress documentation to see the impact of each settings value. Changes to this field will recreate the cloud function."
 }
 variable "timeout" {
