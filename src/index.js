@@ -1,61 +1,44 @@
 import functions from '@google-cloud/functions-framework';
-import { sendJSONResponse, isModified } from './utils/controllerHelpers.js';
+import { sendJSONResponse } from './utils/controllerHelpers.js';
 
-// Dynamic imports for better performance - only load when needed
-const controllers = {
-  technologies: null,
-  categories: null,
-  adoption: null,
-  cwvtech: null,
-  lighthouse: null,
-  pageWeight: null,
-  audits: null,
-  ranks: null,
-  geos: null,
-  versions: null,
-  geoBreakdown: null,
-  static: null,
-  cwvDistribution: null
+const CONTROLLER_MODULES = {
+  technologies: './controllers/technologiesController.js',
+  categories: './controllers/categoriesController.js',
+  adoption: './controllers/reportController.js',
+  cwvtech: './controllers/reportController.js',
+  lighthouse: './controllers/reportController.js',
+  pageWeight: './controllers/reportController.js',
+  audits: './controllers/reportController.js',
+  geoBreakdown: './controllers/reportController.js',
+  ranks: './controllers/ranksController.js',
+  geos: './controllers/geosController.js',
+  versions: './controllers/versionsController.js',
+  static: './controllers/cdnController.js',
+  cwvDistribution: './controllers/cwvDistributionController.js',
 };
 
-// Helper function to dynamically import controllers
+const controllers = {};
+
 const getController = async (name) => {
   if (!controllers[name]) {
-    switch (name) {
-      case 'technologies':
-        controllers[name] = await import('./controllers/technologiesController.js');
-        break;
-      case 'categories':
-        controllers[name] = await import('./controllers/categoriesController.js');
-        break;
-      case 'adoption':
-      case 'cwvtech':
-      case 'lighthouse':
-      case 'pageWeight':
-      case 'audits':
-        controllers[name] = await import('./controllers/reportController.js');
-        break;
-      case 'ranks':
-        controllers[name] = await import('./controllers/ranksController.js');
-        break;
-      case 'geos':
-        controllers[name] = await import('./controllers/geosController.js');
-        break;
-      case 'versions':
-        controllers[name] = await import('./controllers/versionsController.js');
-        break;
-      case 'geoBreakdown':
-        controllers[name] = await import('./controllers/reportController.js');
-        break;
-      case 'static':
-        controllers[name] = await import('./controllers/cdnController.js');
-        break;
-      case 'cwvDistribution':
-        controllers[name] = await import('./controllers/cwvDistributionController.js');
-        break;
-    }
+    controllers[name] = await import(CONTROLLER_MODULES[name]);
   }
   return controllers[name];
+};
+
+const V1_ROUTES = {
+  '/v1/technologies': ['technologies', 'listTechnologies'],
+  '/v1/categories': ['categories', 'listCategories'],
+  '/v1/adoption': ['adoption', 'listAdoptionData'],
+  '/v1/cwv': ['cwvtech', 'listCWVTechData'],
+  '/v1/lighthouse': ['lighthouse', 'listLighthouseData'],
+  '/v1/page-weight': ['pageWeight', 'listPageWeightData'],
+  '/v1/audits': ['audits', 'listAuditsData'],
+  '/v1/ranks': ['ranks', 'listRanks'],
+  '/v1/geos': ['geos', 'listGeos'],
+  '/v1/versions': ['versions', 'listVersions'],
+  '/v1/geo-breakdown': ['geoBreakdown', 'listGeoBreakdownData'],
+  '/v1/cwv-distribution': ['cwvDistribution', 'listCWVDistributionData']
 };
 
 // Helper function to set CORS headers
@@ -80,6 +63,23 @@ const setCommonHeaders = (res) => {
 // Route handler function
 const handleRequest = async (req, res) => {
   try {
+    // Parse URL path first so we can route /mcp before setting common headers
+    const pathname = req.path || req.url.split('?')[0];
+
+    // MCP endpoint — handled before common headers; transport owns the response
+    if (pathname === '/mcp') {
+      setCORSHeaders(res);
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+      if (req.method === 'OPTIONS') {
+        res.statusCode = 204;
+        res.end();
+        return;
+      }
+      const { handleMcp } = await import('./mcpHandler.js');
+      await handleMcp(req, res);
+      return;
+    }
+
     setCommonHeaders(res);
 
     // Handle OPTIONS requests for CORS preflight
@@ -89,52 +89,13 @@ const handleRequest = async (req, res) => {
       return;
     }
 
-    // Parse URL path - robustly handle Express (req.path) or native Node (req.url)
-    const pathname = req.path || req.url.split('?')[0];
-
-    // Route handling
     if (pathname === '/' && req.method === 'GET') {
-      // Health check endpoint
-      const data = { status: 'ok' };
-      sendJSONResponse(res, data);
-    } else if (pathname === '/v1/technologies' && req.method === 'GET') {
-      const { listTechnologies } = await getController('technologies');
-      await listTechnologies(req, res);
-    } else if (pathname === '/v1/categories' && req.method === 'GET') {
-      const { listCategories } = await getController('categories');
-      await listCategories(req, res);
-    } else if (pathname === '/v1/adoption' && req.method === 'GET') {
-      const { listAdoptionData } = await getController('adoption');
-      await listAdoptionData(req, res);
-    } else if (pathname === '/v1/cwv' && req.method === 'GET') {
-      const { listCWVTechData } = await getController('cwvtech');
-      await listCWVTechData(req, res);
-    } else if (pathname === '/v1/lighthouse' && req.method === 'GET') {
-      const { listLighthouseData } = await getController('lighthouse');
-      await listLighthouseData(req, res);
-    } else if (pathname === '/v1/page-weight' && req.method === 'GET') {
-      const { listPageWeightData } = await getController('pageWeight');
-      await listPageWeightData(req, res);
-    } else if (pathname === '/v1/audits' && req.method === 'GET') {
-      const { listAuditsData } = await getController('audits');
-      await listAuditsData(req, res);
-    } else if (pathname === '/v1/ranks' && req.method === 'GET') {
-      const { listRanks } = await getController('ranks');
-      await listRanks(req, res);
-    } else if (pathname === '/v1/geos' && req.method === 'GET') {
-      const { listGeos } = await getController('geos');
-      await listGeos(req, res);
-    } else if (pathname === '/v1/versions' && req.method === 'GET') {
-      const { listVersions } = await getController('versions');
-      await listVersions(req, res);
-    } else if (pathname === '/v1/geo-breakdown' && req.method === 'GET') {
-      const { listGeoBreakdownData } = await getController('geoBreakdown');
-      await listGeoBreakdownData(req, res);
-    } else if (pathname === '/v1/cwv-distribution' && req.method === 'GET') {
-      const { listCWVDistributionData } = await getController('cwvDistribution');
-      await listCWVDistributionData(req, res);
+      sendJSONResponse(req, res, { status: 'ok' });
+    } else if (req.method === 'GET' && V1_ROUTES[pathname]) {
+      const [controllerKey, handlerName] = V1_ROUTES[pathname];
+      const controller = await getController(controllerKey);
+      await controller[handlerName](req, res);
     } else if (pathname.startsWith('/v1/static/') && req.method === 'GET') {
-      // GCS proxy endpoint for reports files
       const filePath = decodeURIComponent(pathname.replace('/v1/static/', ''));
       if (!filePath) {
         res.statusCode = 400;
@@ -144,7 +105,6 @@ const handleRequest = async (req, res) => {
       const { proxyReportsFile } = await getController('static');
       await proxyReportsFile(req, res, filePath);
     } else {
-      // 404 Not Found
       res.statusCode = 404;
       res.end(JSON.stringify({ error: 'Not Found' }));
     }

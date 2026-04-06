@@ -18,7 +18,9 @@
     "@google-cloud/bigquery": "^7.9.1",
     "@google-cloud/firestore": "8.3.0",
     "@google-cloud/functions-framework": "^5.0.2",
-    "@google-cloud/storage": "7.19.0"
+    "@google-cloud/storage": "7.19.0",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.0.0"
   },
   "devDependencies": {
     "@jest/transform": "^30.3.0",
