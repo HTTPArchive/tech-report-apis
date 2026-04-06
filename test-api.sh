@@ -34,7 +34,7 @@ test_filter() {
 
   echo "Testing filter: ${description}"
   echo "URL: ${url}"
-  
+
   response=$(curl -s -w "\n%{http_code}" "${url}")
   http_code=$(echo "$response" | tail -n1)
   body=$(echo "$response" | sed '$d')
@@ -48,7 +48,7 @@ test_filter() {
   # Run the verification check using jq
   # The check should return "true" if it passes
   check_result=$(echo "$body" | jq "${filter_check}")
-  
+
   if [[ "$check_result" != "true" ]]; then
     echo "Error: Filter verification failed for ${description}"
     echo "Verification expression: ${filter_check}"
@@ -175,5 +175,24 @@ test_filter "/v1/technologies" "" \
 test_filter "/v1/categories" "" \
   "length > 0" \
   "Categories list is not empty"
+
+# Test geo-breakdown endpoint
+test_cors_preflight "/v1/geo-breakdown"
+test_endpoint "/v1/geo-breakdown" ""
+test_endpoint "/v1/geo-breakdown" "?technology=WordPress"
+test_endpoint "/v1/geo-breakdown" "?technology=WordPress&rank=Top%201M"
+
+# Test geo-breakdown filter correspondences
+test_filter "/v1/geo-breakdown" "" \
+  "all(.[]; .technology == \"ALL\") and length > 0" \
+  "Geo breakdown defaults (technology=ALL)"
+
+test_filter "/v1/geo-breakdown" "?technology=WordPress" \
+  "all(.[]; .technology == \"WordPress\") and length > 0" \
+  "Geo breakdown specific technology (WordPress)"
+
+test_filter "/v1/geo-breakdown" "?technology=WordPress" \
+  "all(.[]; has(\"geo\")) and length > 0" \
+  "Geo breakdown response includes geo field"
 
 echo "API tests complete! All endpoints returned 200 and data corresponds to filters."

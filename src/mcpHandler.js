@@ -127,6 +127,20 @@ const createMcpServer = () => {
   );
 
   server.tool(
+    'get_geo_breakdown',
+    'Get Core Web Vitals breakdown by geography for a given technology, rank, and snapshot date. Returns a single month of CWV data (LCP, CLS, INP, TTFB) across all geographies.',
+    {
+      technology: z.string().optional().describe('Comma-separated technology names (e.g. "WordPress" or "WordPress,Drupal"). Defaults to "ALL"'),
+      rank: z.string().optional().describe('Traffic rank segment (e.g. "ALL", "top 1000", "top 10000"). Defaults to "ALL"'),
+      end: z.string().optional().describe('Snapshot date in YYYY-MM-DD format. Defaults to the latest available date'),
+    },
+    async ({ technology, rank, end }) => {
+      const data = await queryReport('cwv', { crossGeo: true, technology, rank, end });
+      return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+    }
+  );
+
+  server.tool(
     'list_ranks',
     'List available traffic rank segments for filtering Tech Report data (e.g. "top 1000", "top 10000", "top 100000", "ALL").',
     async () => {

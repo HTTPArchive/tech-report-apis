@@ -1,12 +1,22 @@
-import { handleControllerError } from '../utils/controllerHelpers.js';
-import { queryReport, queryGeoBreakdown } from '../utils/reportService.js';
+import { handleControllerError, generateETag, isModified } from '../utils/controllerHelpers.js';
+import { queryReport } from '../utils/reportService.js';
 
-const createReportController = (reportType) => {
+const createReportController = (reportType, defaults = {}) => {
     return async (req, res) => {
         try {
-            const data = await queryReport(reportType, req.query);
+            const data = await queryReport(reportType, { ...defaults, ...req.query });
+
+            // Send response with ETag support
+            const jsonData = JSON.stringify(data);
+            const etag = generateETag(jsonData);
+            res.setHeader('ETag', `"${etag}"`);
+            if (!isModified(req, etag)) {
+                res.statusCode = 304;
+                res.end();
+                return;
+            }
             res.statusCode = 200;
-            res.end(JSON.stringify(data));
+            res.end(jsonData);
         } catch (error) {
             handleControllerError(res, error, `fetching ${reportType} data`);
         }
@@ -18,15 +28,6 @@ export const listAdoptionData = createReportController('adoption');
 export const listCWVTechData = createReportController('cwv');
 export const listLighthouseData = createReportController('lighthouse');
 export const listPageWeightData = createReportController('pageWeight');
-
-export const listGeoBreakdownData = async (req, res) => {
-    try {
-        const data = await queryGeoBreakdown(req.query);
-        res.statusCode = 200;
-        res.end(JSON.stringify(data));
-    } catch (error) {
-        handleControllerError(res, error, 'fetching geo breakdown data');
-    }
-};
+export const listGeoBreakdownData = createReportController('cwv', { crossGeo: true });
 
 

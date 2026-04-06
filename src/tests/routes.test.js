@@ -381,6 +381,49 @@ describe('API Routes', () => {
     });
   });
 
+  describe('GET /v1/geo-breakdown', () => {
+    it('should return geo breakdown data with default parameters', async () => {
+      const res = await request(app).get('/v1/geo-breakdown');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('should return geo breakdown data for a specific technology', async () => {
+      const res = await request(app).get('/v1/geo-breakdown?technology=WordPress');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('should accept an end date parameter', async () => {
+      const res = await request(app).get('/v1/geo-breakdown?technology=WordPress&end=2024-01-01');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('should accept a rank parameter', async () => {
+      const res = await request(app).get('/v1/geo-breakdown?technology=WordPress&rank=Top%201M');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('should handle empty technology parameter (defaults to ALL)', async () => {
+      const res = await request(app).get('/v1/geo-breakdown?technology=');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('should handle CORS preflight requests', async () => {
+      const res = await request(app)
+        .options('/v1/geo-breakdown')
+        .set('Origin', 'http://example.com')
+        .set('Access-Control-Request-Method', 'GET')
+        .set('Access-Control-Request-Headers', 'Content-Type');
+
+      expect(res.statusCode).toEqual(204);
+      expect(res.headers['access-control-allow-origin']).toEqual('*');
+    });
+  });
+
   describe('Error Handling', () => {
     it('should return 404 for unknown endpoints', async () => {
       const res = await request(app).get('/v1/unknown-endpoint');
@@ -409,6 +452,50 @@ describe('API Routes', () => {
 
     it('should include ETag headers for caching', async () => {
       const res = await request(app).get('/');
+      expect(res.headers).toHaveProperty('etag');
+    });
+
+    it('should include ETag headers on executeQuery-based routes', async () => {
+      const res = await request(app).get('/v1/technologies');
+      expect(res.statusCode).toEqual(200);
+      expect(res.headers).toHaveProperty('etag');
+      expect(res.headers['etag']).toMatch(/^"[a-f0-9]+"$/);
+    });
+
+    it('should include ETag headers on reportController-based routes', async () => {
+      const res = await request(app).get('/v1/adoption');
+      expect(res.statusCode).toEqual(200);
+      expect(res.headers).toHaveProperty('etag');
+      expect(res.headers['etag']).toMatch(/^"[a-f0-9]+"$/);
+    });
+
+    it('should return 304 for executeQuery-based routes when ETag matches', async () => {
+      const first = await request(app).get('/v1/technologies');
+      expect(first.statusCode).toEqual(200);
+      const etag = first.headers['etag'];
+
+      const second = await request(app)
+        .get('/v1/technologies')
+        .set('If-None-Match', etag);
+      expect(second.statusCode).toEqual(304);
+    });
+
+    it('should return 304 for reportController-based routes when ETag matches', async () => {
+      const first = await request(app).get('/v1/adoption');
+      expect(first.statusCode).toEqual(200);
+      const etag = first.headers['etag'];
+
+      const second = await request(app)
+        .get('/v1/adoption')
+        .set('If-None-Match', etag);
+      expect(second.statusCode).toEqual(304);
+    });
+
+    it('should return 200 when If-None-Match does not match', async () => {
+      const res = await request(app)
+        .get('/v1/technologies')
+        .set('If-None-Match', '"stale-etag"');
+      expect(res.statusCode).toEqual(200);
       expect(res.headers).toHaveProperty('etag');
     });
 

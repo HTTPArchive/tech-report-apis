@@ -8,16 +8,15 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
 
   - package-ecosystem: "npm"
     directory: "/src"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
 
   - package-ecosystem: "terraform"
     directories:
-      - "/terraform/prod"
-      - "/terraform/dev"
+      - "/terraform"
     schedule:
-      interval: "weekly"
+      interval: "monthly"

@@ -115,51 +115,42 @@ export const queryReport = async (reportType, params = {}) => {
   if (!config) throw new Error(`Unknown report type: ${reportType}`);
 
   const db = firestoreOld;
+  const crossGeo = params.crossGeo || false;
   const technologyParam = params.technology || 'ALL';
   const geoParam = params.geo || 'ALL';
   const rankParam = params.rank || 'ALL';
 
   const techArray = validateArrayParameter(technologyParam, 'technology');
 
-  let startDate = params.start;
-  if (startDate === 'latest') {
-    startDate = await getLatestDate(db, config.table);
+  let query = db.collection(config.table);
+  query = query.where('rank', '==', rankParam);
+  query = query.where('technology', 'in', techArray);
+
+  if (crossGeo) {
+    // Cross-geo: single-month snapshot, all geographies included.
+    // Use 'end' param if provided, otherwise default to latest available date.
+    const snapshotDate = params.end || await getLatestDate(db, config.table);
+    query = query.where('date', '==', snapshotDate);
+    query = query.select('date', 'technology', 'geo', config.dataField);
+  } else {
+    // Normal time-series: filter by geo, apply date range, no geo in projection.
+    query = query.where('geo', '==', geoParam);
+
+    let startDate = params.start;
+    if (startDate === 'latest') {
+      startDate = await getLatestDate(db, config.table);
+    }
+
+    if (startDate) query = query.where('date', '>=', startDate);
+    if (params.end) query = query.where('date', '<=', params.end);
+
+    query = query.select('date', 'technology', config.dataField);
   }
 
-  let query = db.collection(config.table);
-  query = query.where('geo', '==', geoParam);
-  query = query.where('rank', '==', rankParam);
-  query = query.where('technology', 'in', techArray);
-
-  if (startDate) query = query.where('date', '>=', startDate);
-  if (params.end) query = query.where('date', '<=', params.end);
-
-  query = query.select('date', 'technology', config.dataField);
-
   const snapshot = await query.get();
   const data = [];
   snapshot.forEach(doc => data.push(doc.data()));
-  return data;
-};
 
-export const queryGeoBreakdown = async (params = {}) => {
-  const config = REPORT_CONFIGS['cwv'];
-  const db = firestoreOld;
-  const technologyParam = params.technology || 'ALL';
-  const rankParam = params.rank || 'ALL';
-
-  const techArray = validateArrayParameter(technologyParam, 'technology');
-  const snapshotDate = params.end || await getLatestDate(db, config.table);
-
-  let query = db.collection(config.table);
-  query = query.where('rank', '==', rankParam);
-  query = query.where('technology', 'in', techArray);
-  query = query.where('date', '==', snapshotDate);
-  query = query.select('date', 'technology', 'geo', config.dataField);
-
-  const snapshot = await query.get();
-  const data = [];
-  snapshot.forEach(doc => data.push(doc.data()));
   return data;
 };
 
