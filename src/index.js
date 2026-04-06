@@ -1,5 +1,5 @@
 import functions from '@google-cloud/functions-framework';
-import { sendJSONResponse, isModified } from './utils/controllerHelpers.js';
+import { sendJSONResponse } from './utils/controllerHelpers.js';
 
 // Dynamic imports for better performance - only load when needed
 const controllers = {
@@ -106,7 +106,7 @@ const handleRequest = async (req, res) => {
     if (pathname === '/' && req.method === 'GET') {
       // Health check endpoint
       const data = { status: 'ok' };
-      sendJSONResponse(res, data);
+      sendJSONResponse(req, res, data);
     } else if (pathname === '/v1/technologies' && req.method === 'GET') {
       const { listTechnologies } = await getController('technologies');
       await listTechnologies(req, res);

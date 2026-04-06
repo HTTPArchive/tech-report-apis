@@ -1,22 +1,11 @@
-import { handleControllerError, generateETag, isModified } from '../utils/controllerHelpers.js';
+import { handleControllerError, sendJSONResponse } from '../utils/controllerHelpers.js';
 import { queryReport } from '../utils/reportService.js';
 
 const createReportController = (reportType, defaults = {}) => {
     return async (req, res) => {
         try {
             const data = await queryReport(reportType, { ...defaults, ...req.query });
-
-            // Send response with ETag support
-            const jsonData = JSON.stringify(data);
-            const etag = generateETag(jsonData);
-            res.setHeader('ETag', `"${etag}"`);
-            if (!isModified(req, etag)) {
-                res.statusCode = 304;
-                res.end();
-                return;
-            }
-            res.statusCode = 200;
-            res.end(jsonData);
+            sendJSONResponse(req, res, data);
         } catch (error) {
             handleControllerError(res, error, `fetching ${reportType} data`);
         }
