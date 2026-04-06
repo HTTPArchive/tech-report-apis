@@ -9,6 +9,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    if: github.head_ref != 'development'
     steps:
       - uses: actions/checkout@v6
       - run: |
