@@ -9,6 +9,7 @@ import {
   queryRanks,
   queryGeos,
   queryVersions,
+  queryCWVDistribution,
 } from './utils/reportService.js';
 
 const createMcpServer = () => {
@@ -136,6 +137,21 @@ const createMcpServer = () => {
     },
     async ({ technology, rank, end }) => {
       const data = await queryReport('cwv', { crossGeo: true, technology, rank, end });
+      return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+    }
+  );
+
+  server.tool(
+    'get_cwv_distribution',
+    'Get Core Web Vitals metric distribution histograms for websites using specific web technologies. Returns per-bucket origin counts for LCP, INP, CLS, FCP, and TTFB, optionally filtered by geography and rank.',
+    {
+      technology: z.string().describe('Comma-separated technology names (e.g. "WordPress" or "Wix,WordPress")'),
+      date: z.string().describe('Crawl date in YYYY-MM-DD format (e.g. "2026-02-01")'),
+      geo: z.string().optional().describe('Geographic filter — a country name (e.g. "United States of America") or "ALL" for global data. Defaults to "ALL"'),
+      rank: z.string().optional().describe('Numeric rank ceiling (e.g. "10000"). Omit or set to "ALL" for all ranks'),
+    },
+    async ({ technology, date, geo, rank }) => {
+      const data = await queryCWVDistribution({ technology, date, geo: geo || 'ALL', rank: rank && rank !== 'ALL' ? rank : null });
       return { content: [{ type: 'text', text: JSON.stringify(data) }] };
     }
   );

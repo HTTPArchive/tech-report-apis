@@ -495,6 +495,50 @@ Returns a JSON object with the following schema:
 ]
 ```
 
+### `GET /geo-breakdown`
+
+Provides Core Web Vitals breakdown by geography for a given technology and rank. Returns a single month snapshot of CWV data (LCP, CLS, INP, TTFB) across all geographies.
+
+#### Geo Breakdown Parameters
+
+- `technology` (optional): Technology name(s) - comma-separated list (defaults to `ALL`)
+- `rank` (optional): Traffic rank segment, e.g. `top 1000`, `top 10000`. Defaults to `ALL`.
+- `end` (optional): Snapshot date in `YYYY-MM-DD` format. Defaults to the latest available date.
+
+#### Geo Breakdown Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/geo-breakdown?technology=WordPress&rank=top%2010000'
+```
+
+Returns a JSON array where each element represents CWV data for a technology on a given date and geographic region:
+
+```json
+[
+    {
+        "date": "2026-02-01",
+        "geo": "United States of America",
+        "technology": "WordPress",
+        "vitals": [
+            {
+                "mobile": {
+                    "good_number": 12345,
+                    "tested": 56789
+                },
+                "desktop": {
+                    "good_number": 6789,
+                    "tested": 10000
+                },
+                "name": "lcp"
+            },
+            ...
+        ]
+    },
+    ...
+]
+```
+
 ### `GET /ranks`
 
 Lists all available ranks.

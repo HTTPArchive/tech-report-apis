@@ -1,4 +1,5 @@
-import { firestore, firestoreOld } from './db.js';
+import { firestore, firestoreOld, bigquery } from './db.js';
+import { convertToArray } from './helpers.js';
 import {
   getLatestDate,
   validateArrayParameter,
@@ -152,6 +153,118 @@ export const queryReport = async (reportType, params = {}) => {
   snapshot.forEach(doc => data.push(doc.data()));
 
   return data;
+};
+
+export const queryCWVDistribution = async ({ technology, date, geo = 'ALL', rank = null }) => {
+  const technologies = convertToArray(technology);
+  const rankParam = (rank !== null && rank !== 'ALL') ? parseInt(rank, 10) : null;
+  const rankClause = rankParam !== null ? 'AND rank <= @rank' : '';
+
+  const query = `WITH pages AS (
+  SELECT
+    client,
+    t.technology AS technology,
+    root_page
+  FROM
+    httparchive.crawl.pages,
+    UNNEST(technologies) AS t
+  WHERE
+    date = @date AND
+    t.technology IN UNNEST(@technologies)
+    ${rankClause}
+  ), metrics AS (
+  SELECT
+    'ALL' AS geo,
+    client,
+    technology,
+    root_page,
+    ANY_VALUE(p75_lcp) AS lcp,
+    ANY_VALUE(p75_inp) AS inp,
+    ANY_VALUE(p75_cls) AS cls,
+    ANY_VALUE(p75_fcp) AS fcp,
+    ANY_VALUE(p75_ttfb) AS ttfb
+  FROM pages AS p,
+    \`chrome-ux-report.materialized.device_summary\` d
+  WHERE
+    d.date = @date AND
+    root_page = origin || '/' AND
+    IF(device = 'desktop', 'desktop', 'mobile') = client AND
+    @geo = 'ALL'
+  GROUP BY
+    client,
+    technology,
+    root_page
+
+  UNION ALL
+
+  SELECT
+    \`chrome-ux-report\`.experimental.GET_COUNTRY(country_code) AS geo,
+    client,
+    technology,
+    root_page,
+    ANY_VALUE(p75_lcp) AS lcp,
+    ANY_VALUE(p75_inp) AS inp,
+    ANY_VALUE(p75_cls) AS cls,
+    ANY_VALUE(p75_fcp) AS fcp,
+    ANY_VALUE(p75_ttfb) AS ttfb
+  FROM pages AS p,
+    \`chrome-ux-report.materialized.country_summary\` c
+  WHERE
+    yyyymm = CAST(FORMAT_DATE('%Y%m', @date) AS INT64) AND
+    root_page = origin || '/' AND
+    IF(device = 'desktop', 'desktop', 'mobile') = client AND
+    \`chrome-ux-report\`.experimental.GET_COUNTRY(country_code) = @geo
+  GROUP BY
+    geo,
+    client,
+    technology,
+    root_page
+)
+
+SELECT
+  geo,
+  client,
+  technology,
+  bucket AS loading_bucket,
+  bucket / 4 AS inp_bucket,
+  bucket / 2000 AS cls_bucket,
+  COUNT(DISTINCT root_page WHERE lcp = bucket) AS lcp_origins,
+  COUNT(DISTINCT root_page WHERE inp = bucket / 4) AS inp_origins,
+  COUNT(DISTINCT root_page WHERE cls = bucket / 2000) AS cls_origins,
+  COUNT(DISTINCT root_page WHERE fcp = bucket) AS fcp_origins,
+  COUNT(DISTINCT root_page WHERE ttfb = bucket) AS ttfb_origins
+FROM
+  metrics,
+  UNNEST(GENERATE_ARRAY(0.0, 10000.0, 100.0)) AS bucket
+GROUP BY
+  geo,
+  client,
+  technology,
+  bucket
+ORDER BY
+  geo,
+  client,
+  technology,
+  bucket`;
+
+  const [rows] = await bigquery.query({
+    query,
+    params: {
+      technologies,
+      date,
+      geo,
+      ...(rankParam !== null && { rank: rankParam }),
+    },
+    types: {
+      technologies: ['STRING'],
+      date: 'STRING',
+      geo: 'STRING',
+      ...(rankParam !== null && { rank: 'INT64' }),
+    },
+    labels: { source: 'cwv-distribution' },
+  });
+
+  return rows;
 };
 
 export const queryRanks = async () => {
