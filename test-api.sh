@@ -200,6 +200,8 @@ test_cors_preflight "/v1/cwv-distribution"
 test_endpoint "/v1/cwv-distribution" "?technology=Wix&date=2026-02-01"
 test_endpoint "/v1/cwv-distribution" "?technology=Wix,WordPress&date=2026-02-01"
 test_endpoint "/v1/cwv-distribution" "?technology=Wix&date=2026-02-01&rank=10000"
+test_endpoint "/v1/cwv-distribution" "?technology=Wix&date=2026-02-01&geo=ALL"
+test_endpoint "/v1/cwv-distribution" "?technology=Wix&date=2026-02-01&geo=United%20States%20of%20America"
 
 # Test cwv-distribution filter correspondences
 test_filter "/v1/cwv-distribution" "?technology=Wix&date=2026-02-01" \
@@ -217,5 +219,17 @@ test_filter "/v1/cwv-distribution" "?technology=Wix&date=2026-02-01" \
 test_filter "/v1/cwv-distribution" "?technology=Wix&date=2026-02-01" \
   "[.[].client] | unique | sort == [\"desktop\", \"mobile\"]" \
   "CWV distribution returns both desktop and mobile clients"
+
+test_filter "/v1/cwv-distribution" "?technology=Wix&date=2026-02-01" \
+  "all(.[]; has(\"geo\")) and length > 0" \
+  "CWV distribution response includes geo field"
+
+test_filter "/v1/cwv-distribution" "?technology=Wix&date=2026-02-01" \
+  "all(.[]; .geo == \"ALL\") and length > 0" \
+  "CWV distribution defaults to geo=ALL"
+
+test_filter "/v1/cwv-distribution" "?technology=Wix&date=2026-02-01&geo=United%20States%20of%20America" \
+  "all(.[]; .geo == \"United States of America\") and length > 0" \
+  "CWV distribution filters by specific geo (United States of America)"
 
 echo "API tests complete! All endpoints returned 200 and data corresponds to filters."

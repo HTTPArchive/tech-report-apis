@@ -279,6 +279,52 @@ curl --request GET \
 ]
 ```
 
+### `GET /cwv-distribution`
+
+Provides per-bucket CWV metric distribution histograms for technologies, optionally filtered by geo and rank.
+
+#### CWV Distribution Parameters
+
+- `technology` (required): Technology name(s) - comma-separated list, e.g. `Wix,WordPress`
+- `date` (required): Crawl date in `YYYY-MM-DD` format, e.g. `2026-02-01`
+- `geo` (optional): Geographic filter (defaults to `ALL`). Use a country name such as `United States of America` for country-level data.
+- `rank` (optional): Numeric rank ceiling, e.g. `10000`. Omit or set to `ALL` to include all ranks.
+
+#### CWV Distribution Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/cwv-distribution?technology=WordPress&date=2026-02-01&geo=ALL'
+```
+
+Returns a JSON array where each element represents one histogram bucket for a technology/client/geo combination:
+
+```json
+[
+    {
+        "geo": "ALL",
+        "client": "mobile",
+        "technology": "WordPress",
+        "loading_bucket": 0,
+        "inp_bucket": 0,
+        "cls_bucket": 0,
+        "lcp_origins": 12345,
+        "inp_origins": 23456,
+        "cls_origins": 34567,
+        "fcp_origins": 11111,
+        "ttfb_origins": 22222
+    },
+    ...
+]
+```
+
+Bucket semantics:
+
+- `loading_bucket` / `lcp_bucket` / `fcp_bucket` / `ttfb_bucket`: millisecond value (0–10000 in steps of 100)
+- `inp_bucket`: `loading_bucket / 4` (INP scale)
+- `cls_bucket`: `loading_bucket / 2000` (CLS scale)
+- `*_origins`: count of distinct origins whose p75 value equals that bucket
+
 ### `GET /lighthouse`
 
 Provides Lighthouse scores for technologies.
@@ -385,7 +431,6 @@ Returns a JSON object with the following schema:
     ...
 ]
 ```
-
 
 ### `GET /audits`
 
@@ -663,5 +708,3 @@ Response:
   ...
 }
 ```
-
-

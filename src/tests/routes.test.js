@@ -878,6 +878,18 @@ describe('API Routes', () => {
       expect(Array.isArray(res.body)).toBe(true);
     });
 
+    it('should return 200 with geo filter applied', async () => {
+      const res = await request(app).get('/v1/cwv-distribution?technology=Wix&date=2026-02-01&geo=United%20States%20of%20America');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('should return 200 with geo=ALL (default behavior)', async () => {
+      const res = await request(app).get('/v1/cwv-distribution?technology=Wix&date=2026-02-01&geo=ALL');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
     it('should handle CORS preflight requests', async () => {
       const res = await request(app)
         .options('/v1/cwv-distribution')
