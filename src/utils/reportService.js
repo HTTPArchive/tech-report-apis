@@ -156,7 +156,9 @@ export const queryReport = async (reportType, params = {}) => {
 };
 
 export const queryCWVDistribution = async ({ technology, date, geo = 'ALL', rank = null }) => {
-  const technologies = convertToArray(technology);
+  const allTechnologies = !technology || technology === 'ALL';
+  const technologies = allTechnologies ? [] : convertToArray(technology);
+  const techClause = allTechnologies ? '' : 'AND t.technology IN UNNEST(@technologies)';
   const rankParam = (rank !== null && rank !== 'ALL') ? parseInt(rank, 10) : null;
   const rankClause = rankParam !== null ? 'AND rank <= @rank' : '';
 
@@ -169,8 +171,8 @@ export const queryCWVDistribution = async ({ technology, date, geo = 'ALL', rank
     httparchive.crawl.pages,
     UNNEST(technologies) AS t
   WHERE
-    date = @date AND
-    t.technology IN UNNEST(@technologies)
+    date = @date
+    ${techClause}
     ${rankClause}
   ), metrics AS (
   SELECT
@@ -250,13 +252,13 @@ ORDER BY
   const [rows] = await bigquery.query({
     query,
     params: {
-      technologies,
+      ...(!allTechnologies && { technologies }),
       date,
       geo,
       ...(rankParam !== null && { rank: rankParam }),
     },
     types: {
-      technologies: ['STRING'],
+      ...(!allTechnologies && { technologies: ['STRING'] }),
       date: 'STRING',
       geo: 'STRING',
       ...(rankParam !== null && { rank: 'INT64' }),
