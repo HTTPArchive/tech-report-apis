@@ -104,15 +104,10 @@ const generateETag = (jsonData) => {
   return crypto.createHash('md5').update(jsonData).digest('hex');
 };
 
-const sendJSONResponse = (req, res, data, statusCode = 200) => {
+const sendJSONResponse = (res, data, statusCode = 200) => {
   const jsonData = JSON.stringify(data);
   const etag = generateETag(jsonData);
   res.setHeader('ETag', `"${etag}"`);
-  if (!isModified(req, etag)) {
-    res.statusCode = 304;
-    res.end();
-    return;
-  }
   res.statusCode = statusCode;
   res.end(jsonData);
 };
@@ -150,7 +145,16 @@ const executeQuery = async (req, res, collection, queryBuilder, dataProcessor = 
     }
 
     // Send response with ETag support
-    sendJSONResponse(req, res, data);
+    const jsonData = JSON.stringify(data);
+    const etag = generateETag(jsonData);
+    res.setHeader('ETag', `"${etag}"`);
+    if (!isModified(req, etag)) {
+      res.statusCode = 304;
+      res.end();
+      return;
+    }
+    res.statusCode = 200;
+    res.end(jsonData);
 
   } catch (error) {
     // Handle validation errors specifically
