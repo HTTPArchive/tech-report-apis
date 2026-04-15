@@ -14,6 +14,7 @@ const CONTROLLER_MODULES = {
   geos: './controllers/geosController.js',
   versions: './controllers/versionsController.js',
   static: './controllers/cdnController.js',
+  cwvDistribution: './controllers/cwvDistributionController.js',
 };
 
 const controllers = {};
@@ -37,6 +38,7 @@ const V1_ROUTES = {
   '/v1/geos': ['geos', 'listGeos'],
   '/v1/versions': ['versions', 'listVersions'],
   '/v1/geo-breakdown': ['geoBreakdown', 'listGeoBreakdownData'],
+  '/v1/cwv-distribution': ['cwvDistribution', 'listCWVDistributionData']
 };
 
 // Helper function to set CORS headers

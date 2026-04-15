@@ -1,4 +1,5 @@
 import { Firestore } from '@google-cloud/firestore';
+import { BigQuery } from '@google-cloud/bigquery';
 
 // Initialize Firestore with basic optimizations (default connection using env variables)
 const firestore = new Firestore({
@@ -30,3 +31,10 @@ const firestoreOld = new Firestore({
 
 // Export both connections - maintain backward compatibility
 export { firestore, firestoreOld };
+
+// Initialize BigQuery client
+const bigquery = new BigQuery({
+  projectId: process.env.PROJECT
+});
+
+export { bigquery };
