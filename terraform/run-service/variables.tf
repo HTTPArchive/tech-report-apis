@@ -29,7 +29,7 @@ variable "available_memory" {
   description = "The amount of memory for the Cloud Function"
 }
 variable "available_cpu" {
-  default     = "1"
+  default     = "2"
   type        = string
   description = "The amount of CPU for the Cloud Function"
 }
@@ -39,7 +39,7 @@ variable "ingress_settings" {
   description = "String value that controls what traffic can reach the function. Check ingress documentation to see the impact of each settings value. Changes to this field will recreate the cloud function."
 }
 variable "timeout" {
-  default     = "60s"
+  default     = "120s"
   type        = string
   description = "Timeout for the service. Default value is 60 seconds. Cannot be more than 540 seconds."
 }
@@ -56,7 +56,7 @@ variable "min_instances" {
 variable "max_instance_request_concurrency" {
   description = "(Optional) The limit on the maximum number of requests that an instance can handle simultaneously. This can be used to control costs when scaling. Defaults to 1."
   type        = number
-  default     = 80
+  default     = 100
 }
 variable "environment_variables" {
   description = "environment_variables"
