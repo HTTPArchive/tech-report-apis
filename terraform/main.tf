@@ -28,6 +28,8 @@ module "endpoints" {
   service_name     = "report-api"
   region           = var.region
   min_instances    = var.environment == "prod" ? 1 : 0
+  ingress_settings = var.environment == "prod" ? "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER" : "INGRESS_TRAFFIC_ALL"
+
   environment_variables = {
     "PROJECT"  = var.project
     "DATABASE" = "${var.project_database}prod" // TODO: Update this to use ${var.environment}

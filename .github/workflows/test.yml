@@ -1,5 +1,5 @@
 ---
-name: Dependabot Auto-Merge
+name: Test
 
 on:
   pull_request:
@@ -8,8 +8,8 @@ on:
 
 jobs:
   test:
-    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'HTTPArchive/tech-report-apis'
     runs-on: ubuntu-latest
+    if: github.head_ref != 'development'
     steps:
       - uses: actions/checkout@v6
       - run: |
@@ -19,6 +19,7 @@ jobs:
 
   dependabot:
     name: Dependabot auto-merge
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'HTTPArchive/tech-report-apis'
     runs-on: ubuntu-latest
     needs: test
 
