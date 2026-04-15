@@ -75,6 +75,19 @@ const handleRequest = async (req, res) => {
         res.end();
         return;
       }
+      // HEAD is used by health checks / probes — respond quickly without delegating to MCP transport
+      if (req.method === 'HEAD') {
+        res.statusCode = 200;
+        res.end();
+        return;
+      }
+      // Only GET, POST, DELETE are valid MCP methods; reject everything else cleanly
+      if (!['GET', 'POST', 'DELETE'].includes(req.method)) {
+        res.statusCode = 405;
+        res.setHeader('Allow', 'GET, POST, DELETE, OPTIONS, HEAD');
+        res.end();
+        return;
+      }
       const { handleMcp } = await import('./mcpHandler.js');
       await handleMcp(req, res);
       return;
