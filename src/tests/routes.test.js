@@ -73,9 +73,14 @@ jest.unstable_mockModule('../utils/db.js', () => {
     collection: jest.fn().mockImplementation((collectionName) => mockQuery)
   };
 
+  const mockBigQueryInstance = {
+    query: jest.fn().mockResolvedValue([[]])
+  };
+
   return {
     firestore: mockFirestoreInstance,
-    firestoreOld: mockFirestoreInstance
+    firestoreOld: mockFirestoreInstance,
+    bigquery: mockBigQueryInstance
   };
 });
 
@@ -833,6 +838,65 @@ describe('API Routes', () => {
         expect(res.statusCode).toEqual(200);
         expect(res.headers['content-type']).toContain('application/octet-stream');
       });
+    });
+  });
+
+  describe('GET /v1/cwv-distribution', () => {
+    it('should return 400 when technology is missing', async () => {
+      const res = await request(app).get('/v1/cwv-distribution?date=2026-02-01');
+      expect(res.statusCode).toEqual(400);
+      expect(res.body).toHaveProperty('errors');
+    });
+
+    it('should return 400 when date is missing', async () => {
+      const res = await request(app).get('/v1/cwv-distribution?technology=Wix');
+      expect(res.statusCode).toEqual(400);
+      expect(res.body).toHaveProperty('errors');
+    });
+
+    it('should return 400 when both technology and date are missing', async () => {
+      const res = await request(app).get('/v1/cwv-distribution');
+      expect(res.statusCode).toEqual(400);
+      expect(res.body).toHaveProperty('errors');
+    });
+
+    it('should return 200 with valid technology and date', async () => {
+      const res = await request(app).get('/v1/cwv-distribution?technology=Wix&date=2026-02-01');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('should return 200 with multiple technologies', async () => {
+      const res = await request(app).get('/v1/cwv-distribution?technology=Wix,WordPress&date=2026-02-01');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('should return 200 with rank filter applied', async () => {
+      const res = await request(app).get('/v1/cwv-distribution?technology=Wix&date=2026-02-01&rank=10000');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('should return 200 with geo filter applied', async () => {
+      const res = await request(app).get('/v1/cwv-distribution?technology=Wix&date=2026-02-01&geo=United%20States%20of%20America');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('should return 200 with geo=ALL (default behavior)', async () => {
+      const res = await request(app).get('/v1/cwv-distribution?technology=Wix&date=2026-02-01&geo=ALL');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('should handle CORS preflight requests', async () => {
+      const res = await request(app)
+        .options('/v1/cwv-distribution')
+        .set('Origin', 'http://example.com')
+        .set('Access-Control-Request-Method', 'GET');
+      expect(res.statusCode).toEqual(204);
+      expect(res.headers['access-control-allow-origin']).toEqual('*');
     });
   });
 });
