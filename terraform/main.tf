@@ -6,11 +6,11 @@ terraform {
   required_providers {
     docker = {
       source  = "kreuzwerker/docker"
-      version = ">=3.6.2"
+      version = ">=4.2.0"
     }
     google = {
       source  = "hashicorp/google"
-      version = ">=7.13.0"
+      version = ">=7.28.0"
     }
   }
 }
