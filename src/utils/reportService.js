@@ -163,9 +163,9 @@ export const queryCWVDistribution = async ({ technology, date, geo = 'ALL', rank
   const rankClause = rankParam !== null ? 'AND rank <= @rank' : '';
 
   const query = `WITH pages AS (
-  SELECT
+  SELECT DISTINCT
     client,
-    t.technology AS technology,
+    ${allTechnologies ? '' : 't.technology AS technology,'}
     root_page
   FROM
     httparchive.crawl.pages,
@@ -178,7 +178,7 @@ export const queryCWVDistribution = async ({ technology, date, geo = 'ALL', rank
   SELECT
     'ALL' AS geo,
     client,
-    technology,
+    ${allTechnologies ? '' : 'technology,'}
     root_page,
     ANY_VALUE(p75_lcp) AS lcp,
     ANY_VALUE(p75_inp) AS inp,
@@ -194,7 +194,7 @@ export const queryCWVDistribution = async ({ technology, date, geo = 'ALL', rank
     @geo = 'ALL'
   GROUP BY
     client,
-    technology,
+    ${allTechnologies ? '' : 'technology,'}
     root_page
 
   UNION ALL
@@ -202,7 +202,7 @@ export const queryCWVDistribution = async ({ technology, date, geo = 'ALL', rank
   SELECT
     \`chrome-ux-report\`.experimental.GET_COUNTRY(country_code) AS geo,
     client,
-    technology,
+    ${allTechnologies ? '' : 'technology,'}
     root_page,
     ANY_VALUE(p75_lcp) AS lcp,
     ANY_VALUE(p75_inp) AS inp,
@@ -219,14 +219,14 @@ export const queryCWVDistribution = async ({ technology, date, geo = 'ALL', rank
   GROUP BY
     geo,
     client,
-    technology,
+    ${allTechnologies ? '' : 'technology,'}
     root_page
 )
 
 SELECT
   geo,
   client,
-  technology,
+  ${allTechnologies ? "'ALL'" : 'technology'} AS technology,
   bucket AS loading_bucket,
   bucket / 4 AS inp_bucket,
   bucket / 2000 AS cls_bucket,
@@ -241,12 +241,12 @@ FROM
 GROUP BY
   geo,
   client,
-  technology,
+  ${allTechnologies ? '' : 'technology,'}
   bucket
 ORDER BY
   geo,
   client,
-  technology,
+  ${allTechnologies ? '' : 'technology,'}
   bucket`;
 
   const [rows] = await bigquery.query({
