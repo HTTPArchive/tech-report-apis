@@ -60,8 +60,7 @@ export const queryTechnologies = async (params = {}) => {
   }
 
   const snapshot = await query.get();
-  const data = [];
-  snapshot.forEach(doc => data.push(doc.data()));
+  const data = snapshot.docs.map(doc => doc.data());
 
   if (isOnlyNames) {
     return data.map(item => item.technology);
@@ -102,8 +101,7 @@ export const queryCategories = async (params = {}) => {
   }
 
   const snapshot = await query.get();
-  const data = [];
-  snapshot.forEach(doc => data.push(doc.data()));
+  const data = snapshot.docs.map(doc => doc.data());
 
   if (isOnlyNames) {
     return data.map(item => item.category);
@@ -149,10 +147,7 @@ export const queryReport = async (reportType, params = {}) => {
   }
 
   const snapshot = await query.get();
-  const data = [];
-  snapshot.forEach(doc => data.push(doc.data()));
-
-  return data;
+  return snapshot.docs.map(doc => doc.data());
 };
 
 export const queryCWVDistribution = async ({ technology, date, geo = 'ALL', rank = null }) => {
@@ -275,9 +270,7 @@ export const queryRanks = async () => {
     .orderBy('mobile_origins', 'desc')
     .select('rank')
     .get();
-  const data = [];
-  snapshot.forEach(doc => data.push(doc.data()));
-  return data;
+  return snapshot.docs.map(doc => doc.data());
 };
 
 export const queryGeos = async () => {
@@ -286,9 +279,7 @@ export const queryGeos = async () => {
     .orderBy('mobile_origins', 'desc')
     .select('geo')
     .get();
-  const data = [];
-  snapshot.forEach(doc => data.push(doc.data()));
-  return data;
+  return snapshot.docs.map(doc => doc.data());
 };
 
 export const queryVersions = async (params = {}) => {
@@ -317,7 +308,5 @@ export const queryVersions = async (params = {}) => {
   }
 
   const snapshot = await query.get();
-  const data = [];
-  snapshot.forEach(doc => data.push(doc.data()));
-  return data;
+  return snapshot.docs.map(doc => doc.data());
 };

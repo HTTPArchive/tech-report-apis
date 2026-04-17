@@ -139,10 +139,7 @@ const executeQuery = async (req, res, collection, queryBuilder, dataProcessor = 
     const query = await queryBuilder(params);
     const snapshot = await query.get();
 
-    let data = [];
-    snapshot.forEach(doc => {
-      data.push(doc.data());
-    });
+    let data = snapshot.docs.map(doc => doc.data());
 
     // Process data if processor provided
     if (dataProcessor) {
