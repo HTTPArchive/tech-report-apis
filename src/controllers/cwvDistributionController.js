@@ -21,7 +21,6 @@ export const listCWVDistributionData = async (req, res) => {
 
     const errors = [];
     if (!params.technology) errors.push(['technology', 'missing technology parameter']);
-    if (!params.date) errors.push(['date', 'missing date parameter']);
     if (errors.length > 0) {
       sendValidationError(res, errors);
       return;
@@ -30,7 +29,7 @@ export const listCWVDistributionData = async (req, res) => {
     const rows = await queryCWVDistribution({
       technology: params.technology,
       date: params.date,
-      geo: params.geo || 'ALL',
+      geo: params.geo,
       rank: params.rank && params.rank !== 'ALL' ? params.rank : null,
     });
 
