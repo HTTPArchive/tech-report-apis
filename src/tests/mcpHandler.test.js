@@ -119,6 +119,26 @@ describe('mcpHandler Telemetry and Handlers', () => {
         consoleSpy.mockRestore();
     });
 
+    it('should return 200 plain text for GET requests not expecting text/event-stream', async () => {
+        const mockReq = {
+            method: 'GET',
+            headers: {
+                accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'user-agent': 'AwarioSmartBot/1.0'
+            }
+        };
+
+        const mockRes = {
+            writeHead: jest.fn(),
+            end: jest.fn()
+        };
+
+        await handleMcp(mockReq, mockRes);
+
+        expect(mockRes.writeHead).toHaveBeenCalledWith(200, { 'Content-Type': 'text/plain' });
+        expect(mockRes.end).toHaveBeenCalledWith('HTTP Archive MCP Server. Please use an MCP client to connect.');
+    });
+
     it('should silently handle and log error when encountering malformed JSON block', async () => {
         const infoSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
         const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
