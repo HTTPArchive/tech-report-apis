@@ -156,6 +156,10 @@ export const queryReport = async (reportType, params = {}) => {
 };
 
 export const queryCWVDistribution = async ({ technology, date, geo = 'ALL', rank = null }) => {
+  if (!date || date === 'latest') {
+    date = await getLatestDate(firestoreOld, 'core_web_vitals');
+  }
+
   const allTechnologies = !technology || technology === 'ALL';
   const technologies = allTechnologies ? [] : convertToArray(technology);
   const techClause = allTechnologies ? '' : 'AND t.technology IN UNNEST(@technologies)';

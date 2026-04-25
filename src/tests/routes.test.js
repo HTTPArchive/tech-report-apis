@@ -848,10 +848,10 @@ describe('API Routes', () => {
       expect(res.body).toHaveProperty('errors');
     });
 
-    it('should return 400 when date is missing', async () => {
+    it('should return 200 when date is missing (defaults to latest)', async () => {
       const res = await request(app).get('/v1/cwv-distribution?technology=Wix');
-      expect(res.statusCode).toEqual(400);
-      expect(res.body).toHaveProperty('errors');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
     });
 
     it('should return 400 when both technology and date are missing', async () => {
