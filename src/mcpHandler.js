@@ -209,6 +209,16 @@ const createMcpServer = () => {
 };
 
 export const handleMcp = async (req, res) => {
+  // Gracefully handle standard browser/bot GET requests to avoid 406 WARNING logs
+  if (req.method === 'GET') {
+    const acceptHeader = req.headers.accept || '';
+    if (!acceptHeader.includes('text/event-stream')) {
+      res.writeHead(200, { 'Content-Type': 'text/plain' });
+      res.end('HTTP Archive MCP Server. Please use an MCP client to connect.');
+      return;
+    }
+  }
+
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: undefined, // stateless — safe for Cloud Run
   });
