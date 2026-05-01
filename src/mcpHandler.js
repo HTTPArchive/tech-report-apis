@@ -231,9 +231,8 @@ export const handleMcp = async (req, res) => {
     server.close();
   });
 
-  await transport.handleRequest(req, res, req.body);
-
-  // Log the request non-blockingly after the response handling
+  // Log before handleRequest — Cloud Run freezes CPU once the response is sent,
+  // so any console.log after the await would be silently dropped.
   try {
     if (req.method === 'POST') {
       let mcpRequest = req.body;
@@ -266,4 +265,6 @@ export const handleMcp = async (req, res) => {
       error: err.toString()
     }));
   }
+
+  await transport.handleRequest(req, res, req.body);
 };
