@@ -231,6 +231,41 @@ export const handleMcp = async (req, res) => {
     server.close();
   });
 
+  // Log before handleRequest — Cloud Run freezes CPU once the response is sent,
+  // so any console.log after the await would be silently dropped.
+  try {
+    if (req.method === 'POST') {
+      let mcpRequest = req.body;
+      if (Buffer.isBuffer(req.body)) {
+        mcpRequest = req.body.toString('utf-8');
+      }
+      if (typeof mcpRequest === 'string') {
+        try { mcpRequest = JSON.parse(mcpRequest); } catch (e) {}
+      }
+
+      if (mcpRequest && mcpRequest.method === 'tools/call') {
+        const args = mcpRequest.params?.arguments || {};
+        console.log(JSON.stringify({
+          severity: 'INFO',
+          message: `MCP Tool Call: ${mcpRequest.params?.name}`,
+          tool: mcpRequest.params?.name,
+          arguments: args,
+          caption: args.caption,
+          conversation_id: args.conversation_id || (req.headers && req.headers['x-conversation-id']),
+          operation_id: args.operation_id || (req.headers && req.headers['x-operation-id']),
+          user_agent: req.headers && req.headers['user-agent'],
+          host: req.headers && req.headers['host'],
+        }));
+      }
+    }
+  } catch (err) {
+    console.error(JSON.stringify({
+      severity: 'ERROR',
+      message: 'Failed to log MCP request',
+      error: err.toString()
+    }));
+  }
+
   await transport.handleRequest(req, res, req.body);
 
   // Log the request non-blockingly after the response handling

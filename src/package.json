@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=24"
   },
   "scripts": {
     "function": "DATABASE=tech-report-api-prod functions-framework --target=app",
@@ -15,15 +15,15 @@
     "docker": "docker run -p 8080:8080 report-api"
   },
   "dependencies": {
-    "@google-cloud/bigquery": "^7.9.1",
-    "@google-cloud/firestore": "8.3.0",
-    "@google-cloud/functions-framework": "^5.0.2",
+    "@google-cloud/bigquery": "8.3.0",
+    "@google-cloud/firestore": "8.5.0",
+    "@google-cloud/functions-framework": "5.0.2",
     "@google-cloud/storage": "7.19.0",
-    "@modelcontextprotocol/sdk": "^1.0.0",
-    "zod": "^3.0.0"
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "zod": "4.4.1"
   },
   "devDependencies": {
-    "@jest/transform": "^30.3.0",
+    "@jest/transform": "30.3.0",
     "jest": "30.3.0",
     "supertest": "7.2.2"
   },
