@@ -20,6 +20,7 @@
     "@google-cloud/functions-framework": "5.0.2",
     "@google-cloud/storage": "7.19.0",
     "@modelcontextprotocol/sdk": "1.29.0",
+    "pg": "8.20.0",
     "zod": "4.4.1"
   },
   "devDependencies": {
