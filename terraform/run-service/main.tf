@@ -80,7 +80,8 @@ resource "google_cloud_run_v2_service" "service" {
 
       args = [
         "projects/${var.project}/locations/${var.region}/clusters/default/instances/primary",
-        "--public-ip"
+        "--public-ip",
+        "--auto-iam-authn"
       ]
 
       resources {
