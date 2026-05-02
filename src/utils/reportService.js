@@ -1,4 +1,4 @@
-import { firestore, firestoreOld, bigquery } from './db.js';
+import { firestore, firestoreOld, bigquery, alloydb } from './db.js';
 import { convertToArray } from './helpers.js';
 import {
   getLatestDate,
@@ -274,25 +274,13 @@ ORDER BY
 };
 
 export const queryRanks = async () => {
-  const snapshot = await firestore
-    .collection('ranks')
-    .orderBy('mobile_origins', 'desc')
-    .select('rank')
-    .get();
-  const data = [];
-  snapshot.forEach(doc => data.push(doc.data()));
-  return data;
+  const res = await alloydb.query('SELECT rank FROM public.tech_report_ranks ORDER BY mobile_origins DESC;');
+  return res.rows;
 };
 
 export const queryGeos = async () => {
-  const snapshot = await firestore
-    .collection('geos')
-    .orderBy('mobile_origins', 'desc')
-    .select('geo')
-    .get();
-  const data = [];
-  snapshot.forEach(doc => data.push(doc.data()));
-  return data;
+  const res = await alloydb.query('SELECT geo FROM public.tech_report_geos ORDER BY mobile_origins DESC;');
+  return res.rows;
 };
 
 export const queryVersions = async (params = {}) => {

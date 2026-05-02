@@ -16,7 +16,11 @@ variable "project_database" {
   description = "The database name"
   default     = "tech-report-api-"
 }
-
+variable "service_account_email" {
+  type        = string
+  description = "Service account who can invoke the endpoint and is admin of the DB. This is required!"
+  default     = "cloud-function@httparchive.iam.gserviceaccount.com"
+}
 variable "name_prefix" {
   description = "Prefix for resource naming"
   type        = string

@@ -52,6 +52,7 @@ resource "google_cloud_run_v2_service" "service" {
     max_instance_request_concurrency = var.max_instance_request_concurrency
 
     containers {
+      name  = "app"
       image = docker_registry_image.registry_image.name
       resources {
         cpu_idle = var.environment == "prod" ? false : true
@@ -65,6 +66,27 @@ resource "google_cloud_run_v2_service" "service" {
         content {
           name  = env.key
           value = env.value
+        }
+      }
+      env {
+        name  = "ALLOYDB_USER"
+        value = replace(var.service_account_email, ".gserviceaccount.com", "")
+      }
+    }
+
+    containers {
+      name  = "alloydb-auth-proxy"
+      image = "gcr.io/alloydb-connectors/alloydb-auth-proxy:1.10.1"
+
+      args = [
+        "projects/${var.project}/locations/${var.region}/clusters/default/instances/primary",
+        "--public-ip"
+      ]
+
+      resources {
+        limits = {
+          cpu    = "1"
+          memory = "512Mi"
         }
       }
     }

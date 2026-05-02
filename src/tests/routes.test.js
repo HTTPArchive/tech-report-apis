@@ -77,10 +77,20 @@ jest.unstable_mockModule('../utils/db.js', () => {
     query: jest.fn().mockResolvedValue([[]])
   };
 
+  const mockAlloyDbInstance = {
+    query: jest.fn().mockResolvedValue({
+      rows: [
+        { rank: 'ALL' },
+        { geo: 'ALL' }
+      ]
+    })
+  };
+
   return {
     firestore: mockFirestoreInstance,
     firestoreOld: mockFirestoreInstance,
-    bigquery: mockBigQueryInstance
+    bigquery: mockBigQueryInstance,
+    alloydb: mockAlloyDbInstance
   };
 });
 

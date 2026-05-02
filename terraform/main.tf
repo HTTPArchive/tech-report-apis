@@ -21,14 +21,15 @@ provider "google" {
 }
 
 module "endpoints" {
-  source           = "./run-service"
-  project          = var.project
-  environment      = var.environment
-  source_directory = "../src"
-  service_name     = "report-api"
-  region           = var.region
-  min_instances    = var.environment == "prod" ? 1 : 0
-  ingress_settings = var.environment == "prod" ? "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER" : "INGRESS_TRAFFIC_ALL"
+  source                = "./run-service"
+  project               = var.project
+  environment           = var.environment
+  source_directory      = "../src"
+  service_name          = "report-api"
+  service_account_email = var.service_account_email
+  region                = var.region
+  min_instances         = var.environment == "prod" ? 1 : 0
+  ingress_settings      = var.environment == "prod" ? "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER" : "INGRESS_TRAFFIC_ALL"
 
   environment_variables = {
     "PROJECT"  = var.project
@@ -57,7 +58,13 @@ module "cdn_glb" {
   https_forwarding_rule_name = "httparchive-load-balancer-forwarding-rule-2"
 }
 
-moved {
-  from = module.cdn_glb
-  to   = module.cdn_glb[0]
+resource "google_alloydb_user" "cloud_run_service_account" {
+  count = var.environment == "prod" ? 1 : 0
+  
+  cluster   = "projects/${var.project}/locations/${var.region}/clusters/default"
+  user_id   = var.service_account_email
+  user_type = "ALLOYDB_IAM_USER"
+  
+  # IAM users don't require passwords
+  # database_roles = ["alloydbiamuser"] # Optional, depends on your setup
 }
