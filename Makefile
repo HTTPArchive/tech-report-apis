@@ -8,5 +8,5 @@ tf_apply:
 	cd terraform/ && terraform init -reconfigure -backend-config=backend-$(ENV).hcl && terraform apply -auto-approve --var="environment=$(ENV)"
 
 test_live:
-	chmod +x run-live-tests.sh
-	bash ./run-live-tests.sh
+	chmod +x scripts/run-live-tests.sh
+	bash ./scripts/run-live-tests.sh
