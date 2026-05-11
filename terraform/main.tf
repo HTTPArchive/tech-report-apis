@@ -66,5 +66,5 @@ resource "google_alloydb_user" "cloud_run_service_account" {
   user_type = "ALLOYDB_IAM_USER"
   
   # IAM users don't require passwords
-  # database_roles = ["alloydbiamuser"] # Optional, depends on your setup
+  database_roles = ["alloydbiamuser"]
 }
