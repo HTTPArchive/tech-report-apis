@@ -9,3 +9,4 @@ npm-debug.log
 cloudbuild.yaml
 __tests__/
 coverage/
+tests/
