@@ -23,9 +23,8 @@ data "external" "source_hash" {
   program = ["bash", "-c", "cd ${var.source_directory} && echo '{\"hash\":\"'$(git ls-files -s | sha1sum | cut -c1-8)'\"}'"]
 }
 
-# Build Docker image
-resource "docker_image" "function_image" {
-  # hash added to image tag to force rebuilds and service image updates when source changes
+# Build and push Docker image
+resource "docker_registry_image" "registry_image" {
   name = "${var.region}-docker.pkg.dev/${var.project}/report-api/${var.service_name}:${data.external.source_hash.result.hash}"
 
   build {
@@ -33,10 +32,6 @@ resource "docker_image" "function_image" {
     dockerfile = "Dockerfile"
     platform   = "linux/amd64"
   }
-}
-
-resource "docker_registry_image" "registry_image" {
-  name = docker_image.function_image.name
 }
 
 resource "google_cloud_run_v2_service" "service" {
