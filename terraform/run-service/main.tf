@@ -54,7 +54,7 @@ resource "google_artifact_registry_repository" "report_api" {
 
 
 resource "docker_registry_image" "registry_image" {
-  name          = "${var.region}-docker.pkg.dev/${var.project}/report-api/${var.service_name}:${data.external.source_hash.result.hash}"
+  name          = "${google_artifact_registry_repository.report_api.registry_uri}/${var.service_name}:${data.external.source_hash.result.hash}"
   keep_remotely = true # don't delete the image from the registry on destroy/replace
 
   triggers = {
