@@ -23,9 +23,14 @@ data "external" "source_hash" {
   program = ["bash", "-c", "cd ${var.source_directory} && echo '{\"hash\":\"'$(git ls-files -s | sha1sum | cut -c1-8)'\"}'"]
 }
 
-# Build and push Docker image
+# Build and push Docker image — only rebuild when source hash changes
 resource "docker_registry_image" "registry_image" {
-  name = "${var.region}-docker.pkg.dev/${var.project}/report-api/${var.service_name}:${data.external.source_hash.result.hash}"
+  name          = "${var.region}-docker.pkg.dev/${var.project}/report-api/${var.service_name}:${data.external.source_hash.result.hash}"
+  keep_remotely = true # don't delete the image from the registry on destroy/replace
+
+  triggers = {
+    source_hash = data.external.source_hash.result.hash
+  }
 
   build {
     context    = var.source_directory
