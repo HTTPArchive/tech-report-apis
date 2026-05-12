@@ -62,7 +62,7 @@ resource "google_alloydb_user" "cloud_run_service_account" {
   count = var.environment == "prod" ? 1 : 0
   
   cluster   = "projects/${var.project}/locations/${var.region}/clusters/default"
-  user_id   = var.service_account_email
+  user_id   = replace(var.service_account_email, ".gserviceaccount.com", "")
   user_type = "ALLOYDB_IAM_USER"
   
   # IAM users don't require passwords
