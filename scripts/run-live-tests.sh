@@ -40,6 +40,7 @@ cd src
 # Automatically use the active ADC email
 export ALLOYDB_USER=$(gcloud config get-value account)
 export ALLOYDB_HOST="127.0.0.1"
+export PORT=8081
 
 echo "Using ALLOYDB_USER: $ALLOYDB_USER"
 npm run function &

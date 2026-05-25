@@ -4,7 +4,8 @@
 test_endpoint() {
   local endpoint=$1
   local params=$2
-  local url="http://localhost:8080${endpoint}${params}"
+  local port=${PORT:-8080}
+  local url="http://localhost:${port}${endpoint}${params}"
 
   echo "Testing endpoint: ${url}"
   response=$(curl -s -w "\n%{http_code}" "${url}")
@@ -30,7 +31,8 @@ test_filter() {
   local params=$2
   local filter_check=$3
   local description=$4
-  local url="http://localhost:8080${endpoint}${params}"
+  local port=${PORT:-8080}
+  local url="http://localhost:${port}${endpoint}${params}"
 
   echo "Testing filter: ${description}"
   echo "URL: ${url}"
@@ -67,7 +69,8 @@ test_filter() {
 # Function to test CORS preflight with OPTIONS request
 test_cors_preflight() {
   local endpoint=$1
-  local url="http://localhost:8080${endpoint}"
+  local port=${PORT:-8080}
+  local url="http://localhost:${port}${endpoint}"
 
   echo "Testing CORS preflight for: ${url}"
 
