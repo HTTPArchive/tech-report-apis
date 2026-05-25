@@ -68,3 +68,11 @@ resource "google_alloydb_user" "cloud_run_service_account" {
   # IAM users don't require passwords
   database_roles = ["alloydbiamuser"]
 }
+
+module "database" {
+  count       = var.environment == "prod" ? 1 : 0
+  source      = "./database"
+  project     = var.project
+  region      = var.region
+  environment = var.environment
+}
