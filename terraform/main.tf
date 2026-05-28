@@ -30,6 +30,7 @@ module "endpoints" {
   region                = var.region
   min_instances         = var.environment == "prod" ? 1 : 0
   ingress_settings      = var.environment == "prod" ? "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER" : "INGRESS_TRAFFIC_ALL"
+  timeout               = "3600s"
 
   environment_variables = {
     "PROJECT"  = var.project

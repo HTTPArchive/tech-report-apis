@@ -17,7 +17,7 @@ resource "google_compute_backend_service" "backend" {
   compression_mode                = "AUTOMATIC"
   protocol                        = "HTTPS"
   load_balancing_scheme           = "EXTERNAL_MANAGED"
-  timeout_sec                     = 30
+  timeout_sec                     = 3600
   connection_draining_timeout_sec = 0
   locality_lb_policy              = "ROUND_ROBIN"
   security_policy                 = google_compute_security_policy.security_policy.id
