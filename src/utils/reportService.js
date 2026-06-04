@@ -257,7 +257,7 @@ ORDER BY
 
   const [rows] = await bigquery.query({
     query,
-    reservation: 'projects/httparchive/locations/US/reservations/interactive',
+    reservation: 'none',
     params: {
       ...(!allTechnologies && { technologies }),
       date,
