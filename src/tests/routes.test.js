@@ -455,6 +455,23 @@ describe('API Routes', () => {
       //expect(res.body.errors[0]).toHaveProperty('error');
       //expect(res.body.errors[0].error).toContain('Unsupported parameters: ');
     });
+
+    it('should return 404 for prototype pollution path attempts like __proto__', async () => {
+      const res1 = await request(app).get('/__proto__');
+      expect(res1.statusCode).toEqual(404);
+
+      const res2 = await request(app).get('/v1/__proto__');
+      expect(res2.statusCode).toEqual(404);
+
+      const res3 = await request(app).get('/v1/toString');
+      expect(res3.statusCode).toEqual(404);
+    });
+
+    it('should reject unknown report types in queryReport', async () => {
+      const { queryReport } = await import('../utils/reportService.js');
+      await expect(queryReport('__proto__')).rejects.toThrow('Unknown report type: __proto__');
+      await expect(queryReport('toString')).rejects.toThrow('Unknown report type: toString');
+    });
   });
 
   describe('Response Headers', () => {

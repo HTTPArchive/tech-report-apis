@@ -14,3 +14,10 @@ tf_import:
 test_live:
 	chmod +x scripts/run-live-tests.sh
 	bash ./scripts/run-live-tests.sh
+
+run:
+	chmod +x scripts/run-local-server.sh
+	bash ./scripts/run-local-server.sh
+
+test:
+	cd src && npm test

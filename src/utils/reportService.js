@@ -7,13 +7,13 @@ import {
   FIRESTORE_IN_LIMIT,
 } from './controllerHelpers.js';
 
-const REPORT_CONFIGS = {
-  adoption: { table: 'adoption', dataField: 'adoption' },
-  pageWeight: { table: 'page_weight', dataField: 'pageWeight' },
-  lighthouse: { table: 'lighthouse', dataField: 'lighthouse' },
-  cwv: { table: 'core_web_vitals', dataField: 'vitals' },
-  audits: { table: 'audits', dataField: 'audits' },
-};
+const REPORT_CONFIGS = new Map([
+  ['adoption', { table: 'adoption', dataField: 'adoption' }],
+  ['pageWeight', { table: 'page_weight', dataField: 'pageWeight' }],
+  ['lighthouse', { table: 'lighthouse', dataField: 'lighthouse' }],
+  ['cwv', { table: 'core_web_vitals', dataField: 'vitals' }],
+  ['audits', { table: 'audits', dataField: 'audits' }]
+]);
 
 export const queryTechnologies = async (params = {}) => {
   const isOnlyNames = 'onlyname' in params;
@@ -112,8 +112,10 @@ export const queryCategories = async (params = {}) => {
 };
 
 export const queryReport = async (reportType, params = {}) => {
-  const config = REPORT_CONFIGS[reportType];
-  if (!config) throw new Error(`Unknown report type: ${reportType}`);
+  if (typeof reportType !== 'string' || !REPORT_CONFIGS.has(reportType)) {
+    throw new Error(`Unknown report type: ${reportType}`);
+  }
+  const config = REPORT_CONFIGS.get(reportType);
 
   const db = firestoreOld;
   const crossGeo = params.crossGeo || false;
@@ -255,6 +257,7 @@ ORDER BY
 
   const [rows] = await bigquery.query({
     query,
+    reservation: 'projects/httparchive/locations/US/reservations/interactive',
     params: {
       ...(!allTechnologies && { technologies }),
       date,

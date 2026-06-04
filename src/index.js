@@ -1,45 +1,53 @@
 import functions from '@google-cloud/functions-framework';
 import { sendJSONResponse } from './utils/controllerHelpers.js';
 
-const CONTROLLER_MODULES = {
-  technologies: './controllers/technologiesController.js',
-  categories: './controllers/categoriesController.js',
-  adoption: './controllers/reportController.js',
-  cwvtech: './controllers/reportController.js',
-  lighthouse: './controllers/reportController.js',
-  pageWeight: './controllers/reportController.js',
-  audits: './controllers/reportController.js',
-  geoBreakdown: './controllers/reportController.js',
-  ranks: './controllers/ranksController.js',
-  geos: './controllers/geosController.js',
-  versions: './controllers/versionsController.js',
-  static: './controllers/cdnController.js',
-  cwvDistribution: './controllers/cwvDistributionController.js',
-};
+const CONTROLLER_MODULES = new Map([
+  ['technologies', './controllers/technologiesController.js'],
+  ['categories', './controllers/categoriesController.js'],
+  ['adoption', './controllers/reportController.js'],
+  ['cwvtech', './controllers/reportController.js'],
+  ['lighthouse', './controllers/reportController.js'],
+  ['pageWeight', './controllers/reportController.js'],
+  ['audits', './controllers/reportController.js'],
+  ['geoBreakdown', './controllers/reportController.js'],
+  ['ranks', './controllers/ranksController.js'],
+  ['geos', './controllers/geosController.js'],
+  ['versions', './controllers/versionsController.js'],
+  ['static', './controllers/cdnController.js'],
+  ['cwvDistribution', './controllers/cwvDistributionController.js']
+]);
 
-const controllers = {};
+const controllers = new Map();
 
 const getController = async (name) => {
-  if (!controllers[name]) {
-    controllers[name] = await import(CONTROLLER_MODULES[name]);
+  if (typeof name !== 'string' || !CONTROLLER_MODULES.has(name)) {
+    throw new Error(`Invalid controller name: ${name}`);
   }
-  return controllers[name];
+  if (!controllers.has(name)) {
+    controllers.set(name, await import(CONTROLLER_MODULES.get(name)));
+  }
+  return controllers.get(name);
 };
 
-const V1_ROUTES = {
-  '/v1/technologies': ['technologies', 'listTechnologies'],
-  '/v1/categories': ['categories', 'listCategories'],
-  '/v1/adoption': ['adoption', 'listAdoptionData'],
-  '/v1/cwv': ['cwvtech', 'listCWVTechData'],
-  '/v1/lighthouse': ['lighthouse', 'listLighthouseData'],
-  '/v1/page-weight': ['pageWeight', 'listPageWeightData'],
-  '/v1/audits': ['audits', 'listAuditsData'],
-  '/v1/ranks': ['ranks', 'listRanks'],
-  '/v1/geos': ['geos', 'listGeos'],
-  '/v1/versions': ['versions', 'listVersions'],
-  '/v1/geo-breakdown': ['geoBreakdown', 'listGeoBreakdownData'],
-  '/v1/cwv-distribution': ['cwvDistribution', 'listCWVDistributionData']
-};
+const V1_ROUTES = new Map([
+  ['/v1/technologies', ['technologies', 'listTechnologies']],
+  ['/v1/categories', ['categories', 'listCategories']],
+  ['/v1/adoption', ['adoption', 'listAdoptionData']],
+  ['/v1/cwv', ['cwvtech', 'listCWVTechData']],
+  ['/v1/lighthouse', ['lighthouse', 'listLighthouseData']],
+  ['/v1/page-weight', ['pageWeight', 'listPageWeightData']],
+  ['/v1/audits', ['audits', 'listAuditsData']],
+  ['/v1/ranks', ['ranks', 'listRanks']],
+  ['/v1/geos', ['geos', 'listGeos']],
+  ['/v1/versions', ['versions', 'listVersions']],
+  ['/v1/geo-breakdown', ['geoBreakdown', 'listGeoBreakdownData']],
+  ['/v1/cwv-distribution', ['cwvDistribution', 'listCWVDistributionData']]
+]);
+
+const ALLOWED_HANDLERS = new Set([
+  ...[...V1_ROUTES.values()].map(route => route[1]),
+  'proxyReportsFile'
+]);
 
 // Helper function to set CORS headers
 const setCORSHeaders = (res) => {
@@ -104,10 +112,16 @@ const handleRequest = async (req, res) => {
 
     if (pathname === '/' && req.method === 'GET') {
       sendJSONResponse(req, res, { status: 'ok' });
-    } else if (req.method === 'GET' && V1_ROUTES[pathname]) {
-      const [controllerKey, handlerName] = V1_ROUTES[pathname];
+    } else if (req.method === 'GET' && V1_ROUTES.has(pathname)) {
+      const [controllerKey, handlerName] = V1_ROUTES.get(pathname);
       const controller = await getController(controllerKey);
-      await controller[handlerName](req, res);
+      const handler = controller ? Reflect.get(controller, handlerName) : undefined;
+      if (ALLOWED_HANDLERS.has(handlerName) && typeof handler === 'function') {
+        await handler(req, res);
+      } else {
+        res.statusCode = 404;
+        res.end(JSON.stringify({ error: 'Not Found' }));
+      }
     } else if (pathname.startsWith('/v1/static/') && req.method === 'GET') {
       const filePath = decodeURIComponent(pathname.replace('/v1/static/', ''));
       if (!filePath) {
