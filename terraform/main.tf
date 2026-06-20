@@ -24,7 +24,8 @@ module "endpoints" {
   source                = "./run-service"
   project               = var.project
   environment           = var.environment
-  source_directory      = "../src"
+  source_directory      = "../"
+  dockerfile            = "apps/report-api/Dockerfile"
   service_name          = "report-api"
   service_account_email = var.service_account_email
   region                = var.region

@@ -240,7 +240,7 @@ export const handleMcp = async (req, res) => {
         mcpRequest = req.body.toString('utf-8');
       }
       if (typeof mcpRequest === 'string') {
-        try { mcpRequest = JSON.parse(mcpRequest); } catch (e) {}
+        try { mcpRequest = JSON.parse(mcpRequest); } catch (_e) {} // eslint-disable-line no-empty
       }
 
       if (mcpRequest && mcpRequest.method === 'tools/call') {

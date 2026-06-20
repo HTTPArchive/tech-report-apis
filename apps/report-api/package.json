@@ -9,9 +9,10 @@
   },
   "scripts": {
     "function": "DATABASE=tech-report-api-prod functions-framework --target=app",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "test:live": "bash ../scripts/test-api.sh",
-    "build": "docker build -t report-api .",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:live": "bash ../../scripts/test-api.sh",
+    "build": "docker build -t report-api -f apps/report-api/Dockerfile .",
+    "lint": "eslint .",
     "docker": "docker run -p 8080:8080 report-api"
   },
   "dependencies": {
@@ -24,34 +25,12 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
+    "@httparchive/eslint-config": "*",
+    "@httparchive/jest-config": "*",
     "@jest/transform": "30.4.1",
+    "eslint": "^9.0.0",
     "jest": "30.3.0",
     "supertest": "7.2.2"
-  },
-  "jest": {
-    "testEnvironment": "node",
-    "verbose": true,
-    "collectCoverage": true,
-    "collectCoverageFrom": [
-      "**/*.js",
-      "!index.js"
-    ],
-    "coverageDirectory": "coverage",
-    "coverageReporters": [
-      "text",
-      "lcov"
-    ],
-    "testMatch": [
-      "**/__tests__/**/*.js",
-      "**/?(*.)+(spec|test).js"
-    ],
-    "globals": {
-      "__filename": false,
-      "__dirname": false
-    },
-    "transformIgnorePatterns": [
-      "node_modules/(?!(.*\\.mjs$))"
-    ],
-    "transform": {}
   }
 }
+

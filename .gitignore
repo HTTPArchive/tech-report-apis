@@ -9,5 +9,6 @@
 .DS_Store
 
 node_modules/
-src/coverage/
+apps/report-api/coverage/
 scripts/alloydb-auth-proxy
+.turbo/

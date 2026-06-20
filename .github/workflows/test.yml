@@ -13,9 +13,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - run: |
-          cd src
           npm ci
-          npm run test
+          npx turbo run test
 
   dependabot:
     name: Dependabot auto-merge

@@ -20,4 +20,4 @@ run:
 	bash ./scripts/run-local-server.sh
 
 test:
-	cd src && npm test
+	npx turbo run test

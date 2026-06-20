@@ -1,0 +1,24 @@
+# Version control
+.git/
+.github/
+
+# Infrastructure (not needed in the image)
+terraform/
+scripts/
+
+# Build artifacts & caches
+**/coverage/
+**/.turbo/
+**/*.log
+
+# Test files
+**/__tests__/
+**/tests/
+
+# Misc
+**/*.md
+.DS_Store
+.env
+
+# Dependencies (installed fresh inside the image)
+**/node_modules/

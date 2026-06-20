@@ -18,6 +18,11 @@ variable "source_directory" {
   description = "The folder of the package containing function that will be executed when the Google Cloud Function is triggered!"
   type        = string
 }
+variable "dockerfile" {
+  description = "Path to the Dockerfile relative to source_directory."
+  type        = string
+  default     = "Dockerfile"
+}
 variable "entry_point" {
   description = "The entry point; This is either what is registered with 'http' or exported from the code as a handler!"
   type        = string

@@ -20,16 +20,16 @@ source ./scripts/setup-alloydb-proxy.sh
 
 echo "Starting API Server in the background..."
 export PORT=8081
-cd src
+cd apps/report-api
 npm run function &
 SERVER_PID=$!
-cd ..
+cd ../..
 
 echo "Waiting for API Server to be ready (5 seconds)..."
 sleep 5
 
 echo "Running Live Tests..."
-cd src
+cd apps/report-api
 npm run test:live
 TEST_EXIT_CODE=$?
 

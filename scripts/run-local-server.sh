@@ -14,5 +14,5 @@ trap cleanup EXIT INT TERM
 source ./scripts/setup-alloydb-proxy.sh
 
 echo "Starting API Server locally..."
-cd src
+cd apps/report-api
 npm run function

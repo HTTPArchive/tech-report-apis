@@ -63,7 +63,7 @@ resource "docker_registry_image" "registry_image" {
 
   build {
     context    = var.source_directory
-    dockerfile = "Dockerfile"
+    dockerfile = var.dockerfile
     platform   = "linux/amd64"
   }
 }
