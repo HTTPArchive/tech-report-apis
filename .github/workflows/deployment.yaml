@@ -10,7 +10,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - run: |
           npm ci
           npx turbo run test
@@ -20,7 +20,7 @@ jobs:
     needs: [test]
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Google Cloud Auth
         uses: 'google-github-actions/auth@v3'
         with:
