@@ -42,6 +42,10 @@ const sendValidationError = (res, errors) => {
   }));
 };
 
+// Cache for latest dates to reduce Firestore reads
+const latestDateCache = new Map();
+const LATEST_DATE_TTL = 10 * 60 * 1000; // 10 minutes in milliseconds
+
 /**
  * Get the latest date from a collection
  * @param {Object} firestore - Firestore instance
@@ -49,15 +53,30 @@ const sendValidationError = (res, errors) => {
  * @returns {string|null} - Latest date or null
  */
 const getLatestDate = async (firestore, collection) => {
+  const now = Date.now();
+  const cached = latestDateCache.get(collection);
+
+  // Return cached date if valid
+  if (cached && now - cached.timestamp < LATEST_DATE_TTL) {
+    return cached.date;
+  }
+
   // Query for latest date
   const query = firestore.collection(collection).orderBy('date', 'desc').limit(1);
   const snapshot = await query.get();
 
+  let latestDate = null;
   if (!snapshot.empty) {
-    return snapshot.docs[0].data().date;
+    latestDate = snapshot.docs[0].data().date;
   }
 
-  return null;
+  // Update cache
+  latestDateCache.set(collection, {
+    date: latestDate,
+    timestamp: now
+  });
+
+  return latestDate;
 };
 
 /**
