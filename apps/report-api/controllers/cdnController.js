@@ -118,8 +118,7 @@ export const proxyReportsFile = async (req, res, filePath) => {
         if (!res.headersSent) {
             res.statusCode = 500;
             res.end(JSON.stringify({
-                error: 'Server failed to respond',
-                details: error.message
+                error: 'Server failed to respond'
             }));
         }
     }
