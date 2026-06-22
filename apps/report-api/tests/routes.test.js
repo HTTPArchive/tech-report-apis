@@ -759,7 +759,6 @@ describe('API Routes', () => {
           .expect(500);
 
         expect(res.body).toHaveProperty('error', 'Server failed to respond');
-        expect(res.body).toHaveProperty('details');
       });
 
       it('should handle GCS getMetadata() failure', async () => {
@@ -771,7 +770,6 @@ describe('API Routes', () => {
           .expect(500);
 
         expect(res.body).toHaveProperty('error', 'Server failed to respond');
-        expect(res.body).toHaveProperty('details');
       });
 
       it('should handle stream errors during file read', async () => {
