@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     docker = {
-      source  = "kreuzwerker/docker"
+      source = "kreuzwerker/docker"
     }
   }
 }
@@ -76,7 +76,7 @@ resource "google_cloud_run_v2_service" "service" {
   ingress             = var.ingress_settings
 
   template {
-    service_account = var.service_account_email
+    service_account                  = var.service_account_email
     timeout                          = var.timeout
     max_instance_request_concurrency = var.max_instance_request_concurrency
 

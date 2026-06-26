@@ -29,9 +29,9 @@ resource "google_alloydb_cluster" "default" {
 }
 
 resource "google_alloydb_instance" "primary" {
-  cluster       = google_alloydb_cluster.default.name
-  instance_id   = "primary"
-  instance_type = "PRIMARY"
+  cluster           = google_alloydb_cluster.default.name
+  instance_id       = "primary"
+  instance_type     = "PRIMARY"
   availability_type = "ZONAL"
 
   machine_config {
