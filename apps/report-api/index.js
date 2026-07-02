@@ -14,7 +14,8 @@ const CONTROLLER_MODULES = new Map([
   ['geos', './controllers/geosController.js'],
   ['versions', './controllers/versionsController.js'],
   ['static', './controllers/cdnController.js'],
-  ['cwvDistribution', './controllers/cwvDistributionController.js']
+  ['cwvDistribution', './controllers/cwvDistributionController.js'],
+  ['dates', './controllers/datesController.js']
 ]);
 
 const controllers = new Map();
@@ -41,7 +42,9 @@ const V1_ROUTES = new Map([
   ['/v1/geos', ['geos', 'listGeos']],
   ['/v1/versions', ['versions', 'listVersions']],
   ['/v1/geo-breakdown', ['geoBreakdown', 'listGeoBreakdownData']],
-  ['/v1/cwv-distribution', ['cwvDistribution', 'listCWVDistributionData']]
+  ['/v1/cwv-distribution', ['cwvDistribution', 'listCWVDistributionData']],
+  ['/v1/dates', ['dates', 'listDates']],
+  ['/v1/metric', ['dates', 'getMetric']]
 ]);
 
 const ALLOWED_HANDLERS = new Set([
