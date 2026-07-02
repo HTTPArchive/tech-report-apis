@@ -924,4 +924,31 @@ describe('API Routes', () => {
       expect(res.headers['access-control-allow-origin']).toEqual('*');
     });
   });
+
+  describe('GET /v1/dates', () => {
+    it('should return 200 and a list of dates', async () => {
+      const res = await request(app).get('/v1/dates');
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveProperty('status', 200);
+      expect(res.body).toHaveProperty('dates');
+      expect(Array.isArray(res.body.dates)).toBe(true);
+      expect(res.body.dates.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('GET /v1/metric', () => {
+    it('should return 400 when metric id is missing', async () => {
+      const res = await request(app).get('/v1/metric');
+      expect(res.statusCode).toEqual(400);
+    });
+
+    it('should return 200 with metric configuration and latest date', async () => {
+      mockFileExists.mockResolvedValue([true]);
+      const res = await request(app).get('/v1/metric?id=html');
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveProperty('status', 200);
+      expect(res.body).toHaveProperty('metric');
+      expect(res.body).toHaveProperty('latest');
+    });
+  });
 });

@@ -235,4 +235,16 @@ test_filter "/v1/cwv-distribution" "?technology=Wix&date=2026-02-01&geo=United%2
   "all(.[]; .geo == \"United States of America\") and length > 0" \
   "CWV distribution filters by specific geo (United States of America)"
 
+# Test dates endpoint
+test_cors_preflight "/v1/dates"
+test_filter "/v1/dates" "" \
+  "has(\"dates\") and (.dates | length > 0)" \
+  "Dates list is not empty"
+
+# Test metric endpoint
+test_cors_preflight "/v1/metric"
+test_filter "/v1/metric" "?id=bytesHtml" \
+  "has(\"metric\") and has(\"latest\")" \
+  "Metric endpoint returns config and latest date for bytesHtml"
+
 echo "API tests complete! All endpoints returned 200 and data corresponds to filters."
