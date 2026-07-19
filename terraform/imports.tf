@@ -185,6 +185,21 @@ import {
   id = "projects/226352634162/secrets/GitHub_max-ostapenko_dataform_PAT roles/secretmanager.secretAccessor serviceAccount:service-226352634162@gcp-sa-dataform.iam.gserviceaccount.com"
 }
 
+import {
+  to = module.database[0].google_project_iam_member.alloydb_bq_access["roles/bigquery.dataViewer"]
+  id = "httparchive roles/bigquery.dataViewer serviceAccount:c-226352634162-5d53fb86@gcp-sa-alloydb.iam.gserviceaccount.com"
+}
+
+import {
+  to = module.database[0].google_project_iam_member.alloydb_bq_access["roles/bigquery.readSessionUser"]
+  id = "httparchive roles/bigquery.readSessionUser serviceAccount:c-226352634162-5d53fb86@gcp-sa-alloydb.iam.gserviceaccount.com"
+}
+
+import {
+  to = module.database[0].google_project_iam_member.alloydb_bq_access["roles/bigquery.jobUser"]
+  id = "httparchive roles/bigquery.jobUser serviceAccount:c-226352634162-5d53fb86@gcp-sa-alloydb.iam.gserviceaccount.com"
+}
+
 # ==========================================
 # 7. Dataset-level IAM Roles
 # ==========================================

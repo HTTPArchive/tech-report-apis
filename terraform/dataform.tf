@@ -10,7 +10,7 @@ resource "google_dataform_repository" "crawl_data" {
   region                                     = var.region
   service_account                            = var.function_identity
   git_remote_settings {
-    authentication_token_secret_version = "${google_secret_manager_secret_iam_member.dataform_secret_access[0].secret_id}/versions/latest"
+    authentication_token_secret_version = "projects/${var.project}/secrets/GitHub_max-ostapenko_dataform_PAT/versions/latest"
     default_branch                      = "main"
     url                                 = "https://github.com/HTTPArchive/dataform.git"
   }

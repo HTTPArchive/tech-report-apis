@@ -68,6 +68,16 @@ locals {
   alloydb_sa = "c-${data.google_project.project.number}-${substr(google_alloydb_cluster.default.uid, 0, 8)}@gcp-sa-alloydb.iam.gserviceaccount.com"
 }
 
+moved {
+  from = google_project_iam_member.alloydb_bq_data_viewer
+  to   = google_project_iam_member.alloydb_bq_access["roles/bigquery.dataViewer"]
+}
+
+moved {
+  from = google_project_iam_member.alloydb_bq_read_session_user
+  to   = google_project_iam_member.alloydb_bq_access["roles/bigquery.readSessionUser"]
+}
+
 resource "google_project_iam_member" "alloydb_bq_access" {
   for_each = toset([
     "roles/bigquery.dataViewer",
