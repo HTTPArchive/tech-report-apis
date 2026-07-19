@@ -117,7 +117,7 @@ export const queryReport = async (reportType, params = {}) => {
   }
   const config = REPORT_CONFIGS.get(reportType);
 
-  const db = firestoreOld;
+  const db = reportType === 'audits' ? firestore : firestoreOld;
   const crossGeo = params.crossGeo || false;
   const technologyParam = params.technology || 'ALL';
   const geoParam = params.geo || 'ALL';
