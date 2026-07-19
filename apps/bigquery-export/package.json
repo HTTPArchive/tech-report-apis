@@ -1,0 +1,23 @@
+{
+  "name": "bigquery-export",
+  "version": "1.0.0",
+  "description": "Firestore Data Exporter for BigQuery queries",
+  "main": "index.js",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "docker build -t bigquery-export -f apps/bigquery-export/Dockerfile .",
+    "lint": "eslint --config ../../.github/linters/eslint.config.mjs ."
+  },
+  "dependencies": {
+    "@google-cloud/bigquery": "8.1.1",
+    "@google-cloud/firestore": "8.6.0",
+    "@httparchive/shared": "*",
+    "uuid": "^14.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^10.6.0"
+  }
+}

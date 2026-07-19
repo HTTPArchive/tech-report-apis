@@ -23,38 +23,10 @@ data "external" "source_hash" {
   program = ["bash", "-c", "cd ${var.source_directory} && echo '{\"hash\":\"'$(git ls-files -s | sha1sum | cut -c1-8)'\"}'"]
 }
 
-# Manage the Artifact Registry repository with a 30-day image cleanup policy
-resource "google_artifact_registry_repository" "report_api" {
-  provider      = google
-  project       = var.project
-  location      = var.region
-  repository_id = "report-api"
-  format        = "DOCKER"
-
-  cleanup_policy_dry_run = false
-
-  cleanup_policies {
-    id     = "delete-old-images"
-    action = "DELETE"
-
-    condition {
-      older_than = "2592000s" # 30 days
-    }
-  }
-
-  cleanup_policies {
-    id     = "keep-recent-tags"
-    action = "KEEP"
-
-    most_recent_versions {
-      keep_count = 5
-    }
-  }
-}
-
+# Manage the Artifact Registry repository with a 30-day image cleanup policy is now handled at root level
 
 resource "docker_registry_image" "registry_image" {
-  name          = "${google_artifact_registry_repository.report_api.registry_uri}/${var.service_name}:${data.external.source_hash.result.hash}"
+  name          = "${var.artifact_registry_repository_uri}/${var.service_name}:${data.external.source_hash.result.hash}"
   keep_remotely = true # don't delete the image from the registry on destroy/replace
 
   triggers = {

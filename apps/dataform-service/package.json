@@ -1,0 +1,28 @@
+{
+  "name": "dataform-service",
+  "version": "1.0.0",
+  "description": "Dataform Service HTTP controller and scheduler trigger",
+  "main": "index.js",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "npx functions-framework --target=dataform-service --signature-type=http --port=${PORT:-8080}",
+    "test": "node --test",
+    "build": "docker build -t dataform-service -f apps/dataform-service/Dockerfile .",
+    "lint": "eslint --config ../../.github/linters/eslint.config.mjs ."
+  },
+  "dependencies": {
+    "@google-cloud/bigquery": "8.1.1",
+    "@google-cloud/dataform": "2.4.0",
+    "@google-cloud/functions-framework": "^5.0.1",
+    "@google-cloud/run": "3.3.0",
+    "@google-cloud/storage": "7.21.0",
+    "@httparchive/shared": "*",
+    "uuid": "^14.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^10.6.0"
+  }
+}

@@ -67,3 +67,9 @@ variable "environment_variables" {
   default     = {}
   type        = map(string)
 }
+
+variable "artifact_registry_repository_uri" {
+  description = "The URI of the Artifact Registry repository to use for Docker images"
+  type        = string
+}
+

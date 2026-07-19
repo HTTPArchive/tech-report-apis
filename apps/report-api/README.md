@@ -1,0 +1,752 @@
+# Reports API
+
+This is an HTTP Archive Reporting API that provides reporting data via various endpoints.
+
+## Setup
+
+### Prerequisites
+
+- Node.js 24+
+- npm
+- Google Cloud account with necessary permissions
+- Set environment variables:
+
+    ```bash
+    export DATABASE=tech-report-api-prod
+    ```
+
+### Local Development
+
+  ```bash
+  npm install
+  npm run start
+  ```
+
+The API will be available at <http://localhost:8080>
+
+## API Endpoints
+
+- **CORS Enabled**: Cross-origin requests are supported
+- **Cache Headers**: 6-hour cache control for static data
+- **Health Check**: GET `/` returns health status
+- **RESTful API**: All endpoints follow REST conventions
+
+### `GET /`
+
+Health check endpoint that returns the current status of the API.
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/health'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+{
+    "status": "ok"
+}
+```
+
+### `GET /categories`
+
+Lists available categories.
+
+#### Categories Parameters
+
+- `category` (optional): Filter by category name(s) - comma-separated list (defaults to 'ALL')
+- `onlyname` (optional): If present, returns only category names
+- `fields` (optional): Comma-separated list of fields to include in the response (see [Field Selection API Documentation](#field-selection-api-documentation) for details)
+
+#### Categories Response
+
+```bash
+curl --request GET \
+  --url 'https://d{{HOST}}/v1/categories?category=Domain%20parking%2CCI'
+```
+
+```json
+[
+    {
+        "description": "Systems that automate building, testing, and deploying code",
+        "technologies": [
+            "Jenkins",
+            "TeamCity"
+        ],
+        "origins": {
+            "mobile": 22,
+            "desktop": 35
+        },
+        "category": "CI"
+    },
+    {
+        "description": "Solutions that redirect domains to a different location or page",
+        "technologies": [
+          "Cloudflare",
+          "Arsys Domain Parking"
+        ],
+        "origins": {
+            "mobile": 14,
+            "desktop": 8
+        },
+        "category": "Domain parking"
+    }
+]
+```
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/categories?onlyname'
+```
+
+```json
+[
+    "A/B Testing",
+    "Accessibility",
+    "Accounting",
+    "Advertising",
+    "Affiliate programs",
+    "Analytics",
+    "Origins",
+    ...
+]
+```
+
+### `GET /technologies`
+
+Lists available technologies with optional filtering.
+
+#### Parameters
+
+- `technology` (optional): Filter by technology name(s) - comma-separated list (defaults to 'ALL')
+- `category` (optional): Filter by category - comma-separated list
+- `onlyname` (optional): If present, returns only technology names
+- `fields` (optional): Comma-separated list of fields to include in the response (see [Field Selection API Documentation](#field-selection-api-documentation) for details)
+
+#### Example Request & Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/technologies?category=Live%20chat%2C%20blog&technology=Smartsupp'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+[
+  {
+    "technology": "Smartsupp",
+    "category": "Live chat",
+    "description": "Smartsupp is a live chat tool that offers visitor recording feature.",
+    "icon": "Smartsupp.svg",
+    "origins": {
+      "mobile": 24115,
+      "desktop": 20250
+    }
+  }
+]
+```
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/technologies?onlyname'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+[
+    "1C-Bitrix",
+    "2B Advice",
+    "33Across",
+    "34SP.com",
+    "4-Tell",
+    "42stores",
+    "51.LA",
+    "5centsCDN",
+    ...
+]
+```
+
+### `GET /versions`
+
+Lists available versions.
+
+#### Versions Parameters
+
+- `technology` (optional): Filter by technology name(s) - comma-separated list (defaults to 'ALL')
+- `category` (optional): Filter by category - comma-separated list
+- `version` (optional): Filter by version name(s) - comma-separated list
+- `onlyname` (optional): If present, returns only version names
+- `fields` (optional): Comma-separated list of fields to include in the response (see [Field Selection API Documentation](#field-selection-api-documentation) for details)
+
+#### Versions Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/versions?technology=WordPress&version=6.2.2'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+[
+    {
+        "technology": "WordPress",
+        "version": "6.2.2",
+        "origins": {
+            "mobile": 123456,
+            "desktop": 654321
+        }
+    }
+]
+```
+
+### `GET /adoption`
+
+Provides technology adoption data.
+
+#### Adoption Parameters
+
+- `technology` (optional): Filter by technology name(s) - comma-separated list (defaults to 'ALL')
+- `geo` (optional): Filter by geographic location (defaults to 'ALL')
+- `rank` (optional): Filter by rank (defaults to 'ALL')
+- `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
+- `end` (optional): Filter by date range end (YYYY-MM-DD)
+
+#### Adoption Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/adoption?start=2023-01-01&end=2023-09-01&geo=Mexico&technology=GoCache&rank=ALL'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+[
+    {
+        "technology": "GoCache",
+        "date": "2023-06-01",
+        "adoption": {
+            "mobile": 19,
+            "desktop": 11
+        }
+    },
+    ...
+]
+```
+
+### `GET /cwv` (Core Web Vitals)
+
+Provides Core Web Vitals metrics for technologies.
+
+#### CWV Parameters
+
+- `technology` (optional): Filter by technology name(s) - comma-separated list (defaults to 'ALL')
+- `geo` (optional): Filter by geographic location (defaults to 'ALL')
+- `rank` (optional): Filter by rank (defaults to 'ALL')
+- `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
+- `end` (optional): Filter by date range end (YYYY-MM-DD)
+
+#### CWV Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/cwv?start=2023-01-01&end=2023-09-01&geo=Uruguay&technology=DomainFactory&rank=ALL'
+```
+
+```json
+[
+    {
+        "date": "2023-06-01",
+        "technology": "DomainFactory",
+        "vitals": [
+            {
+                "mobile": {
+                    "good_number": 1,
+                    "tested": 4
+                },
+                "desktop": {
+                    "good_number": 0,
+                    "tested": 2
+                },
+                "name": "overall"
+            },
+      ...
+        ]
+    }
+]
+```
+
+### `GET /cwv-distribution`
+
+Provides per-bucket CWV metric distribution histograms for technologies, optionally filtered by geo and rank.
+
+#### CWV Distribution Parameters
+
+- `technology` (required): Technology name(s) - comma-separated list, e.g. `Wix,WordPress`
+- `date` (required): Crawl date in `YYYY-MM-DD` format, e.g. `2026-02-01`
+- `geo` (optional): Geographic filter (defaults to `ALL`). Use a country name such as `United States of America` for country-level data.
+- `rank` (optional): Numeric rank ceiling, e.g. `10000`. Omit or set to `ALL` to include all ranks.
+
+#### CWV Distribution Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/cwv-distribution?technology=WordPress&date=2026-02-01&geo=ALL'
+```
+
+Returns a JSON array where each element represents one histogram bucket for a technology/client/geo combination:
+
+```json
+[
+    {
+        "geo": "ALL",
+        "client": "mobile",
+        "technology": "WordPress",
+        "loading_bucket": 0,
+        "inp_bucket": 0,
+        "cls_bucket": 0,
+        "lcp_origins": 12345,
+        "inp_origins": 23456,
+        "cls_origins": 34567,
+        "fcp_origins": 11111,
+        "ttfb_origins": 22222
+    },
+    ...
+]
+```
+
+Bucket semantics:
+
+- `loading_bucket` / `lcp_bucket` / `fcp_bucket` / `ttfb_bucket`: millisecond value (0–10000 in steps of 100)
+- `inp_bucket`: `loading_bucket / 4` (INP scale)
+- `cls_bucket`: `loading_bucket / 2000` (CLS scale)
+- `*_origins`: count of distinct origins whose p75 value equals that bucket
+
+### `GET /lighthouse`
+
+Provides Lighthouse scores for technologies.
+
+#### Lighthouse Parameters
+
+- `technology` (optional): Filter by technology name(s) - comma-separated list (defaults to 'ALL')
+- `geo` (optional): Filter by geographic location (defaults to 'ALL')
+- `rank` (optional): Filter by rank (defaults to 'ALL')
+- `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
+- `end` (optional): Filter by date range end (YYYY-MM-DD)
+
+#### Lighthouse Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/lighthouse?start=2023-01-01&end=2023-09-01&geo=Maldives&technology=Oracle%20HTTP%20Server%2C%20Google%20Optimize%2C%20Searchanise&rank=ALL'
+```
+
+```json
+[
+    {
+        "date": "2023-06-01",
+        "technology": "Oracle HTTP Server",
+        "lighthouse": [
+            {
+                "mobile": {
+                    "median_score": 0.945
+                },
+                "desktop": null,
+                "name": "accessibility"
+            },
+            {
+                "mobile": {
+                    "median_score": 0.915
+                },
+                "desktop": null,
+                "name": "best_practices"
+            },
+            ...
+        ]
+    }
+]
+```
+
+### `GET /page-weight`
+
+Provides Page Weight metrics for technologies.
+
+#### Page Weight Parameters
+
+- `technology` (optional): Filter by technology name(s) - comma-separated list (defaults to 'ALL')
+- `geo` (optional): Filter by geographic location (defaults to 'ALL')
+- `rank` (optional): Filter by rank (defaults to 'ALL')
+- `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
+- `end` (optional): Filter by date range end (YYYY-MM-DD)
+
+#### Page Weight Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/page-weight?geo=ALL&technology=WordPress&rank=ALL'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+[
+    {
+        "date": "2020-06-01",
+        "pageWeight": [
+            {
+                "desktop": {
+                    "median_bytes": 2428028
+                },
+                "mobile": {
+                    "median_bytes": 2430912
+                },
+                "name": "total"
+            },
+            {
+                "desktop": {
+                    "median_bytes": 490451
+                },
+                "mobile": {
+                    "median_bytes": 477218
+                },
+                "name": "js"
+            },
+            {
+                "desktop": {
+                    "median_bytes": 1221876
+                },
+                "mobile": {
+                    "median_bytes": 1296673
+                },
+                "name": "images"
+            }
+        ],
+        "technology": "WordPress"
+    },
+    ...
+]
+```
+
+### `GET /audits`
+
+Provides Lighthouse audits for technologies.
+
+#### Audits Parameters
+
+- `technology` (optional): Filter by technology name(s) - comma-separated list (defaults to 'ALL')
+- `geo` (optional): Filter by geographic location (defaults to 'ALL')
+- `rank` (optional): Filter by rank (defaults to 'ALL')
+- `start` (optional): Filter by date range start (YYYY-MM-DD or 'latest')
+- `end` (optional): Filter by date range end (YYYY-MM-DD)
+
+#### Audits Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/audits?start=latest&geo=ALL&technology=WordPress&rank=ALL'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+[
+    {
+        "date": "2025-06-01",
+        "audits": [
+            {
+                "desktop": {
+                    "pass_origins": 2428028
+                },
+                "mobile": {
+                    "pass_origins": 2430912
+                },
+                "id": "first-contentful-paint",
+                "category": "performance"
+            },
+            {
+                "desktop": {
+                    "pass_origins": 490451
+                },
+                "mobile": {
+                    "pass_origins": 477218
+                },
+                "id": "largest-contentful-paint",
+                "category": "performance"
+            },
+            {
+                "desktop": {
+                    "pass_origins": 1221876
+                },
+                "mobile": {
+                    "pass_origins": 1296673
+                },
+                "id": "cumulative-layout-shift",
+                "category": "performance"
+            }
+        ],
+        "technology": "WordPress"
+    },
+    ...
+]
+```
+
+### `GET /geo-breakdown`
+
+Provides Core Web Vitals breakdown by geography for a given technology and rank. Returns a single month snapshot of CWV data (LCP, CLS, INP, TTFB) across all geographies.
+
+#### Geo Breakdown Parameters
+
+- `technology` (optional): Technology name(s) - comma-separated list (defaults to `ALL`)
+- `rank` (optional): Traffic rank segment, e.g. `top 1000`, `top 10000`. Defaults to `ALL`.
+- `end` (optional): Snapshot date in `YYYY-MM-DD` format. Defaults to the latest available date.
+
+#### Geo Breakdown Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/geo-breakdown?technology=WordPress&rank=top%2010000'
+```
+
+Returns a JSON array where each element represents CWV data for a technology on a given date and geographic region:
+
+```json
+[
+    {
+        "date": "2026-02-01",
+        "geo": "United States of America",
+        "technology": "WordPress",
+        "vitals": [
+            {
+                "mobile": {
+                    "good_number": 12345,
+                    "tested": 56789
+                },
+                "desktop": {
+                    "good_number": 6789,
+                    "tested": 10000
+                },
+                "name": "lcp"
+            },
+            ...
+        ]
+    },
+    ...
+]
+```
+
+### `GET /ranks`
+
+Lists all available ranks.
+
+#### Ranks Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/ranks'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+[
+    {
+        "rank": "ALL"
+    },
+    {
+        "rank": "Top 10M"
+    },
+    ...
+]
+```
+
+### `GET /geos`
+
+Lists all available geographic locations.
+
+#### Geos Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/geos'
+```
+
+Returns a JSON object with the following schema:
+
+```json
+[
+    {
+        "geo": "ALL"
+    },
+    {
+        "geo": "United States of America"
+    },
+    ...
+]
+```
+
+### `GET /static/*`
+
+Proxy endpoint to serve files from the private Google Cloud Storage bucket. The request path after `/v1/static/` maps directly to the GCS object path.
+
+#### Static File Features
+
+- **Conditional Requests**: Supports `If-None-Match` header for cache validation (returns 304 if unchanged)
+- **Content Type Detection**: Automatically detects MIME type based on file extension
+- **Streaming**: Files are streamed directly from GCS for efficient memory usage
+- **ETag Support**: Returns ETag header for cache validation
+
+#### Supported File Types
+
+| Extension | MIME Type                |
+| --------- | ------------------------ |
+| `.json`   | `application/json`       |
+| `.js`     | `application/javascript` |
+| `.png`    | `image/png`              |
+| `.svg`    | `image/svg+xml`          |
+| `.csv`    | `text/csv`               |
+| `.pdf`    | `application/pdf`        |
+
+#### Static File Response
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/static/reports/2023/example.json'
+```
+
+Returns the file content with appropriate headers:
+
+```http
+Content-Type: application/json
+ETag: "abc123..."
+Content-Length: 1234
+```
+
+#### Error Responses
+
+- **400 Bad Request**: Invalid file path (e.g., contains `..` or `//`)
+- **404 Not Found**: File does not exist in the bucket
+- **500 Internal Server Error**: Failed to retrieve or stream the file
+
+## Testing
+
+```bash
+# Run all tests
+npm test
+
+# Run tests with coverage
+npm run test
+```
+
+## Response Format
+
+All API responses follow this format:
+
+```json
+[
+  // Array of data objects
+]
+```
+
+Or in case of an error:
+
+```json
+{
+  "success": false,
+  "errors": [
+    {"key": "error message"}
+  ]
+}
+```
+
+## Field Selection API Documentation
+
+### Overview
+
+The categories and technologies endpoints now support custom field selection, allowing clients to specify exactly which fields they want in the response. This feature helps reduce payload size and improves API performance by returning only the needed data.
+
+### Categories Endpoint
+
+- `category` - Category name
+- `description` - Category description
+- `technologies` - Array of technology names in the category
+- `origins` - Array of origin companies/organizations
+
+Get only category names:
+
+```http
+GET /v1/categories?fields=category
+```
+
+Get categories with descriptions:
+
+```http
+GET /v1/categories?fields=category,description
+```
+
+### Technologies Endpoint
+
+- `technology` - Technology name
+- `category` - Category name
+- `description` - Technology description
+- `icon` - Icon filename
+- `origins` - Array of origin companies/organizations
+
+Get only technology names and categories:
+
+```http
+GET /v1/technologies?fields=technology,category
+```
+
+Response:
+
+```json
+{
+  "data": [
+    {
+      "technology": "React",
+      "category": "JavaScript Frameworks"
+    },
+    {
+      "technology": "Angular",
+      "category": "JavaScript Frameworks"
+    }
+  ]
+}
+```
+
+Combine with existing filters:
+
+```http
+GET /v1/technologies?category=JavaScript%20Frameworks&fields=technology,icon
+```
+
+### Versions Endpoint
+
+- `technology` - Technology name
+- `version` - Version name
+- `origins` - Mobile and desktop origins
+
+Get only technology and version names:
+
+```http
+GET /v1/versions?fields=technology,version
+```
+
+Response:
+
+```json
+{
+  {
+    "technology": "React",
+    "version": "18.2.0"
+  },
+  {
+    "technology": "Angular",
+    "version": "12.0.0"
+  },
+  ...
+}
+```

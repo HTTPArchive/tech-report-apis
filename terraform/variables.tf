@@ -32,3 +32,63 @@ variable "ssl_cert_name" {
   type        = string
   default     = "google-managed2"
 }
+
+# Migrated from dataform infra variables
+variable "project_number" {
+  description = "GCP project number"
+  type        = string
+  default     = "226352634162"
+}
+
+variable "location" {
+  description = "GCP location"
+  type        = string
+  default     = "us"
+}
+
+variable "function_identity" {
+  default = "cloud-function@httparchive.iam.gserviceaccount.com"
+  type    = string
+}
+
+variable "dataform_service_account_email" {
+  default = "service-226352634162@gcp-sa-dataform.iam.gserviceaccount.com"
+  type    = string
+}
+
+variable "edit_datasets" {
+  default = [
+    "crawl_staging",
+    "crawl",
+    "sample_data",
+    "latest",
+    "wappalyzer",
+
+    // Reports
+    "blink_features",
+    "reports",
+
+    // Flattened tables for F1
+    "f1",
+
+    // Service
+    "dataform_assertions",
+  ]
+  type = list(string)
+}
+
+variable "dataform_service_account_roles" {
+  type = list(string)
+  default = [
+    "roles/bigquery.user",
+    "roles/bigquery.connectionUser",
+    "roles/bigquery.dataViewer",
+    "roles/bigquery.resourceAdmin",
+  ]
+}
+
+variable "notification_channel_id" {
+  description = "GCP monitoring notification channel ID"
+  type        = string
+  default     = "1661619523289991065"
+}
