@@ -68,14 +68,14 @@ locals {
   alloydb_sa = "c-${data.google_project.project.number}-${substr(google_alloydb_cluster.default.uid, 0, 8)}@gcp-sa-alloydb.iam.gserviceaccount.com"
 }
 
-resource "google_project_iam_member" "alloydb_bq_data_viewer" {
-  project = var.project
-  role    = "roles/bigquery.dataViewer"
-  member  = "serviceAccount:${local.alloydb_sa}"
-}
+resource "google_project_iam_member" "alloydb_bq_access" {
+  for_each = toset([
+    "roles/bigquery.dataViewer",
+    "roles/bigquery.readSessionUser",
+    "roles/bigquery.jobUser",
+  ])
 
-resource "google_project_iam_member" "alloydb_bq_read_session_user" {
   project = var.project
-  role    = "roles/bigquery.readSessionUser"
+  role    = each.key
   member  = "serviceAccount:${local.alloydb_sa}"
 }

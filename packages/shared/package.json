@@ -1,0 +1,17 @@
+{
+  "name": "@httparchive/shared",
+  "version": "1.0.0",
+  "description": "Shared HTTP Archive database and utility library",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint --config ../../.github/linters/eslint.config.mjs ."
+  },
+  "dependencies": {
+    "@google-cloud/bigquery": "^8.1.1",
+    "uuid": "^14.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^10.6.0"
+  }
+}
