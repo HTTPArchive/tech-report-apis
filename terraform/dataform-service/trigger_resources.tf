@@ -1,4 +1,4 @@
-data "google_pubsub_topic" "dataform_crawl_complete" {
+resource "google_pubsub_topic" "dataform_crawl_complete" {
   name = "crawl-complete"
 }
 
@@ -11,7 +11,7 @@ resource "google_pubsub_subscription" "dataform_crawl_complete" {
   message_retention_duration   = "3600s"
   name                         = "dataform-service-crawl-complete"
   retain_acked_messages        = false
-  topic                        = data.google_pubsub_topic.dataform_crawl_complete.id
+  topic                        = google_pubsub_topic.dataform_crawl_complete.id
   expiration_policy {
     ttl = ""
   }

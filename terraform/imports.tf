@@ -21,6 +21,11 @@ import {
 }
 
 import {
+  to = module.dataform_service[0].google_pubsub_topic.dataform_crawl_complete
+  id = "projects/httparchive/topics/crawl-complete"
+}
+
+import {
   to = module.dataform_service[0].google_pubsub_subscription.dataform_crawl_complete
   id = "projects/httparchive/subscriptions/dataform-service-crawl-complete"
 }
