@@ -9,15 +9,16 @@ resource "google_cloud_run_v2_service" "dataform_service" {
 
       resources {
         limits = {
-          cpu    = "1"
-          memory = "512Mi"
+          cpu    = "2"
+          memory = "1Gi"
         }
-        cpu_idle = true
+        cpu_idle          = true
+        startup_cpu_boost = true
       }
     }
 
     service_account                  = var.function_identity
-    timeout                          = "60s"
+    timeout                          = "300s"
     max_instance_request_concurrency = 80
   }
 
@@ -27,9 +28,10 @@ resource "google_cloud_run_v2_service" "dataform_service" {
   }
 }
 
-resource "google_cloud_run_service_iam_member" "member" {
+resource "google_cloud_run_v2_service_iam_member" "member" {
+  project  = var.project
   location = google_cloud_run_v2_service.dataform_service.location
-  service  = google_cloud_run_v2_service.dataform_service.name
+  name     = google_cloud_run_v2_service.dataform_service.name
   role     = "roles/run.invoker"
   member   = "serviceAccount:${var.function_identity}"
 }
