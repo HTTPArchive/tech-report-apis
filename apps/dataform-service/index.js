@@ -97,7 +97,11 @@ async function handleExport (req, res) {
 
       const data = await bigquery.queryResults(query)
       const storage = new StorageUpload(config.bucket)
-      await storage.exportToJson(data, config.name)
+      if (config.format === 'csv' || config.name?.endsWith('.csv')) {
+        await storage.exportToCsv(data, config.name)
+      } else {
+        await storage.exportToJson(data, config.name)
+      }
     } else if (destination === 'firestore') {
       console.info('Firestore export')
       const jobName = `projects/${projectId}/locations/${location}/jobs/${jobId}`

@@ -58,5 +58,3 @@ resource "google_compute_security_policy_rule" "allow_static_icons" {
     }
   }
 }
-
-
