@@ -81,6 +81,7 @@ const handleRequest = async (req, res) => {
     if (pathname === '/mcp') {
       setCORSHeaders(res);
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization, mcp-session-id, mcp-protocol-version, x-conversation-id, x-operation-id');
       if (req.method === 'OPTIONS') {
         res.statusCode = 204;
         res.end();
