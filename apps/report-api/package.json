@@ -20,7 +20,7 @@
     "@google-cloud/firestore": "8.6.0",
     "@google-cloud/functions-framework": "5.0.5",
     "@google-cloud/storage": "7.21.0",
-    "@modelcontextprotocol/sdk": "1.29.0",
+    "@modelcontextprotocol/sdk": "1.30.0",
     "pg": "8.22.0",
     "zod": "4.4.3"
   },
