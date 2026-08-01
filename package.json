@@ -15,7 +15,7 @@
     "dev": "turbo run dev"
   },
   "devDependencies": {
-    "turbo": "^2.10.2",
+    "turbo": "^2.10.7",
     "eslint": "^10.6.0",
     "@eslint/js": "^9.20.0",
     "globals": "^15.14.0"
