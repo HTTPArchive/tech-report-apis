@@ -59,6 +59,7 @@ FROM crux, report;
 }
 
 function hasRequiredKeys (obj) {
+  if (!obj || typeof obj !== 'object') return false
   const requiredKeys = ['destination', 'config', 'query']
   return requiredKeys.every(key => key in obj)
 }
@@ -72,13 +73,21 @@ function hasRequiredKeys (obj) {
 async function handleExport (req, res) {
   console.log(JSON.stringify(req.body))
   try {
-    const payload = req.body.calls[0][0]
+    let payload = req.body?.calls?.[0]?.[0]
     if (!payload) {
       res.status(400).json({
         replies: [400],
         errorMessage: 'Bad Request: no payload received, expected JSON object'
       })
       return
+    }
+
+    if (typeof payload === 'string') {
+      try {
+        payload = JSON.parse(payload)
+      } catch (e) {
+        console.error('Failed to parse payload string:', e)
+      }
     }
 
     if (!hasRequiredKeys(payload)) {
@@ -89,18 +98,36 @@ async function handleExport (req, res) {
       return
     }
 
-    const { query, destination, config } = payload
+    let { query, destination, config } = payload
+
+    if (typeof config === 'string') {
+      try {
+        config = JSON.parse(config)
+      } catch (e) {
+        console.error('Failed to parse config string:', e)
+      }
+    }
 
     if (destination === 'cloud_storage') {
       console.info('Cloud Storage export')
       console.log(query, config)
 
-      const data = await bigquery.queryResults(query)
-      const storage = new StorageUpload(config.bucket)
-      if (config.format === 'csv' || config.name?.endsWith('.csv')) {
+      const fileName = (config?.name || '').toString().trim().toLowerCase()
+
+      if (fileName.endsWith('.csv')) {
+        const data = await bigquery.queryResults(query)
+        const storage = new StorageUpload(config.bucket)
         await storage.exportToCsv(data, config.name)
-      } else {
+      } else if (fileName.endsWith('.json')) {
+        const data = await bigquery.queryResults(query)
+        const storage = new StorageUpload(config.bucket)
         await storage.exportToJson(data, config.name)
+      } else {
+        res.status(400).json({
+          replies: [400],
+          errorMessage: `Bad Request: unsupported object name extension for "${config?.name}". Expected .csv or .json`
+        })
+        return
       }
     } else if (destination === 'firestore') {
       console.info('Firestore export')

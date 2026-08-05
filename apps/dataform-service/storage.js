@@ -4,7 +4,7 @@ import zlib from 'zlib'
 
 const storage = new Storage()
 
-function formatCsv (data) {
+export function formatCsv (data) {
   if (!Array.isArray(data) || data.length === 0) {
     return ''
   }
@@ -25,10 +25,15 @@ function formatCsv (data) {
 export class StorageUpload {
   constructor (bucket) {
     this.bucket = bucket
-    this.stream = new Readable({
-      objectMode: true,
+  }
+
+  _createStream (content) {
+    const stream = new Readable({
       read () {}
     })
+    stream.push(content)
+    stream.push(null)
+    return stream
   }
 
   async exportToJson (data, fileName) {
@@ -36,13 +41,11 @@ export class StorageUpload {
     const file = bucket.file(fileName)
 
     const jsonData = JSON.stringify(data)
-    this.stream.push(jsonData)
-    this.stream.push(null)
-
+    const inputStream = this._createStream(jsonData)
     const gzip = zlib.createGzip()
 
     await new Promise((resolve, reject) => {
-      this.stream
+      inputStream
         .pipe(gzip)
         .pipe(file.createWriteStream({
           metadata: {
@@ -63,13 +66,11 @@ export class StorageUpload {
     const file = bucket.file(fileName)
 
     const csvData = formatCsv(data)
-    this.stream.push(csvData)
-    this.stream.push(null)
-
+    const inputStream = this._createStream(csvData)
     const gzip = zlib.createGzip()
 
     await new Promise((resolve, reject) => {
-      this.stream
+      inputStream
         .pipe(gzip)
         .pipe(file.createWriteStream({
           metadata: {
