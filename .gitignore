@@ -3,7 +3,7 @@
 
 # Terraform
 .terraform
-*.terraform.lock.hcl
+
 
 # CLI
 .DS_Store

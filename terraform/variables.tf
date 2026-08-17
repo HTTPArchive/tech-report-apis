@@ -67,6 +67,7 @@ variable "edit_datasets" {
     // Reports
     "blink_features",
     "reports",
+    "performance",
 
     // Flattened tables for F1
     "f1",
