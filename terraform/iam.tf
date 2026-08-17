@@ -45,3 +45,19 @@ resource "google_secret_manager_secret_iam_member" "dataform_secret_access" {
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${var.dataform_service_account_email}"
 }
+
+# Cloud Build custom service account permissions
+resource "google_project_iam_member" "cloud_build_bigquery_job_user" {
+  count   = var.environment == "prod" ? 1 : 0
+  project = var.project
+  role    = "roles/bigquery.jobUser"
+  member  = "serviceAccount:${var.cloud_build_service_account_email}"
+}
+
+resource "google_bigquery_dataset_iam_member" "cloud_build_wappalyzer_editor" {
+  count      = var.environment == "prod" ? 1 : 0
+  dataset_id = "wappalyzer"
+  role       = "roles/bigquery.dataEditor"
+  member     = "serviceAccount:${var.cloud_build_service_account_email}"
+}
+

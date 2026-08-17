@@ -93,3 +93,10 @@ variable "notification_channel_id" {
   type        = string
   default     = "1661619523289991065"
 }
+
+variable "cloud_build_service_account_email" {
+  description = "Cloud Build custom service account email"
+  type        = string
+  default     = "cloud-build@httparchive.iam.gserviceaccount.com"
+}
+
