@@ -12,7 +12,7 @@
     "lint": "eslint --config ../../.github/linters/eslint.config.mjs ."
   },
   "dependencies": {
-    "@google-cloud/bigquery": "8.1.1",
+    "@google-cloud/bigquery": "9.0.3",
     "@google-cloud/firestore": "8.7.0",
     "@httparchive/shared": "*",
     "uuid": "^14.0.1"

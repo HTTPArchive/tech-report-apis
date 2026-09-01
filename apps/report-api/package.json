@@ -16,7 +16,7 @@
     "docker": "docker run -p 8080:8080 report-api"
   },
   "dependencies": {
-    "@google-cloud/bigquery": "8.3.1",
+    "@google-cloud/bigquery": "9.0.3",
     "@google-cloud/firestore": "8.7.0",
     "@google-cloud/functions-framework": "5.0.5",
     "@google-cloud/storage": "7.21.0",
