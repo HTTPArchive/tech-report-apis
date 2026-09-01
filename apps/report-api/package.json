@@ -27,7 +27,7 @@
   "devDependencies": {
     "@httparchive/eslint-config": "*",
     "@httparchive/jest-config": "*",
-    "@jest/transform": "30.4.1",
+    "@jest/transform": "30.5.0",
     "eslint": "^10.6.0",
     "jest": "30.5.0",
     "supertest": "7.2.2"
