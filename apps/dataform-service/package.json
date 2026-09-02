@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@google-cloud/bigquery": "9.0.3",
-    "@google-cloud/dataform": "2.5.0",
+    "@google-cloud/dataform": "3.2.0",
     "@google-cloud/functions-framework": "^5.0.1",
     "@google-cloud/run": "4.0.0",
     "@google-cloud/storage": "7.21.0",
