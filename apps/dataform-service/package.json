@@ -18,7 +18,7 @@
     "@google-cloud/dataform": "2.5.0",
     "@google-cloud/functions-framework": "^5.0.1",
     "@google-cloud/run": "4.0.0",
-    "@google-cloud/storage": "7.21.0",
+    "@google-cloud/storage": "8.0.1",
     "@httparchive/shared": "*",
     "uuid": "^14.0.1"
   },
