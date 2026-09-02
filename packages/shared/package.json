@@ -8,7 +8,7 @@
     "lint": "eslint --config ../../.github/linters/eslint.config.mjs ."
   },
   "dependencies": {
-    "@google-cloud/bigquery": "^8.1.1",
+    "@google-cloud/bigquery": "^9.0.3",
     "uuid": "^14.0.1"
   },
   "devDependencies": {
