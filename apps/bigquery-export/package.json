@@ -13,9 +13,9 @@
   },
   "dependencies": {
     "@google-cloud/bigquery": "9.0.3",
-    "@google-cloud/firestore": "8.7.0",
+    "@google-cloud/firestore": "9.0.1",
     "@httparchive/shared": "*",
-    "uuid": "^14.0.1"
+    "uuid": "^14.0.2"
   },
   "devDependencies": {
     "eslint": "^10.9.1"
