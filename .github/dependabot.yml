@@ -5,18 +5,29 @@
 
 version: 2
 updates:
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: github-actions
+    directory: '/'
     schedule:
-      interval: "monthly"
+      interval: monthly
+    groups:
+      github-actions:
+        patterns:
+          - '*'
 
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: npm
+    directory: '/'
     schedule:
-      interval: "monthly"
+      interval: monthly
+    groups:
+      npm-dependencies:
+        patterns:
+          - '*'
 
-  - package-ecosystem: "terraform"
-    directories:
-      - "/terraform"
+  - package-ecosystem: terraform
+    directory: /terraform
     schedule:
-      interval: "monthly"
+      interval: monthly
+    groups:
+      terraform:
+        patterns:
+          - '*'
