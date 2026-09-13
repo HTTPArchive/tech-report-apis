@@ -62,7 +62,7 @@ const createMcpServer = () => {
       ...agentIntentContext,
       technology: z.string().describe('Comma-separated technology names (e.g. "WordPress" or "WordPress,Drupal")'),
       geo: z.string().optional().describe('Geographic region (e.g. "ALL", "US", "GB"). Defaults to "ALL"'),
-      rank: z.string().optional().describe('Traffic rank segment (e.g. "ALL", "top 1000", "top 10000"). Defaults to "ALL"'),
+      rank: z.string().optional().describe('Traffic rank segment (e.g. "Top 1k", "Top 10k", "Top 100k", "Top 1M", "Top 10M", "ALL"). Call list_ranks to see available options. Defaults to "ALL"'),
       start: z.string().optional().describe('Start date in YYYY-MM-DD format, or "latest" for most recent data'),
       end: z.string().optional().describe('End date in YYYY-MM-DD format'),
     },
@@ -79,7 +79,7 @@ const createMcpServer = () => {
       ...agentIntentContext,
       technology: z.string().describe('Comma-separated technology names (e.g. "WordPress" or "WordPress,Drupal")'),
       geo: z.string().optional().describe('Geographic region (e.g. "ALL", "US", "GB"). Defaults to "ALL"'),
-      rank: z.string().optional().describe('Traffic rank segment (e.g. "ALL", "top 1000", "top 10000"). Defaults to "ALL"'),
+      rank: z.string().optional().describe('Traffic rank segment (e.g. "Top 1k", "Top 10k", "Top 100k", "Top 1M", "Top 10M", "ALL"). Call list_ranks to see available options. Defaults to "ALL"'),
       start: z.string().optional().describe('Start date in YYYY-MM-DD format, or "latest" for most recent data'),
       end: z.string().optional().describe('End date in YYYY-MM-DD format'),
     },
@@ -96,7 +96,7 @@ const createMcpServer = () => {
       ...agentIntentContext,
       technology: z.string().describe('Comma-separated technology names (e.g. "WordPress" or "WordPress,Drupal")'),
       geo: z.string().optional().describe('Geographic region (e.g. "ALL", "US", "GB"). Defaults to "ALL"'),
-      rank: z.string().optional().describe('Traffic rank segment (e.g. "ALL", "top 1000", "top 10000"). Defaults to "ALL"'),
+      rank: z.string().optional().describe('Traffic rank segment (e.g. "Top 1k", "Top 10k", "Top 100k", "Top 1M", "Top 10M", "ALL"). Call list_ranks to see available options. Defaults to "ALL"'),
       start: z.string().optional().describe('Start date in YYYY-MM-DD format, or "latest" for most recent data'),
       end: z.string().optional().describe('End date in YYYY-MM-DD format'),
     },
@@ -113,7 +113,7 @@ const createMcpServer = () => {
       ...agentIntentContext,
       technology: z.string().describe('Comma-separated technology names (e.g. "WordPress" or "WordPress,Drupal")'),
       geo: z.string().optional().describe('Geographic region (e.g. "ALL", "US", "GB"). Defaults to "ALL"'),
-      rank: z.string().optional().describe('Traffic rank segment (e.g. "ALL", "top 1000", "top 10000"). Defaults to "ALL"'),
+      rank: z.string().optional().describe('Traffic rank segment (e.g. "Top 1k", "Top 10k", "Top 100k", "Top 1M", "Top 10M", "ALL"). Call list_ranks to see available options. Defaults to "ALL"'),
       start: z.string().optional().describe('Start date in YYYY-MM-DD format, or "latest" for most recent data'),
       end: z.string().optional().describe('End date in YYYY-MM-DD format'),
     },
@@ -130,7 +130,7 @@ const createMcpServer = () => {
       ...agentIntentContext,
       technology: z.string().describe('Comma-separated technology names (e.g. "WordPress" or "WordPress,Drupal")'),
       geo: z.string().optional().describe('Geographic region (e.g. "ALL", "US", "GB"). Defaults to "ALL"'),
-      rank: z.string().optional().describe('Traffic rank segment (e.g. "ALL", "top 1000", "top 10000"). Defaults to "ALL"'),
+      rank: z.string().optional().describe('Traffic rank segment (e.g. "Top 1k", "Top 10k", "Top 100k", "Top 1M", "Top 10M", "ALL"). Call list_ranks to see available options. Defaults to "ALL"'),
       start: z.string().optional().describe('Start date in YYYY-MM-DD format, or "latest" for most recent data'),
       end: z.string().optional().describe('End date in YYYY-MM-DD format'),
     },
@@ -146,7 +146,7 @@ const createMcpServer = () => {
     {
       ...agentIntentContext,
       technology: z.string().optional().describe('Comma-separated technology names (e.g. "WordPress" or "WordPress,Drupal"). Defaults to "ALL"'),
-      rank: z.string().optional().describe('Traffic rank segment (e.g. "ALL", "top 1000", "top 10000"). Defaults to "ALL"'),
+      rank: z.string().optional().describe('Traffic rank segment (e.g. "Top 1k", "Top 10k", "Top 100k", "Top 1M", "Top 10M", "ALL"). Call list_ranks to see available options. Defaults to "ALL"'),
       end: z.string().optional().describe('Snapshot date in YYYY-MM-DD format. Defaults to the latest available date'),
     },
     async ({ technology, rank, end }) => {
@@ -163,7 +163,7 @@ const createMcpServer = () => {
       technology: z.string().describe('Comma-separated technology names (e.g. "WordPress" or "Wix,WordPress")'),
       date: z.string().describe('Crawl date in YYYY-MM-DD format (e.g. "2026-02-01")'),
       geo: z.string().optional().describe('Geographic filter — a country name (e.g. "United States of America") or "ALL" for global data. Defaults to "ALL"'),
-      rank: z.string().optional().describe('Numeric rank ceiling (e.g. "10000"). Omit or set to "ALL" for all ranks'),
+      rank: z.string().optional().describe('Traffic rank segment (e.g. "Top 1k", "Top 10k", "Top 100k", "Top 1M", "Top 10M", "ALL"). Call list_ranks to see available options. Defaults to "ALL"'),
     },
     async ({ technology, date, geo, rank }) => {
       const data = await queryCWVDistribution({ technology, date, geo: geo || 'ALL', rank: rank && rank !== 'ALL' ? rank : null });
@@ -173,7 +173,7 @@ const createMcpServer = () => {
 
   server.tool(
     'list_ranks',
-    'List available traffic rank segments for filtering Tech Report data (e.g. "top 1000", "top 10000", "top 100000", "ALL").',
+    'List available traffic rank segments for filtering Tech Report data (e.g. "Top 1k", "Top 10k", "Top 100k", "Top 1M", "Top 10M", "ALL").',
     agentIntentContext,
     async () => {
       const data = await queryRanks();

@@ -897,8 +897,14 @@ describe('API Routes', () => {
       expect(Array.isArray(res.body)).toBe(true);
     });
 
-    it('should return 200 with rank filter applied', async () => {
+    it('should return 200 with rank filter applied (numeric)', async () => {
       const res = await request(app).get('/v1/cwv-distribution?technology=Wix&date=2026-02-01&rank=10000');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('should return 200 with rank filter applied (segment label)', async () => {
+      const res = await request(app).get('/v1/cwv-distribution?technology=Wix&date=2026-02-01&rank=Top%20100k');
       expect(res.statusCode).toEqual(200);
       expect(Array.isArray(res.body)).toBe(true);
     });

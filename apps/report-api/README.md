@@ -288,7 +288,7 @@ Provides per-bucket CWV metric distribution histograms for technologies, optiona
 - `technology` (required): Technology name(s) - comma-separated list, e.g. `Wix,WordPress`
 - `date` (required): Crawl date in `YYYY-MM-DD` format, e.g. `2026-02-01`
 - `geo` (optional): Geographic filter (defaults to `ALL`). Use a country name such as `United States of America` for country-level data.
-- `rank` (optional): Numeric rank ceiling, e.g. `10000`. Omit or set to `ALL` to include all ranks.
+- `rank` (optional): Traffic rank segment (e.g. `Top 100k`, `Top 10k`). Call `/v1/ranks` to see options. Omit or set to `ALL` to include all ranks.
 
 #### CWV Distribution Response
 

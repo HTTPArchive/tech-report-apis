@@ -1,5 +1,5 @@
 import { firestore, firestoreOld, bigquery, alloydb } from './db.js';
-import { convertToArray } from './helpers.js';
+import { convertToArray, parseRankParam } from './helpers.js';
 import {
   getLatestDate,
   validateArrayParameter,
@@ -165,7 +165,7 @@ export const queryCWVDistribution = async ({ technology, date, geo = 'ALL', rank
   const allTechnologies = !technology || technology === 'ALL';
   const technologies = allTechnologies ? [] : convertToArray(technology);
   const techClause = allTechnologies ? '' : 'AND t.technology IN UNNEST(@technologies)';
-  const rankParam = (rank !== null && rank !== 'ALL') ? parseInt(rank, 10) : null;
+  const rankParam = parseRankParam(rank);
   const rankClause = rankParam !== null ? 'AND rank <= @rank' : '';
 
   const query = `WITH pages AS (

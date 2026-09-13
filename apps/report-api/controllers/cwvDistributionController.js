@@ -12,7 +12,7 @@ import {
  * Query parameters:
  *   technology (required) - comma-separated list of technologies, e.g. "Wix,WordPress"
  *   date       (required) - crawl date in YYYY-MM-DD format, e.g. "2026-02-01"
- *   rank       (optional) - numeric rank ceiling, e.g. "10000". Omit or set to "ALL" to include all ranks.
+ *   rank       (optional) - traffic rank segment (e.g. "Top 100k", "Top 10k"). Call /v1/ranks to see options. Omit or set to "ALL" to include all ranks.
  *   geo        (optional) - geographic filter, e.g. "United States of America". Defaults to "ALL".
  */
 export const listCWVDistributionData = async (req, res) => {
