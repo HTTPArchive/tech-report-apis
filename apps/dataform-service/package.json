@@ -20,7 +20,7 @@
     "@google-cloud/run": "4.0.0",
     "@google-cloud/storage": "8.0.1",
     "@httparchive/shared": "*",
-    "uuid": "^14.0.1"
+    "uuid": "^14.0.2"
   },
   "devDependencies": {
     "eslint": "^10.9.1"
