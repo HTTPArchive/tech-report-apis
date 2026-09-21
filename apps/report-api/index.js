@@ -114,6 +114,27 @@ const handleRequest = async (req, res) => {
       return;
     }
 
+    // Serve robots.txt directly to prevent 404 WARNING logs from web crawlers
+    if (pathname === '/robots.txt' && (req.method === 'GET' || req.method === 'HEAD')) {
+      res.setHeader('Content-Type', 'text/plain');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.statusCode = 200;
+      if (req.method === 'HEAD') {
+        res.end();
+      } else {
+        res.end('User-agent: *\nAllow: /\n');
+      }
+      return;
+    }
+
+    // Serve favicon.ico with 204 No Content to prevent 404 WARNING logs
+    if (pathname === '/favicon.ico' && (req.method === 'GET' || req.method === 'HEAD')) {
+      res.setHeader('Cache-Control', 'public, max-age=604800');
+      res.statusCode = 204;
+      res.end();
+      return;
+    }
+
     if (pathname === '/' && req.method === 'GET') {
       sendJSONResponse(req, res, { status: 'ok' });
     } else if (req.method === 'GET' && V1_ROUTES.has(pathname)) {
@@ -124,6 +145,7 @@ const handleRequest = async (req, res) => {
         await handler(req, res);
       } else {
         res.statusCode = 404;
+        res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=3600');
         res.end(JSON.stringify({ error: 'Not Found' }));
       }
     } else if (pathname.startsWith('/v1/static/') && req.method === 'GET') {
@@ -135,15 +157,22 @@ const handleRequest = async (req, res) => {
       }
       const { proxyReportsFile } = await getController('static');
       await proxyReportsFile(req, res, filePath);
+    } else if (pathname.startsWith('/reports/') && req.method === 'GET') {
+      // Legacy route mapping for static reports (e.g. /reports/bytesTotal.json)
+      const filePath = decodeURIComponent(pathname.replace(/^\//, ''));
+      const { proxyReportsFile } = await getController('static');
+      await proxyReportsFile(req, res, filePath);
     } else {
       res.statusCode = 404;
+      res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=3600');
       res.end(JSON.stringify({ error: 'Not Found' }));
     }
   } catch (error) {
-    console.error('Error:', error);
-    res.statusCode = 400;
+    console.error('Unhandled Server Error:', error);
+    const statusCode = error.statusCode || error.status || 500;
+    res.statusCode = statusCode;
     res.end(JSON.stringify({
-      errors: [{ error: error.message || 'Unknown error occurred' }]
+      errors: [{ error: statusCode >= 500 ? 'Internal Server Error' : (error.message || 'Unknown error occurred') }]
     }));
   }
 };

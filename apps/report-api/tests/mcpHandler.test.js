@@ -1,4 +1,4 @@
-import { jest, describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { jest, describe, it, expect, beforeAll } from '@jest/globals';
 
 jest.unstable_mockModule('@modelcontextprotocol/sdk/server/mcp.js', () => ({
   McpServer: class {
@@ -181,5 +181,39 @@ describe('mcpHandler Telemetry and Handlers', () => {
 
         infoSpy.mockRestore();
         errorSpy.mockRestore();
+    });
+
+    it('should set up graceful SSE timeout on text/event-stream GET requests', async () => {
+        jest.useFakeTimers();
+
+        const mockReq = {
+            method: 'GET',
+            headers: {
+                accept: 'text/event-stream'
+            }
+        };
+
+        const closeCallbacks = [];
+        const mockRes = {
+            on: jest.fn((event, cb) => {
+                if (event === 'close') closeCallbacks.push(cb);
+            }),
+            writeHead: jest.fn(),
+            setHeader: jest.fn(),
+            write: jest.fn(),
+            end: jest.fn(),
+            writableEnded: false
+        };
+
+        await handleMcp(mockReq, mockRes);
+
+        // Fast-forward 55 minutes
+        jest.advanceTimersByTime(55 * 60 * 1000);
+        expect(mockRes.end).toHaveBeenCalled();
+
+        // Trigger close to clean up
+        closeCallbacks.forEach(cb => cb());
+
+        jest.useRealTimers();
     });
 });

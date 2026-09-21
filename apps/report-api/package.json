@@ -8,7 +8,7 @@
     "node": ">=24"
   },
   "scripts": {
-    "function": "DATABASE=tech-report-api-prod functions-framework --target=app",
+    "function": "DATABASE=tech-report-api-prod IGNORED_ROUTES= functions-framework --target=app",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "test:live": "bash ../../scripts/test-api.sh",
     "build": "docker build -t report-api -f apps/report-api/Dockerfile .",

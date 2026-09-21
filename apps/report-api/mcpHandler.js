@@ -209,6 +209,8 @@ const createMcpServer = () => {
 };
 
 export const handleMcp = async (req, res) => {
+  let sseTimeout;
+
   // Gracefully handle standard browser/bot GET requests to avoid 406 WARNING logs
   if (req.method === 'GET') {
     const acceptHeader = req.headers.accept || '';
@@ -216,6 +218,19 @@ export const handleMcp = async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'text/plain' });
       res.end('HTTP Archive MCP Server. Please use an MCP client to connect.');
       return;
+    }
+
+    // Cloud Run terminates connections forcefully at 3600s, generating
+    // "Truncated response body" warnings and LB backend_timeouts.
+    // Gracefully cycle the SSE connection after 55 minutes so the server
+    // terminates cleanly with 200, allowing compliant MCP clients to reconnect.
+    sseTimeout = setTimeout(() => {
+      if (!res.writableEnded) {
+        res.end();
+      }
+    }, 55 * 60 * 1000);
+    if (sseTimeout.unref) {
+      sseTimeout.unref();
     }
   }
 
@@ -227,6 +242,9 @@ export const handleMcp = async (req, res) => {
   await server.connect(transport);
 
   res.on('close', () => {
+    if (sseTimeout) {
+      clearTimeout(sseTimeout);
+    }
     transport.close();
     server.close();
   });

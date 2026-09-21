@@ -95,7 +95,7 @@ jest.unstable_mockModule('../utils/db.js', () => {
 });
 
 // Import app after mocking
-await import('../index.js');
+const { app: handleRequest } = await import('../index.js');
 import { getTestServer } from '@google-cloud/functions-framework/testing';
 const app = getTestServer('app');
 
@@ -117,6 +117,40 @@ describe('API Routes', () => {
       expect(res.statusCode).toEqual(204);
       expect(res.headers['access-control-allow-origin']).toEqual('*');
       expect(res.headers['access-control-allow-methods']).toContain('GET');
+    });
+  });
+
+  describe('Utility Routes (robots.txt, favicon.ico)', () => {
+    it('should return robots.txt with 200', async () => {
+      let statusCode = 200;
+      let body = '';
+      const headers = {};
+      const mockReq = { method: 'GET', url: '/robots.txt' };
+      const mockRes = {
+        setHeader: (k, v) => { headers[k.toLowerCase()] = v; },
+        set statusCode(code) { statusCode = code; },
+        get statusCode() { return statusCode; },
+        end: (data) => { if (data) body += data; }
+      };
+      await handleRequest(mockReq, mockRes);
+      expect(statusCode).toEqual(200);
+      expect(headers['content-type']).toContain('text/plain');
+      expect(body).toContain('User-agent: *');
+    });
+
+    it('should return favicon.ico with 204 No Content', async () => {
+      let statusCode = 200;
+      const headers = {};
+      const mockReq = { method: 'GET', url: '/favicon.ico' };
+      const mockRes = {
+        setHeader: (k, v) => { headers[k.toLowerCase()] = v; },
+        set statusCode(code) { statusCode = code; },
+        get statusCode() { return statusCode; },
+        end: () => {}
+      };
+      await handleRequest(mockReq, mockRes);
+      expect(statusCode).toEqual(204);
+      expect(headers['cache-control']).toBeDefined();
     });
   });
 
@@ -443,6 +477,7 @@ describe('API Routes', () => {
     it('should return 404 for unknown endpoints', async () => {
       const res = await request(app).get('/v1/unknown-endpoint');
       expect(res.statusCode).toEqual(404);
+      expect(res.headers['cache-control']).toContain('public');
       expect(res.body).toHaveProperty('error', 'Not Found');
     });
 
@@ -863,6 +898,23 @@ describe('API Routes', () => {
         expect(res.statusCode).toEqual(200);
         expect(res.headers['content-type']).toContain('application/octet-stream');
       });
+    });
+  });
+
+  describe('GET /reports/* (Legacy report alias)', () => {
+    it('should route legacy /reports/* paths to proxyReportsFile', async () => {
+      const content = '{"test":true}';
+      const readable = Readable.from([content]);
+
+      mockFileExists.mockResolvedValue([true]);
+      mockGetMetadata.mockResolvedValue([{ size: content.length }]);
+      mockCreateReadStream.mockReturnValue(readable);
+
+      const res = await request(app)
+        .get('/reports/bytesTotal.json')
+        .expect(200);
+
+      expect(res.headers['content-type']).toContain('application/json');
     });
   });
 

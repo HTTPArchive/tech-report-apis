@@ -57,6 +57,8 @@ export const proxyReportsFile = async (req, res, filePath) => {
         const [exists] = await file.exists();
         if (!exists) {
             res.statusCode = 404;
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=3600');
             res.end(JSON.stringify({ error: 'File not found' }));
             return;
         }
