@@ -46,11 +46,11 @@ Workflows are scheduled and orchestrated automatically using GCP event-driven tr
 
 1. **[crawl-complete](https://console.cloud.google.com/cloudpubsub/subscription/detail/dataform-service-crawl-complete?authuser=2&project=httparchive) Pub/Sub Subscription**
    * **Target Workspace**: `dataform-service`
-   * **Tags Triggered**: `["crawl_complete"]`
+   * **Tags Triggered**: `["crawl_complete", "crawl_complete_reports"]`
 
 2. **[bq-poller-crux-ready](https://console.cloud.google.com/cloudscheduler/jobs/edit/us-central1/bq-poller-crux-ready?authuser=7&project=httparchive) Scheduler**
    * **Target Workspace**: `dataform-service` (Poller Job)
-   * **Tags Triggered**: `["crux_ready"]`
+   * **Tags Triggered**: `["crux_ready", "crux_ready_reports"]`
 
 ### Workflow Orchestration
 We use a unified Cloud Run function ([dataform-service](./apps/dataform-service/)) to handle triggers. It performs intermediate state checks, compiles the Dataform configs, and initiates execution configurations.
