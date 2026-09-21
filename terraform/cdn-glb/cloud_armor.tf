@@ -17,7 +17,7 @@ resource "google_compute_security_policy_rule" "enforce_valid_host" {
 
   match {
     expr {
-      expression = "!has(request.headers['host']) || !request.headers['host'].matches('^(cdn|api)\\\\.(dev\\\\.)?httparchive\\\\.org(:[0-9]+)?$')"
+      expression = "!has(request.headers['host']) || !request.headers['host'].matches('^cdn\\\\.httparchive\\\\.org(?::[0-9]+)?$')"
     }
   }
 }
@@ -33,7 +33,7 @@ resource "google_compute_security_policy_rule" "block_scanners" {
 
   match {
     expr {
-      expression = "evaluatePreconfiguredExpr('scannerdetection-v33')"
+      expression = "evaluatePreconfiguredExpr('scannerdetection-v33-stable')"
     }
   }
 }
@@ -49,7 +49,7 @@ resource "google_compute_security_policy_rule" "block_lfi" {
 
   match {
     expr {
-      expression = "evaluatePreconfiguredExpr('lfi-v33')"
+      expression = "evaluatePreconfiguredExpr('lfi-v33-stable')"
     }
   }
 }
