@@ -52,7 +52,8 @@ FROM crux, report;
     actionArgs: {
       repoName: 'crawl-data',
       tags: [
-        'crawl_complete'
+        'crawl_complete',
+        'crawl_complete_reports'
       ]
     }
   }
