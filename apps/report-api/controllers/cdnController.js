@@ -1,3 +1,4 @@
+import { pipeline } from 'node:stream';
 import { Storage } from '@google-cloud/storage';
 
 // Initialize GCS client (uses Application Default Credentials)
@@ -105,15 +106,30 @@ export const proxyReportsFile = async (req, res, filePath) => {
 
         const readStream = file.createReadStream({ decompress: !isGzipEncoded });
 
-        readStream.on('error', (err) => {
-            console.error('Error streaming file from GCS:', err);
-            if (!res.headersSent) {
+        // Clean up stream if client aborts or disconnects prematurely
+        const cleanup = () => {
+            if (!res.writableEnded) {
+                readStream.destroy();
+            }
+        };
+        req.on('close', cleanup);
+        res.on('close', cleanup);
+
+        if (req.setTimeout) {
+            req.setTimeout(120000, () => {
+                readStream.destroy(new Error('Stream timeout exceeded'));
+            });
+        }
+
+        pipeline(readStream, res, (err) => {
+            req.removeListener('close', cleanup);
+            res.removeListener('close', cleanup);
+            if (err && err.code !== 'ERR_STREAM_PREMATURE_CLOSE' && !res.headersSent) {
+                console.error('Error streaming file from GCS:', err);
                 res.statusCode = 500;
                 res.end(JSON.stringify({ error: 'Failed to read file' }));
             }
         });
-
-        readStream.pipe(res);
 
     } catch (error) {
         console.error('Error proxying GCS file:', error);

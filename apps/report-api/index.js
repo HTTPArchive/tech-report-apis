@@ -78,7 +78,7 @@ const handleRequest = async (req, res) => {
     const pathname = req.path || req.url.split('?')[0];
 
     // MCP endpoint — handled before common headers; transport owns the response
-    if (pathname === '/mcp') {
+    if (pathname === '/mcp' || pathname === '/v1/mcp') {
       setCORSHeaders(res);
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization, mcp-session-id, mcp-protocol-version, x-conversation-id, x-operation-id');
@@ -102,6 +102,21 @@ const handleRequest = async (req, res) => {
       }
       const { handleMcp } = await import('./mcpHandler.js');
       await handleMcp(req, res);
+      return;
+    }
+
+    // Handle OAuth discovery probe from modern MCP clients cleanly without 404 WARNING logs
+    if (pathname.startsWith('/.well-known/oauth-protected-resource')) {
+      setCORSHeaders(res);
+      if (req.method === 'OPTIONS') {
+        res.statusCode = 204;
+        res.end();
+        return;
+      }
+      res.statusCode = 404;
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.end(JSON.stringify({ error: 'OAuth not configured' }));
       return;
     }
 
