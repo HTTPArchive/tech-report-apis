@@ -167,6 +167,12 @@ describe('API Routes', () => {
       expect(Array.isArray(res.body)).toBe(true);
     });
 
+    it('should return 400 when more than 30 technologies are requested', async () => {
+      const technologies = Array.from({ length: 31 }, (_, i) => `Tech${i}`).join(',');
+      const res = await request(app).get(`/v1/technologies?technology=${technologies}`);
+      expect(res.statusCode).toEqual(400);
+    });
+
     it('should filter technologies by name', async () => {
       const res = await request(app).get('/v1/technologies?technology=WordPress');
       expect(res.statusCode).toEqual(200);
@@ -929,6 +935,12 @@ describe('API Routes', () => {
       const res = await request(app).get('/v1/cwv-distribution?technology=Wix');
       expect(res.statusCode).toEqual(200);
       expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('should return 400 when date is malformed', async () => {
+      const res = await request(app).get('/v1/cwv-distribution?technology=Wix&date=undefined');
+      expect(res.statusCode).toEqual(400);
+      expect(res.body.errors).toEqual([{ date: 'invalid date parameter, expected YYYY-MM-DD or "latest"' }]);
     });
 
     it('should return 400 when both technology and date are missing', async () => {

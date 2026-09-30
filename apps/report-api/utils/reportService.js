@@ -24,12 +24,13 @@ export const queryTechnologies = async (params = {}) => {
   const technologyParam = params.technology || 'ALL';
   const technologies = technologyParam !== 'ALL' ? validateTechnologyArray(technologyParam) : [];
 
+  if (technologies === null) {
+    const err = new Error(`Too many technologies specified. Maximum ${FIRESTORE_IN_LIMIT} allowed.`);
+    err.statusCode = 400;
+    throw err;
+  }
+
   if (technologies.length > 0) {
-    if (technologyParam !== 'ALL' && validateTechnologyArray(technologyParam) === null) {
-      const err = new Error(`Too many technologies specified. Maximum ${FIRESTORE_IN_LIMIT} allowed.`);
-      err.statusCode = 400;
-      throw err;
-    }
     query = query.where('technology', 'in', technologies);
   }
 

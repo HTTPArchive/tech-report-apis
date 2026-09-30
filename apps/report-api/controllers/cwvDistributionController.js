@@ -21,6 +21,9 @@ export const listCWVDistributionData = async (req, res) => {
 
     const errors = [];
     if (!params.technology) errors.push(['technology', 'missing technology parameter']);
+    if (params.date && params.date !== 'latest' && !/^\d{4}-\d{2}-\d{2}$/.test(params.date)) {
+      errors.push(['date', 'invalid date parameter, expected YYYY-MM-DD or "latest"']);
+    }
     if (errors.length > 0) {
       sendValidationError(res, errors);
       return;
