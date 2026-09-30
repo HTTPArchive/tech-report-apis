@@ -791,6 +791,33 @@ describe('API Routes', () => {
       });
     });
 
+    describe('Transfer time limit', () => {
+      afterEach(() => {
+        delete process.env.STATIC_MAX_TRANSFER_MS;
+      });
+
+      it('should abort a transfer that exceeds the time limit', async () => {
+        process.env.STATIC_MAX_TRANSFER_MS = '100';
+        // Sends one chunk, then stalls like a slow client or stalled GCS read
+        const stalled = new Readable({ read () {} });
+        stalled.push('partial');
+
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockResolvedValue([{
+          contentType: 'application/pdf',
+          etag: '"abc123"',
+          size: 1000000
+        }]);
+        mockCreateReadStream.mockReturnValue(stalled);
+
+        const started = Date.now();
+        await request(app).get('/v1/static/almanac/ebooks/book.pdf').catch(() => {});
+
+        expect(stalled.destroyed).toBe(true);
+        expect(Date.now() - started).toBeLessThan(5000);
+      });
+    });
+
     describe('Error scenarios (GCS failures)', () => {
       it('should handle GCS exists() failure', async () => {
         mockFileExists.mockRejectedValue(new Error('GCS connection failed'));

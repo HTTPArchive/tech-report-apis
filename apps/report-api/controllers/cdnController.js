@@ -5,6 +5,10 @@ import { logger } from '@httparchive/shared';
 // Initialize GCS client (uses Application Default Credentials)
 const storage = new Storage();
 
+// Upper bound on a single file transfer. Slow clients otherwise hold the request
+// open until Cloud Run's request timeout and surface as a 502.
+const DEFAULT_MAX_TRANSFER_MS = 1 * 60 * 1000;
+
 // MIME type mapping for common file extensions
 const MIME_TYPES = {
     '.json': 'application/json',
@@ -122,7 +126,15 @@ export const proxyReportsFile = async (req, res, filePath) => {
             });
         }
 
+        const maxTransferMs = Number(process.env.STATIC_MAX_TRANSFER_MS) || DEFAULT_MAX_TRANSFER_MS;
+        const transferTimer = setTimeout(() => {
+            logger.warn('Static file transfer exceeded time limit', { objectPath, maxTransferMs });
+            readStream.destroy(new Error('Transfer time limit exceeded'));
+        }, maxTransferMs);
+        transferTimer.unref();
+
         pipeline(readStream, res, (err) => {
+            clearTimeout(transferTimer);
             req.removeListener('close', cleanup);
             res.removeListener('close', cleanup);
             if (err && err.code !== 'ERR_STREAM_PREMATURE_CLOSE' && !res.headersSent) {
