@@ -20,7 +20,7 @@ resource "google_monitoring_alert_policy" "dataform_service_error" {
       filter           = <<EOF
 resource.type="cloud_run_revision"
 resource.labels.service_name="dataform-service"
-severity>=WARNING
+(severity>=ERROR OR (severity=WARNING AND log_id("run.googleapis.com/stderr")))
 EOF
       label_extractors = {}
     }
@@ -52,7 +52,7 @@ resource "google_monitoring_alert_policy" "bigquery_export_error" {
       filter           = <<EOF
 resource.type="cloud_run_job"
 resource.labels.job_name="bigquery-export"
-severity=ERROR
+severity>=ERROR
 EOF
       label_extractors = {}
     }
