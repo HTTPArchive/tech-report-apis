@@ -7,6 +7,11 @@ resource "google_cloud_run_v2_service" "dataform_service" {
     containers {
       image = docker_registry_image.registry_image.name
 
+      env {
+        name  = "GOOGLE_CLOUD_PROJECT"
+        value = var.project
+      }
+
       resources {
         limits = {
           cpu    = "2"

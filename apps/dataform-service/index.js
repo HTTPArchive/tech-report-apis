@@ -1,6 +1,6 @@
 import functions from '@google-cloud/functions-framework'
 
-import { BigQueryExport, logger, registerProcessLogging } from '@httparchive/shared'
+import { BigQueryExport, logger, registerProcessLogging, withTraceContext } from '@httparchive/shared'
 import { callRunJob } from './cloud_run.js'
 import { getCompilationResults, runWorkflow } from './dataform.js'
 import { StorageUpload } from './storage.js'
@@ -92,7 +92,7 @@ async function handleExport (req, res) {
       try {
         payload = JSON.parse(payload)
       } catch (e) {
-        logger.error('Failed to parse payload string', e)
+        logger.warn('Failed to parse payload string', e)
       }
     }
 
@@ -110,7 +110,7 @@ async function handleExport (req, res) {
       try {
         config = JSON.parse(config)
       } catch (e) {
-        logger.error('Failed to parse config string', e)
+        logger.warn('Failed to parse config string', e)
       }
     }
 
@@ -139,7 +139,9 @@ async function handleExport (req, res) {
       const jobName = `projects/${projectId}/locations/${location}/jobs/${jobId}`
       await callRunJob(jobName, payload)
     } else {
-      throw new Error('Bad Request: destination unknown')
+      const error = new Error('Bad Request: destination unknown')
+      error.statusCode = 400
+      throw error
     }
 
     res.status(200).json({
@@ -147,7 +149,12 @@ async function handleExport (req, res) {
       message: 'Export job initialized'
     })
   } catch (error) {
-    logger.error('Export error', error)
+    // Client errors must not trigger the ERROR alert
+    if (error.statusCode === 400) {
+      logger.warn('Export error', error)
+    } else {
+      logger.error('Export error', error)
+    }
     res.status(400).json({
       replies: [400],
       errorMessage: error.message || error
@@ -167,7 +174,7 @@ async function handleTrigger (req, res) {
     const message = req.body.message
     if (!message) {
       const msg = 'no message received'
-      logger.error(`Trigger error: ${msg}`, { body: req.body })
+      logger.warn(`Trigger error: ${msg}`, { body: req.body })
       res.status(400).send(`Bad Request: ${msg}`)
       return
     }
@@ -176,14 +183,14 @@ async function handleTrigger (req, res) {
       ? JSON.parse(Buffer.from(message.data, 'base64').toString('utf-8'))
       : message
     if (!messageData) {
-      logger.error('Bad Request: invalid message format', { message })
+      logger.warn('Bad Request: invalid message format', { pubsubMessage: message })
       res.status(400).send('Bad Request: invalid message format')
       return
     }
 
     const eventName = messageData.name
     if (!eventName) {
-      logger.error('Bad Request: no trigger name found', { messageData })
+      logger.warn('Bad Request: no trigger name found', { messageData })
       res.status(400).send('Bad Request: no trigger name found')
       return
     }
@@ -203,13 +210,13 @@ async function handleTrigger (req, res) {
         logger.info(`Event action ${eventName}`, { eventName })
         await executeAction(trigger.action, trigger.actionArgs)
       } else {
-        logger.error(`No action found for event: ${eventName}`, { eventName })
+        logger.warn(`No action found for event: ${eventName}`, { eventName })
         res.status(404).send(`No action found for event: ${eventName}`)
         return
       }
       res.status(200).send('Event processed successfully')
     } else {
-      logger.error(`No action found for event: ${eventName}`, { eventName })
+      logger.warn(`No action found for event: ${eventName}`, { eventName })
       res.status(404).send(`No action found for event: ${eventName}`)
     }
   } catch (error) {
@@ -305,4 +312,5 @@ async function mainHandler (req, res) {
  * }
  *
  */
-functions.http('dataform-service', mainHandler)
+// Correlate every log entry with the Cloud Run request log
+functions.http('dataform-service', (req, res) => withTraceContext(req, () => mainHandler(req, res)))

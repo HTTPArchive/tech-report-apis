@@ -84,12 +84,20 @@ export class FirestoreBatch {
     // Configure error handling with progress info
     bulkWriter.onWriteError((error) => {
       const progressInfo = this.totalDocs > 0 ? ` (${this.processedDocs}/${this.totalDocs})` : ''
-      logger.warn(`${operation} operation failed${progressInfo}`, error)
+      // Log only identifying fields; a stack per retried write adds nothing
+      const writeError = {
+        error: error.message,
+        code: error.code,
+        operationType: error.operationType,
+        documentPath: error.documentRef?.path,
+        failedAttempts: error.failedAttempts
+      }
+      logger.warn(`${operation} operation failed${progressInfo}: ${error.message}`, writeError)
 
       // Limit retry attempts to prevent infinite retry loops on persistent transient errors
       const MAX_RETRIES = 5
       if (error.failedAttempts >= MAX_RETRIES) {
-        logger.error(`Operation failed after ${error.failedAttempts} attempts. Skipping/failing.`, { failedAttempts: error.failedAttempts })
+        logger.error(`Operation failed after ${error.failedAttempts} attempts. Skipping/failing.`, writeError)
         this.pendingCount--
         this.failedWrites++
         return false
