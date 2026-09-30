@@ -1,22 +1,11 @@
 import functions from '@google-cloud/functions-framework'
 
-import { BigQueryExport, logger } from '@httparchive/shared'
+import { BigQueryExport, logger, registerProcessLogging } from '@httparchive/shared'
 import { callRunJob } from './cloud_run.js'
 import { getCompilationResults, runWorkflow } from './dataform.js'
 import { StorageUpload } from './storage.js'
 
-process.on('warning', (warning) => {
-  logger.warn('Node runtime warning', {
-    message: warning.message,
-    name: warning.name,
-    stack: warning.stack,
-    type: 'NodeRuntimeWarning'
-  })
-})
-
-process.on('unhandledRejection', (reason) => {
-  logger.error('Unhandled Rejection', reason)
-})
+registerProcessLogging()
 
 const projectId = 'httparchive'
 const location = 'us-central1'

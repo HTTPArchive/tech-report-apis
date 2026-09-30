@@ -1,18 +1,7 @@
-import { logger } from '@httparchive/shared'
+import { logger, registerProcessLogging } from '@httparchive/shared'
 import { FirestoreBatch } from './firestore.js'
 
-process.on('warning', (warning) => {
-  logger.warn('Node runtime warning', {
-    message: warning.message,
-    name: warning.name,
-    stack: warning.stack,
-    type: 'NodeRuntimeWarning'
-  })
-})
-
-process.on('unhandledRejection', (reason) => {
-  logger.error('Unhandled Rejection', reason)
-})
+registerProcessLogging({ exitOnUnhandledRejection: true })
 
 async function main () {
   const { query, destination, config } = process.env.EXPORT_CONFIG && JSON.parse(process.env.EXPORT_CONFIG)

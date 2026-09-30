@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { z } from 'zod';
+import { logger } from '@httparchive/shared';
 
 const agentIntentContext = {
   caption: z.string().optional().describe('Explain the intent or the reasoning behind this request. E.g. "requesting page weight metrics by technology as doing the analysis of top heavy technologies within a defined tech stack"'),
@@ -250,7 +251,7 @@ export const handleMcp = async (req, res) => {
   });
 
   // Log before handleRequest — Cloud Run freezes CPU once the response is sent,
-  // so any console.log after the await would be silently dropped.
+  // so any log after the await would be silently dropped.
   try {
     if (req.method === 'POST') {
       let mcpRequest = req.body;
@@ -263,9 +264,7 @@ export const handleMcp = async (req, res) => {
 
       if (mcpRequest && mcpRequest.method === 'tools/call') {
         const args = mcpRequest.params?.arguments || {};
-        console.log(JSON.stringify({
-          severity: 'INFO',
-          message: `MCP Tool Call: ${mcpRequest.params?.name}`,
+        logger.info(`MCP Tool Call: ${mcpRequest.params?.name}`, {
           tool: mcpRequest.params?.name,
           arguments: args,
           caption: args.caption,
@@ -273,15 +272,11 @@ export const handleMcp = async (req, res) => {
           operation_id: args.operation_id || (req.headers && req.headers['x-operation-id']),
           user_agent: req.headers && req.headers['user-agent'],
           host: req.headers && req.headers['host'],
-        }));
+        });
       }
     }
   } catch (err) {
-    console.error(JSON.stringify({
-      severity: 'ERROR',
-      message: 'Failed to log MCP request',
-      error: err.toString()
-    }));
+    logger.error('Failed to log MCP request', err);
   }
 
   await transport.handleRequest(req, res, req.body);

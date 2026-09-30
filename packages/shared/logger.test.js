@@ -21,7 +21,7 @@ test('logger format handles Error objects correctly', () => {
   assert.strictEqual(parsed.severity, 'ERROR')
   assert.strictEqual(parsed.message, 'Test failure')
   assert.strictEqual(parsed.code, 'ERR_TEST')
-  assert.ok(parsed.stack)
+  assert.ok(parsed.stack_trace)
 })
 
 test('logger format handles message with Error extra', () => {
@@ -33,5 +33,50 @@ test('logger format handles message with Error extra', () => {
   assert.strictEqual(parsed.severity, 'ERROR')
   assert.strictEqual(parsed.message, 'Operation failed')
   assert.strictEqual(parsed.error, 'Database connection failed')
-  assert.ok(parsed.stack)
+  assert.ok(parsed.stack_trace)
+})
+
+test('logger format keeps the primary message when extra has a message key', () => {
+  const parsed = JSON.parse(logger.format('ERROR', 'Export failed', { message: 'raw error', code: 5 }))
+
+  assert.strictEqual(parsed.message, 'Export failed')
+  assert.strictEqual(parsed.code, 5)
+})
+
+test('logger format never lets extra override severity', () => {
+  const parsed = JSON.parse(logger.format('ERROR', 'Failure', { severity: 'DEBUG' }))
+
+  assert.strictEqual(parsed.severity, 'ERROR')
+})
+
+test('logger format serializes circular structures without throwing', () => {
+  const circular = { a: 1 }
+  circular.self = circular
+
+  const parsed = JSON.parse(logger.format('ERROR', 'Unhandled Rejection', { reason: circular }))
+
+  assert.strictEqual(parsed.message, 'Unhandled Rejection')
+  assert.strictEqual(parsed.reason.a, 1)
+  assert.strictEqual(parsed.reason.self, '[Circular]')
+})
+
+test('logger format serializes BigInt values as strings', () => {
+  const parsed = JSON.parse(logger.format('INFO', 'Rows', { count: 10n }))
+
+  assert.strictEqual(parsed.count, '10')
+})
+
+test('logger format includes error cause and details', () => {
+  const root = new Error('Firestore write failed')
+  root.code = 14
+  const err = new Error('Export failed', { cause: root })
+  err.details = 'UNAVAILABLE'
+
+  const parsed = JSON.parse(logger.format('ERROR', 'Job failed', err))
+
+  assert.strictEqual(parsed.error, 'Export failed')
+  assert.strictEqual(parsed.details, 'UNAVAILABLE')
+  assert.strictEqual(parsed.cause.message, 'Firestore write failed')
+  assert.strictEqual(parsed.cause.code, 14)
+  assert.ok(parsed.cause.stack)
 })

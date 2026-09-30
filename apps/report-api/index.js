@@ -1,28 +1,13 @@
 import EventEmitter from 'node:events';
 import functions from '@google-cloud/functions-framework';
+import { logger, registerProcessLogging } from '@httparchive/shared';
 import { sendJSONResponse } from './utils/controllerHelpers.js';
 
 // Increase defaultMaxListeners from 10 to 50 to accommodate deep stream pipelines (e.g. GCS stream proxies)
 EventEmitter.defaultMaxListeners = 50;
 
-// Structured logging for Node runtime warnings to avoid unformatted DEFAULT logs in Cloud Logging
-process.on('warning', (warning) => {
-  console.warn(JSON.stringify({
-    severity: 'WARNING',
-    message: warning.message,
-    name: warning.name,
-    stack: warning.stack,
-    type: 'NodeRuntimeWarning'
-  }));
-});
-
-process.on('unhandledRejection', (reason) => {
-  console.error(JSON.stringify({
-    severity: 'ERROR',
-    message: `Unhandled Rejection: ${reason?.message || reason}`,
-    stack: reason?.stack
-  }));
-});
+// Structured logging for Node runtime warnings and unhandled rejections
+registerProcessLogging();
 
 const CONTROLLER_MODULES = new Map([
   ['technologies', './controllers/technologiesController.js'],
@@ -206,11 +191,7 @@ const handleRequest = async (req, res) => {
       res.end(JSON.stringify({ error: 'Not Found' }));
     }
   } catch (error) {
-    console.error(JSON.stringify({
-      severity: 'ERROR',
-      message: `Unhandled Server Error: ${error.message || error}`,
-      stack: error.stack
-    }));
+    logger.error('Unhandled Server Error', error instanceof Error ? error : { error });
     const statusCode = error.statusCode || error.status || 500;
     res.statusCode = statusCode;
     res.end(JSON.stringify({

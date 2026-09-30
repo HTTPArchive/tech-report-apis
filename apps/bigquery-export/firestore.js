@@ -54,6 +54,7 @@ export class FirestoreBatch {
     this.processedDocs = 0
     this.totalDocs = 0
     this.pendingCount = 0
+    this.failedWrites = 0
 
     // Clean up existing BulkWriter if it exists
     if (this.bulkWriter) {
@@ -90,6 +91,7 @@ export class FirestoreBatch {
       if (error.failedAttempts >= MAX_RETRIES) {
         logger.error(`Operation failed after ${error.failedAttempts} attempts. Skipping/failing.`, { failedAttempts: error.failedAttempts })
         this.pendingCount--
+        this.failedWrites++
         return false
       }
 
@@ -117,6 +119,7 @@ export class FirestoreBatch {
       }
 
       this.pendingCount--
+      this.failedWrites++
       return false
     })
 
@@ -138,6 +141,12 @@ export class FirestoreBatch {
     })
 
     return bulkWriter
+  }
+
+  assertNoFailedWrites(operation) {
+    if (this.failedWrites > 0) {
+      throw new Error(`${this.failedWrites} ${operation} operations failed in ${this.collectionName}`)
+    }
   }
 
   async waitIfNeeded() {
@@ -256,7 +265,8 @@ export class FirestoreBatch {
           }
 
           for (const doc of docs) {
-            this.bulkWriter.delete(doc.ref)
+            // Failures are counted in onWriteError and checked after flush
+            this.bulkWriter.delete(doc.ref).catch(() => {})
             this.pendingCount++
             partitionDeletedCount++
           }
@@ -275,6 +285,7 @@ export class FirestoreBatch {
     logger.info('Finalizing deletion operations...')
     await this.bulkWriter.flush()
     await this.bulkWriter.close()
+    this.assertNoFailedWrites('delete')
 
     const duration = (Date.now() - startTime) / 1000
     logger.info(`Deletion complete. Total docs deleted: ${this.processedDocs}. Time: ${duration} seconds`, { processedDocs: this.processedDocs, durationSeconds: duration })
@@ -295,7 +306,8 @@ export class FirestoreBatch {
       for await (const row of rowStream) {
         // Add document to BulkWriter
         const docRef = collectionRef.doc()
-        this.bulkWriter.set(docRef, row)
+        // Failures are counted in onWriteError and checked after flush
+        this.bulkWriter.set(docRef, row).catch(() => {})
         this.pendingCount++
         rowCount++
         this.totalDocs = rowCount // Update totalDocs for progress tracking
@@ -312,6 +324,7 @@ export class FirestoreBatch {
     logger.info('Finalizing write operations...')
     await this.bulkWriter.flush()
     await this.bulkWriter.close()
+    this.assertNoFailedWrites('write')
 
     // Final garbage collection
     if (global.gc) {
@@ -354,13 +367,13 @@ export class FirestoreBatch {
       // Avoid dumping the massive Firestore client instance (contained in documentRef)
       if (error && error.documentRef) {
         const cleanError = {
-          message: error.message,
+          error: error.message,
           code: error.code,
           documentPath: error.documentRef.path,
           failedAttempts: error.failedAttempts
         }
         logger.error(`Export to ${exportConfig.collection} failed`, cleanError)
-        throw new Error(`Export failed at document ${cleanError.documentPath}: ${cleanError.message} (code: ${cleanError.code})`, { cause: error })
+        throw new Error(`Export failed at document ${cleanError.documentPath}: ${cleanError.error} (code: ${cleanError.code})`, { cause: error })
       }
 
       logger.error(`Export to ${exportConfig.collection} failed`, error)
