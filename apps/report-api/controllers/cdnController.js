@@ -6,8 +6,8 @@ import { logger } from '@httparchive/shared';
 const storage = new Storage();
 
 // Upper bound on a single file transfer. Slow clients otherwise hold the request
-// open until Cloud Run's 3600s request timeout and surface as a 502.
-const DEFAULT_MAX_TRANSFER_MS = 5 * 60 * 1000;
+// open until Cloud Run's request timeout and surface as a 502.
+const DEFAULT_MAX_TRANSFER_MS = 1 * 60 * 1000;
 
 // MIME type mapping for common file extensions
 const MIME_TYPES = {
