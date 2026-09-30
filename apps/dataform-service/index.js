@@ -1,9 +1,22 @@
 import functions from '@google-cloud/functions-framework'
 
-import { BigQueryExport } from '@httparchive/shared'
+import { BigQueryExport, logger } from '@httparchive/shared'
 import { callRunJob } from './cloud_run.js'
 import { getCompilationResults, runWorkflow } from './dataform.js'
 import { StorageUpload } from './storage.js'
+
+process.on('warning', (warning) => {
+  logger.warn('Node runtime warning', {
+    message: warning.message,
+    name: warning.name,
+    stack: warning.stack,
+    type: 'NodeRuntimeWarning'
+  })
+})
+
+process.on('unhandledRejection', (reason) => {
+  logger.error('Unhandled Rejection', reason)
+})
 
 const projectId = 'httparchive'
 const location = 'us-central1'
@@ -75,7 +88,7 @@ function hasRequiredKeys (obj) {
  * @param {object} res Cloud Function response context.
  */
 async function handleExport (req, res) {
-  console.log(JSON.stringify(req.body))
+  logger.info('Received export request', { body: req.body })
   try {
     let payload = req.body?.calls?.[0]?.[0]
     if (!payload) {
@@ -90,7 +103,7 @@ async function handleExport (req, res) {
       try {
         payload = JSON.parse(payload)
       } catch (e) {
-        console.error('Failed to parse payload string:', e)
+        logger.error('Failed to parse payload string', e)
       }
     }
 
@@ -108,13 +121,12 @@ async function handleExport (req, res) {
       try {
         config = JSON.parse(config)
       } catch (e) {
-        console.error('Failed to parse config string:', e)
+        logger.error('Failed to parse config string', e)
       }
     }
 
     if (destination === 'cloud_storage') {
-      console.info('Cloud Storage export')
-      console.log(query, config)
+      logger.info('Cloud Storage export', { query, config })
 
       const fileName = (config?.name || '').toString().trim().toLowerCase()
 
@@ -134,7 +146,7 @@ async function handleExport (req, res) {
         return
       }
     } else if (destination === 'firestore') {
-      console.info('Firestore export')
+      logger.info('Firestore export', { payload })
       const jobName = `projects/${projectId}/locations/${location}/jobs/${jobId}`
       await callRunJob(jobName, payload)
     } else {
@@ -146,9 +158,10 @@ async function handleExport (req, res) {
       message: 'Export job initialized'
     })
   } catch (error) {
+    logger.error('Export error', error)
     res.status(400).json({
       replies: [400],
-      errorMessage: error
+      errorMessage: error.message || error
     })
   }
 }
@@ -165,8 +178,7 @@ async function handleTrigger (req, res) {
     const message = req.body.message
     if (!message) {
       const msg = 'no message received'
-      console.error(`error: ${msg}`)
-      console.log(req.body)
+      logger.error(`Trigger error: ${msg}`, { body: req.body })
       res.status(400).send(`Bad Request: ${msg}`)
       return
     }
@@ -175,14 +187,14 @@ async function handleTrigger (req, res) {
       ? JSON.parse(Buffer.from(message.data, 'base64').toString('utf-8'))
       : message
     if (!messageData) {
-      console.error(message)
+      logger.error('Bad Request: invalid message format', { message })
       res.status(400).send('Bad Request: invalid message format')
       return
     }
 
     const eventName = messageData.name
     if (!eventName) {
-      console.error(messageData)
+      logger.error('Bad Request: no trigger name found', { messageData })
       res.status(400).send('Bad Request: no trigger name found')
       return
     }
@@ -190,29 +202,29 @@ async function handleTrigger (req, res) {
     if (TRIGGERS[eventName]) {
       const trigger = TRIGGERS[eventName]
       if (trigger.type === 'poller') {
-        console.info(`Poller action ${eventName}`)
+        logger.info(`Poller action ${eventName}`, { eventName })
 
         const rows = await bigquery.queryResults(trigger.query)
         const result = rows.length > 0 && rows[0][Object.keys(rows[0])[0]] === true
-        console.info(`Query result: ${result}`)
+        logger.info(`Query result: ${result}`, { result })
         if (result) {
           await executeAction(trigger.action, trigger.actionArgs)
         }
       } else if (trigger.type === 'event') {
-        console.info(`Event action ${eventName}`)
+        logger.info(`Event action ${eventName}`, { eventName })
         await executeAction(trigger.action, trigger.actionArgs)
       } else {
-        console.error(`No action found for event: ${eventName}`)
+        logger.error(`No action found for event: ${eventName}`, { eventName })
         res.status(404).send(`No action found for event: ${eventName}`)
         return
       }
       res.status(200).send('Event processed successfully')
     } else {
-      console.error(`No action found for event: ${eventName}`)
+      logger.error(`No action found for event: ${eventName}`, { eventName })
       res.status(404).send(`No action found for event: ${eventName}`)
     }
   } catch (error) {
-    console.error(error)
+    logger.error('Trigger handler error', error)
     res.status(500).send('Internal Server Error')
   }
 }
@@ -225,7 +237,7 @@ async function handleTrigger (req, res) {
  */
 async function executeAction (actionName, actionArgs) {
   if (actionName === 'runDataformRepo') {
-    console.info(`Executing action: ${actionName}`)
+    logger.info(`Executing action: ${actionName}`, { actionName })
     await runDataformRepo(actionArgs)
   }
 }
@@ -240,7 +252,7 @@ async function runDataformRepo (args) {
   const location = 'us-central1'
   const { repoName, tags } = args
 
-  console.info(`Triggering Dataform repo ${repoName} with tags: [${tags}].`)
+  logger.info(`Triggering Dataform repo ${repoName} with tags: [${tags}].`, { repoName, tags })
   const repoURI = `projects/${project}/locations/${location}/repositories/${repoName}`
 
   const compilationResult = await getCompilationResults(repoURI)
@@ -256,7 +268,7 @@ async function runDataformRepo (args) {
 async function mainHandler (req, res) {
   const path = req.path || req.url
 
-  console.info(`Received request for path: ${path}`)
+  logger.info(`Received request for path: ${path}`, { path })
 
   if (path === '/health') {
     // Health check endpoint

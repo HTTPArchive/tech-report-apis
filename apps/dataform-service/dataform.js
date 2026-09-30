@@ -1,4 +1,5 @@
 import { DataformClient } from '@google-cloud/dataform'
+import { logger } from '@httparchive/shared'
 
 const dataformClient = new DataformClient()
 
@@ -16,9 +17,9 @@ export async function getCompilationResults (repoURI) {
     }
   }
 
-  console.info(`Creating Dataform compilation result: ${JSON.stringify(request, null, 2)}`)
+  logger.info('Creating Dataform compilation result', { request })
   const [response] = await dataformClient.createCompilationResult(request)
-  console.info(`Compilation result created: ${response.name}`)
+  logger.info(`Compilation result created: ${response.name}`, { compilationResult: response.name })
   return response.name
 }
 
@@ -44,7 +45,7 @@ export async function runWorkflow (repoURI, compilationResult, tags) {
     }
   }
 
-  console.info(`Invoking Dataform workflow: ${JSON.stringify(request, null, 2)}`)
+  logger.info('Invoking Dataform workflow', { request })
   const [response] = await dataformClient.createWorkflowInvocation(request)
-  console.info(`Workflow invoked: ${response.name}`)
+  logger.info(`Workflow invoked: ${response.name}`, { workflowInvocation: response.name })
 }

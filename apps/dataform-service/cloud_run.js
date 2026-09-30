@@ -1,4 +1,5 @@
 import run from '@google-cloud/run'
+import { logger } from '@httparchive/shared'
 
 // Export functionality
 export async function callRunJob (name, payload = {}) {
@@ -20,5 +21,5 @@ export async function callRunJob (name, payload = {}) {
 
   const [operation] = await client.runJob(request)
 
-  console.info(`Job initialized: ${operation.name}`)
+  logger.info(`Job initialized: ${operation.name}`, { job: operation.name })
 }

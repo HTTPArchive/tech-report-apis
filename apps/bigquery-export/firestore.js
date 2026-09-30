@@ -1,5 +1,5 @@
 import { Firestore, FieldPath } from '@google-cloud/firestore'
-import { BigQueryExport } from '@httparchive/shared'
+import { BigQueryExport, logger } from '@httparchive/shared'
 
 export class FirestoreBatch {
   constructor() {
@@ -38,12 +38,12 @@ export class FirestoreBatch {
       external: Math.round(used.external / 1024 / 1024 * 100) / 100
     }
 
-    console.log(`Memory usage ${operation}: RSS ${memoryInfo.rss}MB, Heap Used ${memoryInfo.heapUsed}MB, Heap Total ${memoryInfo.heapTotal}MB, External ${memoryInfo.external}MB`)
+    logger.info(`Memory usage ${operation}: RSS ${memoryInfo.rss}MB, Heap Used ${memoryInfo.heapUsed}MB, Heap Total ${memoryInfo.heapTotal}MB, External ${memoryInfo.external}MB`, { memoryInfo, operation })
 
     // Configurable memory warning threshold from environment
     const warningThreshold = parseInt(process.env.MEMORY_WARNING_THRESHOLD_MB || '1500')
     if (memoryInfo.heapUsed > warningThreshold) {
-      console.warn(`⚠️ High memory usage detected: ${memoryInfo.heapUsed}MB heap used (threshold: ${warningThreshold}MB)`)
+      logger.warn(`High memory usage detected: ${memoryInfo.heapUsed}MB heap used (threshold: ${warningThreshold}MB)`, { heapUsed: memoryInfo.heapUsed, warningThreshold })
     }
 
     return memoryInfo
@@ -60,7 +60,7 @@ export class FirestoreBatch {
       try {
         this.bulkWriter.close()
       } catch (error) {
-        console.warn('Error closing existing BulkWriter:', error.message)
+        logger.warn('Error closing existing BulkWriter', error)
       }
     }
     this.bulkWriter = null
@@ -83,12 +83,12 @@ export class FirestoreBatch {
     // Configure error handling with progress info
     bulkWriter.onWriteError((error) => {
       const progressInfo = this.totalDocs > 0 ? ` (${this.processedDocs}/${this.totalDocs})` : ''
-      console.warn(`${operation} operation failed${progressInfo}:`, error.message)
+      logger.warn(`${operation} operation failed${progressInfo}`, error)
 
       // Limit retry attempts to prevent infinite retry loops on persistent transient errors
       const MAX_RETRIES = 5
       if (error.failedAttempts >= MAX_RETRIES) {
-        console.error(`Operation failed after ${error.failedAttempts} attempts. Skipping/failing.`)
+        logger.error(`Operation failed after ${error.failedAttempts} attempts. Skipping/failing.`, { failedAttempts: error.failedAttempts })
         this.pendingCount--
         return false
       }
@@ -112,7 +112,7 @@ export class FirestoreBatch {
         (typeof error.code === 'string' && retryableErrorStrings.includes(error.code.toLowerCase()))
 
       if (isRetryable) {
-        console.log(`Retrying failed operation (attempt ${error.failedAttempts + 1}/${MAX_RETRIES})...`)
+        logger.info(`Retrying failed operation (attempt ${error.failedAttempts + 1}/${MAX_RETRIES})...`, { attempt: error.failedAttempts + 1 })
         return true
       }
 
@@ -128,7 +128,7 @@ export class FirestoreBatch {
       // Report progress periodically
       if (this.processedDocs % this.config.progressReportInterval === 0) {
         const progressInfo = this.totalDocs > 0 ? ` (${this.processedDocs}/${this.totalDocs})` : ` (${this.processedDocs} processed)`
-        console.log(`Progress${progressInfo} - ${operation}ing documents in ${this.collectionName}`)
+        logger.info(`Progress${progressInfo} - ${operation}ing documents in ${this.collectionName}`, { processedDocs: this.processedDocs, totalDocs: this.totalDocs })
 
         // Force garbage collection periodically
         if (this.processedDocs % this.config.gcInterval === 0 && global.gc) {
@@ -144,11 +144,11 @@ export class FirestoreBatch {
     const limit = 100000
     const target = 50000
     if (this.pendingCount > limit) {
-      console.log(`Pipeline full (${this.pendingCount} pending). Waiting for queue to drain below ${target}...`)
+      logger.info(`Pipeline full (${this.pendingCount} pending). Waiting for queue to drain below ${target}...`, { pendingCount: this.pendingCount })
       while (this.pendingCount > target) {
         await new Promise(resolve => setTimeout(resolve, 50))
       }
-      console.log(`Pipeline drained (${this.pendingCount} pending). Resuming...`)
+      logger.info(`Pipeline drained (${this.pendingCount} pending). Resuming...`, { pendingCount: this.pendingCount })
 
       // Force garbage collection after queue drains
       if (global.gc) {
@@ -160,11 +160,11 @@ export class FirestoreBatch {
   buildQuery(collectionRef) {
     const queryMap = {
       report: () => {
-        console.info(`Deleting documents from ${this.collectionName} for date ${this.date}`)
+        logger.info(`Deleting documents from ${this.collectionName} for date ${this.date}`, { collection: this.collectionName, date: this.date })
         return collectionRef.where('date', '==', this.date)
       },
       dict: () => {
-        console.info(`Deleting documents from ${this.collectionName}`)
+        logger.info(`Deleting documents from ${this.collectionName}`, { collection: this.collectionName })
         return collectionRef
       }
     }
@@ -182,13 +182,13 @@ export class FirestoreBatch {
       const countSnapshot = await query.count().get()
       return countSnapshot.data().count
     } catch (error) {
-      console.warn('Could not get document count for progress tracking:', error.message)
+      logger.warn('Could not get document count for progress tracking', error)
       return 0
     }
   }
 
   async batchDelete() {
-    console.info('Starting batch deletion...')
+    logger.info('Starting batch deletion...')
     const startTime = Date.now()
     this.reset()
 
@@ -198,7 +198,7 @@ export class FirestoreBatch {
     // Get total count for progress tracking
     this.totalDocs = await this.getDocumentCount(collectionQuery)
     if (this.totalDocs > 0) {
-      console.info(`Total documents to delete: ${this.totalDocs}`)
+      logger.info(`Total documents to delete: ${this.totalDocs}`, { totalDocs: this.totalDocs })
     }
 
     // Create BulkWriter for delete operations
@@ -216,7 +216,7 @@ export class FirestoreBatch {
         { start: 'v', end: '\uf8ff' }
       ]
 
-      console.info(`Split deletion into ${partitions.length} manual parallel partitions`)
+      logger.info(`Split deletion into ${partitions.length} manual parallel partitions`, { partitionsCount: partitions.length })
 
       await Promise.all(partitions.map(async (partition, index) => {
         let lastDocId = null
@@ -264,24 +264,24 @@ export class FirestoreBatch {
           // Wait if the pending operations queue is too full
           await this.waitIfNeeded()
         }
-        console.log(`Partition ${index + 1}/${partitions.length} complete. Deleted ${partitionDeletedCount} documents.`)
+        logger.info(`Partition ${index + 1}/${partitions.length} complete. Deleted ${partitionDeletedCount} documents.`, { partition: index + 1, partitionDeletedCount })
       }))
     } catch (error) {
-      console.error('Error during batch deletion pagination:', error)
+      logger.error('Error during batch deletion pagination', error)
       throw error
     }
 
     // Final flush and close
-    console.log('Finalizing deletion operations...')
+    logger.info('Finalizing deletion operations...')
     await this.bulkWriter.flush()
     await this.bulkWriter.close()
 
     const duration = (Date.now() - startTime) / 1000
-    console.info(`Deletion complete. Total docs deleted: ${this.processedDocs}. Time: ${duration} seconds`)
+    logger.info(`Deletion complete. Total docs deleted: ${this.processedDocs}. Time: ${duration} seconds`, { processedDocs: this.processedDocs, durationSeconds: duration })
   }
 
   async streamFromBigQuery(rowStream) {
-    console.info('Starting BigQuery to Firestore transfer...')
+    logger.info('Starting BigQuery to Firestore transfer...')
     const startTime = Date.now()
     this.reset()
 
@@ -304,12 +304,12 @@ export class FirestoreBatch {
         await this.waitIfNeeded()
       }
     } catch (error) {
-      console.error('Error during BigQuery streaming:', error)
+      logger.error('Error during BigQuery streaming', error)
       throw error
     }
 
     // Final flush and close
-    console.log('Finalizing write operations...')
+    logger.info('Finalizing write operations...')
     await this.bulkWriter.flush()
     await this.bulkWriter.close()
 
@@ -319,11 +319,11 @@ export class FirestoreBatch {
     }
 
     const duration = (Date.now() - startTime) / 1000
-    console.info(`Transfer to ${this.collectionName} complete. Total rows processed: ${this.processedDocs}. Time: ${duration} seconds`)
+    logger.info(`Transfer to ${this.collectionName} complete. Total rows processed: ${this.processedDocs}. Time: ${duration} seconds`, { processedDocs: this.processedDocs, durationSeconds: duration })
   }
 
   async export(query, exportConfig) {
-    console.log(`Starting export to ${exportConfig.collection}...`)
+    logger.info(`Starting export to ${exportConfig.collection}...`, { collection: exportConfig.collection })
     this.logMemoryUsage('at start')
 
     // Configure Firestore settings
@@ -347,7 +347,7 @@ export class FirestoreBatch {
       await this.streamFromBigQuery(rowStream)
 
       this.logMemoryUsage('at completion')
-      console.log(`✅ Export to ${exportConfig.collection} completed successfully`)
+      logger.info(`Export to ${exportConfig.collection} completed successfully`, { collection: exportConfig.collection })
     } catch (error) {
       this.logMemoryUsage('on error')
 
@@ -359,11 +359,11 @@ export class FirestoreBatch {
           documentPath: error.documentRef.path,
           failedAttempts: error.failedAttempts
         }
-        console.error(`❌ Export to ${exportConfig.collection} failed:`, cleanError)
+        logger.error(`Export to ${exportConfig.collection} failed`, cleanError)
         throw new Error(`Export failed at document ${cleanError.documentPath}: ${cleanError.message} (code: ${cleanError.code})`, { cause: error })
       }
 
-      console.error(`❌ Export to ${exportConfig.collection} failed:`, error)
+      logger.error(`Export to ${exportConfig.collection} failed`, error)
       throw error
     }
   }

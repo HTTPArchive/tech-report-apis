@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { logger } from '@httparchive/shared';
 import { convertToArray } from './helpers.js';
 
 /**
@@ -107,7 +108,7 @@ const validateArrayParameter = (value, fieldName = 'parameter') => {
  * @param {string} operation - Description of the operation that failed
  */
 const handleControllerError = (res, error, operation) => {
-  console.error(`Error ${operation}:`, error);
+  logger.error(`Error ${operation}`, error);
   const statusCode = error.statusCode || 500;
   res.statusCode = statusCode;
 
