@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { logger } from '@httparchive/shared';
 import { convertToArray } from './helpers.js';
 
 /**
@@ -107,8 +108,10 @@ const validateArrayParameter = (value, fieldName = 'parameter') => {
  * @param {string} operation - Description of the operation that failed
  */
 const handleControllerError = (res, error, operation) => {
-  console.error(`Error ${operation}:`, error);
   const statusCode = error.statusCode || 500;
+  // Client errors (4xx) are WARNING; the alert policy excludes them by jsonPayload.statusCode
+  const log = statusCode < 500 ? logger.warn : logger.error;
+  log(`Error ${operation}`, error);
   res.statusCode = statusCode;
 
   // Use custom error message for client errors (4xx), generic message for server errors (5xx)

@@ -20,6 +20,7 @@
     "@google-cloud/firestore": "9.0.1",
     "@google-cloud/functions-framework": "5.0.5",
     "@google-cloud/storage": "8.0.1",
+    "@httparchive/shared": "*",
     "@modelcontextprotocol/sdk": "1.30.0",
     "pg": "8.23.0",
     "zod": "4.5.4"

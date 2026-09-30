@@ -1,4 +1,5 @@
 import { Storage } from '@google-cloud/storage'
+import { logger } from '@httparchive/shared'
 import { Readable } from 'stream'
 import zlib from 'zlib'
 
@@ -55,7 +56,7 @@ export class StorageUpload {
         }))
         .on('error', reject)
         .on('finish', () => {
-          console.info(`File ${fileName} successfully written to ${this.bucket}`)
+          logger.info(`File ${fileName} successfully written to ${this.bucket}`, { bucket: this.bucket, fileName })
           resolve()
         })
     })
@@ -80,7 +81,7 @@ export class StorageUpload {
         }))
         .on('error', reject)
         .on('finish', () => {
-          console.info(`File ${fileName} successfully written to ${this.bucket}`)
+          logger.info(`File ${fileName} successfully written to ${this.bucket}`, { bucket: this.bucket, fileName })
           resolve()
         })
     })

@@ -19,5 +19,6 @@ USER node
 COPY --chown=node:node --from=pruner /app/out/full/ .
 COPY --chown=node:node --from=installer /app/node_modules ./node_modules
 WORKDIR /app/apps/dataform-service
+ENV NODE_NO_WARNINGS=1
 ENV PORT=8080
 CMD ["/app/node_modules/.bin/functions-framework", "--target=dataform-service", "--signature-type=http"]

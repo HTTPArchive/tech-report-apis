@@ -19,4 +19,5 @@ USER node
 COPY --chown=node:node --from=pruner /app/out/full/ .
 COPY --chown=node:node --from=installer /app/node_modules ./node_modules
 WORKDIR /app/apps/bigquery-export
+ENV NODE_NO_WARNINGS=1
 CMD ["node", "index.js"]

@@ -1,4 +1,5 @@
 import { BigQuery } from '@google-cloud/bigquery'
+import { logger } from './logger.js'
 
 export class BigQueryExport {
   constructor (options = {}) {
@@ -15,9 +16,9 @@ export class BigQueryExport {
     }
 
     const [job] = await this.bigquery.createQueryJob(options)
-    console.info(`Running BigQuery query: ${job.id}`)
+    logger.info(`Running BigQuery query: ${job.id}`, { jobId: job.id })
     const [rows] = await job.getQueryResults()
-    console.log('Fetching query results completed')
+    logger.info('Fetching query results completed', { jobId: job.id, rowCount: rows.length })
     return rows
   }
 
@@ -29,7 +30,7 @@ export class BigQueryExport {
     }
 
     const [job] = await this.bigquery.createQueryJob(options)
-    console.info(`Running BigQuery query: ${job.id}`)
+    logger.info(`Running BigQuery query: ${job.id}`, { jobId: job.id })
     const rows = job.getQueryResultsStream()
     return rows
   }

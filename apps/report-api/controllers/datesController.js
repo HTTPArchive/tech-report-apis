@@ -1,4 +1,5 @@
 import { Storage } from '@google-cloud/storage';
+import { logger } from '@httparchive/shared';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -18,7 +19,7 @@ try {
   gcs = new Storage();
   bucket = gcs.bucket(GCS_BUCKET);
 } catch (e) {
-  console.warn('Unable to authenticate to Google Cloud Storage. Using mock dates.', e.message);
+  logger.warn('Unable to authenticate to Google Cloud Storage. Using mock dates', e);
   loadDatesFromGCS = false;
 }
 
@@ -87,7 +88,7 @@ async function getDates() {
     lastDatesUpdate = now;
     return dates;
   } catch (err) {
-    console.error('Error fetching dates from GCS:', err.message);
+    logger.error('Error fetching dates from GCS', err);
     return mockDates;
   }
 }
@@ -120,7 +121,7 @@ async function getLatestDate(dates, metricId) {
     }
   } catch (err) {
     const safeMetricIdForLog = String(metricId).replace(/[\r\n]/g, '');
-    console.error('Error finding latest date for %s:', safeMetricIdForLog, err.message);
+    logger.error(`Error finding latest date for ${safeMetricIdForLog}`, err);
   }
 
   return mockDates[0];
@@ -140,7 +141,7 @@ async function loadReportsConfig() {
     reportsJson = JSON.parse(fileContent);
     lastReportsUpdate = now;
   } catch (err) {
-    console.error('Error reading config/reports.json:', err.message);
+    logger.error('Error reading config/reports.json', err);
   }
   return reportsJson;
 }

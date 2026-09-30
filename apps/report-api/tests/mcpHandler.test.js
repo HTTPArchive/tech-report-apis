@@ -177,7 +177,7 @@ describe('mcpHandler Telemetry and Handlers', () => {
         const loggedErrorCall = errorSpy.mock.calls[0];
         const logErrorPayload = JSON.parse(loggedErrorCall[0]);
         expect(logErrorPayload.severity).toBe('ERROR');
-        expect(logErrorPayload.message).toBe('Failed to log MCP request');
+        expect(logErrorPayload.message).toBe('Failed to log MCP request: Simulated payload error');
 
         infoSpy.mockRestore();
         errorSpy.mockRestore();

@@ -1,28 +1,13 @@
 import EventEmitter from 'node:events';
 import functions from '@google-cloud/functions-framework';
+import { logger, registerProcessLogging, withTraceContext } from '@httparchive/shared';
 import { sendJSONResponse } from './utils/controllerHelpers.js';
 
 // Increase defaultMaxListeners from 10 to 50 to accommodate deep stream pipelines (e.g. GCS stream proxies)
 EventEmitter.defaultMaxListeners = 50;
 
-// Structured logging for Node runtime warnings to avoid unformatted DEFAULT logs in Cloud Logging
-process.on('warning', (warning) => {
-  console.warn(JSON.stringify({
-    severity: 'WARNING',
-    message: warning.message,
-    name: warning.name,
-    stack: warning.stack,
-    type: 'NodeRuntimeWarning'
-  }));
-});
-
-process.on('unhandledRejection', (reason) => {
-  console.error(JSON.stringify({
-    severity: 'ERROR',
-    message: `Unhandled Rejection: ${reason?.message || reason}`,
-    stack: reason?.stack
-  }));
-});
+// Structured logging for Node runtime warnings and unhandled rejections
+registerProcessLogging();
 
 const CONTROLLER_MODULES = new Map([
   ['technologies', './controllers/technologiesController.js'],
@@ -206,12 +191,9 @@ const handleRequest = async (req, res) => {
       res.end(JSON.stringify({ error: 'Not Found' }));
     }
   } catch (error) {
-    console.error(JSON.stringify({
-      severity: 'ERROR',
-      message: `Unhandled Server Error: ${error.message || error}`,
-      stack: error.stack
-    }));
     const statusCode = error.statusCode || error.status || 500;
+    const log = statusCode < 500 ? logger.warn : logger.error;
+    log('Unhandled Server Error', error instanceof Error ? error : { error, statusCode });
     res.statusCode = statusCode;
     res.end(JSON.stringify({
       errors: [{ error: statusCode >= 500 ? 'Internal Server Error' : (error.message || 'Unknown error occurred') }]
@@ -219,8 +201,11 @@ const handleRequest = async (req, res) => {
   }
 };
 
+// Correlate every log entry with the Cloud Run request log
+const app = (req, res) => withTraceContext(req, () => handleRequest(req, res));
+
 // Register with Functions Framework
-functions.http('app', handleRequest);
+functions.http('app', app);
 
 // Export for testing using Functions Framework testing utilities
-export { handleRequest as app };
+export { app };
