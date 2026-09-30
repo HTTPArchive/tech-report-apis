@@ -152,11 +152,12 @@ resource "google_monitoring_alert_policy" "report_api_endpoint" {
 (resource.type = "cloud_run_revision" AND resource.labels.service_name = "report-api-prod")
 OR logName = "projects/httparchive/logs/requests"
 severity >= WARNING
+httpRequest.requestUrl =~ "https:\/\/cdn\.httparchive\.org"
 -httpRequest.status = (400 OR 404 OR 405)
 -jsonPayload.statusDetails = ("denied_by_security_policy" OR "handled_by_cloud_armor" OR "response_from_cache" OR "backend_timeout")
 -textPayload = "Truncated response body. Usually implies that the request timed out or the application exited before the response was finished."
--httpRequest.userAgent =~ "(?i)(bot|crawler|spider|slurp|archiver|scraper|research|baiduspider|googlebot|facebookexternalhit|meta-externalagent|mj12bot|petalbot|ccbot|censysinspect|worker|python)"
--protoPayload.userAgent =~ "(?i)(bot|crawler|spider|slurp|archiver|scraper|research|baiduspider|googlebot|facebookexternalhit|meta-externalagent|mj12bot|petalbot|ccbot|censysinspect|worker|python)"
+-httpRequest.userAgent =~ "(?i)(curl|bot|crawler|spider|slurp|archiver|scraper|research|baiduspider|googlebot|facebookexternalhit|meta-externalagent|mj12bot|petalbot|ccbot|censysinspect|worker|python|http-|-http)"
+-protoPayload.userAgent =~ "(?i)(curl|bot|crawler|spider|slurp|archiver|scraper|research|baiduspider|googlebot|facebookexternalhit|meta-externalagent|mj12bot|petalbot|ccbot|censysinspect|worker|python|http-|-http)"
 EOF
       label_extractors = {}
     }
