@@ -14,15 +14,15 @@
     "lint": "eslint --config ../../.github/linters/eslint.config.mjs ."
   },
   "dependencies": {
-    "@google-cloud/bigquery": "9.0.3",
-    "@google-cloud/dataform": "3.2.0",
+    "@google-cloud/bigquery": "9.1.0",
+    "@google-cloud/dataform": "3.3.1",
     "@google-cloud/functions-framework": "^5.0.1",
-    "@google-cloud/run": "4.0.0",
-    "@google-cloud/storage": "8.0.1",
+    "@google-cloud/run": "4.1.1",
+    "@google-cloud/storage": "8.2.0",
     "@httparchive/shared": "*",
     "uuid": "^14.0.2"
   },
   "devDependencies": {
-    "eslint": "^10.9.1"
+    "eslint": "^10.11.0"
   }
 }

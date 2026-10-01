@@ -16,22 +16,22 @@
     "docker": "docker run -p 8080:8080 report-api"
   },
   "dependencies": {
-    "@google-cloud/bigquery": "9.0.3",
-    "@google-cloud/firestore": "9.0.1",
+    "@google-cloud/bigquery": "9.1.0",
+    "@google-cloud/firestore": "9.2.0",
     "@google-cloud/functions-framework": "5.0.5",
-    "@google-cloud/storage": "8.0.1",
+    "@google-cloud/storage": "8.2.0",
     "@httparchive/shared": "*",
-    "@modelcontextprotocol/sdk": "1.30.0",
+    "@modelcontextprotocol/sdk": "1.31.0",
     "pg": "8.23.0",
-    "zod": "4.5.4"
+    "zod": "4.6.5"
   },
   "devDependencies": {
     "@httparchive/eslint-config": "*",
     "@httparchive/jest-config": "*",
-    "@jest/transform": "30.5.1",
-    "eslint": "^10.9.1",
-    "jest": "30.5.1",
-    "supertest": "7.2.2"
+    "@jest/transform": "30.5.2",
+    "eslint": "^10.11.0",
+    "jest": "30.5.2",
+    "supertest": "7.3.0"
   }
 }
 
