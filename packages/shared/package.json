@@ -9,10 +9,10 @@
     "lint": "eslint --config ../../.github/linters/eslint.config.mjs ."
   },
   "dependencies": {
-    "@google-cloud/bigquery": "^9.0.3",
+    "@google-cloud/bigquery": "^9.1.0",
     "uuid": "^14.0.2"
   },
   "devDependencies": {
-    "eslint": "^10.9.1"
+    "eslint": "^10.11.0"
   }
 }
