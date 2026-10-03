@@ -4,30 +4,35 @@
 # https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 
 version: 2
+
+multi-ecosystem-groups:
+  dependencies:
+    schedule:
+      interval: "monthly"
+
 updates:
-  - package-ecosystem: github-actions
-    directory: '/'
-    schedule:
-      interval: monthly
-    groups:
-      github-actions:
-        patterns:
-          - '*'
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    patterns:
+      - "*"
+    multi-ecosystem-group: "dependencies"
+    cooldown:
+      default-days: 7
 
-  - package-ecosystem: npm
-    directory: '/'
-    schedule:
-      interval: monthly
-    groups:
-      npm-dependencies:
-        patterns:
-          - '*'
+  - package-ecosystem: "npm"
+    directory: "/"
+    patterns:
+      - "*"
+    multi-ecosystem-group: "dependencies"
+    cooldown:
+      default-days: 7
 
-  - package-ecosystem: terraform
-    directory: /terraform
-    schedule:
-      interval: monthly
-    groups:
-      terraform:
-        patterns:
-          - '*'
+  - package-ecosystem: "terraform"
+    directory: "/terraform"
+    patterns:
+      - "*"
+    multi-ecosystem-group: "dependencies"
+    cooldown:
+      default-days: 7
+
+
