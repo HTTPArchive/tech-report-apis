@@ -7,7 +7,7 @@ resource "google_alloydb_cluster" "default" {
   location         = var.region
   project          = var.project
   cluster_type     = "PRIMARY"
-  database_version = "POSTGRES_17"
+  database_version = "POSTGRES_18"
 
   psc_config {
     psc_enabled = true

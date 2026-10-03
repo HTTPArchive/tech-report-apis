@@ -1,6 +1,6 @@
 # Cloud Run service account
 resource "google_project_iam_member" "function_identity" {
-  for_each = var.environment == "prod" ? toset(["roles/bigquery.jobUser", "roles/dataform.serviceAgent", "roles/run.invoker", "roles/run.jobsExecutorWithOverrides", "roles/datastore.user", "roles/storage.objectUser"]) : []
+  for_each = var.environment == "prod" ? toset(["roles/bigquery.jobUser", "roles/run.invoker", "roles/run.jobsExecutorWithOverrides", "roles/datastore.user", "roles/storage.objectUser"]) : []
 
   project = var.project
   role    = each.value
@@ -60,4 +60,14 @@ resource "google_bigquery_dataset_iam_member" "cloud_build_wappalyzer_editor" {
   role       = "roles/bigquery.dataEditor"
   member     = "serviceAccount:${var.cloud_build_service_account_email}"
 }
+
+# GitHub Actions CI/CD service account permissions
+resource "google_project_iam_member" "github_actions_roles" {
+  for_each = var.environment == "prod" ? toset(var.github_actions_roles) : []
+
+  project = var.project
+  role    = each.value
+  member  = "serviceAccount:${var.github_actions_service_account_email}"
+}
+
 

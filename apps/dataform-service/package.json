@@ -1,7 +1,7 @@
 {
   "name": "dataform-service",
   "version": "1.0.0",
-  "description": "Dataform Service HTTP controller and scheduler trigger",
+  "description": "Dataform Service HTTP controller for BigQuery export jobs",
   "main": "index.js",
   "type": "module",
   "engines": {
@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@google-cloud/bigquery": "9.1.0",
-    "@google-cloud/dataform": "3.3.1",
     "@google-cloud/functions-framework": "^5.0.1",
     "@google-cloud/run": "4.1.1",
     "@google-cloud/storage": "8.2.0",

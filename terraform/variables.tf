@@ -100,3 +100,50 @@ variable "cloud_build_service_account_email" {
   default     = "cloud-build@httparchive.iam.gserviceaccount.com"
 }
 
+# Cloud Composer (Airflow) variables
+variable "composer_environment_name" {
+  description = "Name of the Cloud Composer environment"
+  type        = string
+  default     = "httparchive-pipelines"
+}
+
+variable "composer_image_version" {
+  description = "Cloud Composer 3 image version"
+  type        = string
+  default     = "composer-3-airflow-2"
+}
+
+variable "composer_service_account_id" {
+  description = "Service account ID for Cloud Composer workloads"
+  type        = string
+  default     = "composer-worker"
+}
+
+variable "github_actions_service_account_email" {
+  description = "GitHub Actions service account email for CI/CD deployments"
+  type        = string
+  default     = "github-actions@httparchive.iam.gserviceaccount.com"
+}
+
+variable "github_actions_roles" {
+  description = "IAM roles for GitHub Actions service account"
+  type        = list(string)
+  default = [
+    "roles/alloydb.admin",
+    "roles/appengine.deployer",
+    "roles/appengine.serviceAdmin",
+    "roles/artifactregistry.admin",
+    "roles/artifactregistry.repoAdmin",
+    "roles/cloudbuild.builds.builder",
+    "roles/compute.loadBalancerAdmin",
+    "roles/firebasehosting.admin",
+    "roles/iam.networkAdmin",
+    "roles/iam.serviceAccountUser",
+    "roles/run.admin",
+    "roles/serviceusage.serviceUsageConsumer",
+    "roles/storage.objectUser",
+    "roles/viewer",
+  ]
+}
+
+
