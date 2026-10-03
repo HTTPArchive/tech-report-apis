@@ -64,6 +64,7 @@ variable "edit_datasets" {
     "sample_data",
     "latest",
     "wappalyzer",
+    "urls",
 
     // Reports
     "blink_features",
