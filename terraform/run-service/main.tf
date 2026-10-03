@@ -6,17 +6,6 @@ terraform {
   }
 }
 
-# Get access token for Artifact Registry authentication
-data "google_client_config" "default" {}
-
-# Configure Docker provider with GCP Artifact Registry authentication
-provider "docker" {
-  registry_auth {
-    address  = "${var.region}-docker.pkg.dev"
-    username = "oauth2accesstoken"
-    password = data.google_client_config.default.access_token
-  }
-}
 
 # Calculate hash of source files using git (respects .gitignore)
 data "external" "source_hash" {
@@ -56,7 +45,7 @@ resource "google_cloud_run_v2_service" "service" {
       name  = "app"
       image = docker_registry_image.registry_image.name
       resources {
-        cpu_idle = var.environment == "prod" ? false : true
+        cpu_idle = false
         limits = {
           cpu    = var.available_cpu
           memory = var.available_memory

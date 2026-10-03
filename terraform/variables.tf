@@ -10,6 +10,7 @@ variable "region" {
 variable "environment" {
   description = "The environment name"
   type        = string
+  default     = "prod"
 }
 variable "project_database" {
   type        = string

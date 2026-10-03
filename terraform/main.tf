@@ -1,7 +1,10 @@
 terraform {
   required_version = ">=1.11.0"
 
-  backend "gcs" {}
+  backend "gcs" {
+    bucket = "tfstate-httparchive"
+    prefix = "tech-report-apis/prod"
+  }
 
   required_providers {
     docker = {
@@ -43,21 +46,19 @@ module "endpoints" {
   service_name          = "report-api"
   service_account_email = var.service_account_email
   region                = var.region
-  min_instances         = var.environment == "prod" ? 1 : 0
-  ingress_settings      = var.environment == "prod" ? "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER" : "INGRESS_TRAFFIC_ALL"
+  min_instances         = 1
+  ingress_settings      = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
   timeout               = "3600s"
 
   artifact_registry_repository_uri = google_artifact_registry_repository.report_api.registry_uri
 
   environment_variables = {
     "PROJECT"  = var.project
-    "DATABASE" = "${var.project_database}prod" // TODO: Update this to use ${var.environment}
+    "DATABASE" = "${var.project_database}prod"
   }
 }
 
 module "cdn_glb" {
-  count = var.environment == "prod" ? 1 : 0
-
   source = "./cdn-glb"
 
   project     = var.project
@@ -77,8 +78,6 @@ module "cdn_glb" {
 }
 
 resource "google_alloydb_user" "cloud_run_service_account" {
-  count = var.environment == "prod" ? 1 : 0
-
   cluster   = "projects/${var.project}/locations/${var.region}/clusters/default"
   user_id   = replace(var.service_account_email, ".gserviceaccount.com", "")
   user_type = "ALLOYDB_IAM_USER"
@@ -88,16 +87,10 @@ resource "google_alloydb_user" "cloud_run_service_account" {
 }
 
 module "database" {
-  count       = var.environment == "prod" ? 1 : 0
   source      = "./database"
   project     = var.project
   region      = var.region
   environment = var.environment
-}
-
-moved {
-  from = module.endpoints.google_artifact_registry_repository.report_api
-  to   = google_artifact_registry_repository.report_api
 }
 
 resource "google_artifact_registry_repository" "report_api" {
@@ -129,7 +122,6 @@ resource "google_artifact_registry_repository" "report_api" {
 }
 
 module "bigquery_export" {
-  count                             = var.environment == "prod" ? 1 : 0
   source                            = "./bigquery-export"
   project                           = var.project
   region                            = var.region
@@ -142,7 +134,6 @@ module "bigquery_export" {
 }
 
 module "dataform_service" {
-  count                             = var.environment == "prod" ? 1 : 0
   source                            = "./dataform-service"
   project                           = var.project
   region                            = var.region
@@ -156,7 +147,6 @@ module "dataform_service" {
 }
 
 module "masthead_agent" {
-  count  = var.environment == "prod" ? 1 : 0
   source = "github.com/masthead-data/terraform-google-masthead-agent?ref=httparchive"
 
   project_id = var.project

@@ -1,5 +1,4 @@
 resource "google_service_account" "composer" {
-  count        = var.environment == "prod" ? 1 : 0
   account_id   = var.composer_service_account_id
   display_name = "Cloud Composer Service Account for ${var.composer_environment_name}"
   project      = var.project
@@ -7,38 +6,36 @@ resource "google_service_account" "composer" {
 
 # Core Composer worker role
 resource "google_project_iam_member" "composer_worker" {
-  count   = var.environment == "prod" ? 1 : 0
   project = var.project
   role    = "roles/composer.worker"
-  member  = "serviceAccount:${google_service_account.composer[0].email}"
+  member  = "serviceAccount:${google_service_account.composer.email}"
 }
 
 # Pipeline execution roles for DAGs
 resource "google_project_iam_member" "composer_pipeline_roles" {
-  for_each = var.environment == "prod" ? toset([
+  for_each = toset([
     "roles/bigquery.jobUser",
     "roles/dataform.editor",
     "roles/storage.objectUser",
     "roles/pubsub.subscriber",
-  ]) : []
+  ])
 
   project = var.project
   role    = each.value
-  member  = "serviceAccount:${google_service_account.composer[0].email}"
+  member  = "serviceAccount:${google_service_account.composer.email}"
 }
 
 # BigQuery dataset editor permissions for managed datasets
 resource "google_bigquery_dataset_iam_member" "composer_dataset_editor_role" {
-  for_each = var.environment == "prod" ? toset(var.edit_datasets) : []
+  for_each = toset(var.edit_datasets)
 
   dataset_id = each.value
   role       = "roles/bigquery.dataEditor"
-  member     = "serviceAccount:${google_service_account.composer[0].email}"
+  member     = "serviceAccount:${google_service_account.composer.email}"
 }
 
 # Cloud Composer 3 environment (smallest footprint for testing)
 resource "google_composer_environment" "airflow" {
-  count   = var.environment == "prod" ? 1 : 0
   name    = var.composer_environment_name
   project = var.project
   region  = var.region
@@ -72,7 +69,7 @@ resource "google_composer_environment" "airflow" {
     }
 
     node_config {
-      service_account = google_service_account.composer[0].email
+      service_account = google_service_account.composer.email
     }
 
     web_server_network_access_control {
@@ -94,21 +91,14 @@ resource "google_composer_environment" "airflow" {
 
 # Pub/Sub topic and pull subscription for Airflow crawl_complete DAG
 resource "google_pubsub_topic" "crawl_complete" {
-  count   = var.environment == "prod" ? 1 : 0
   name    = "crawl-complete"
   project = var.project
 }
 
-moved {
-  from = module.dataform_service[0].google_pubsub_topic.dataform_crawl_complete
-  to   = google_pubsub_topic.crawl_complete[0]
-}
-
 resource "google_pubsub_subscription" "airflow_crawl_complete" {
-  count   = var.environment == "prod" ? 1 : 0
   name    = "airflow-crawl-complete"
   project = var.project
-  topic   = google_pubsub_topic.crawl_complete[0].id
+  topic   = google_pubsub_topic.crawl_complete.id
 
   message_retention_duration = "604800s" # 7 days
   retain_acked_messages      = false
@@ -123,25 +113,25 @@ resource "google_pubsub_subscription" "airflow_crawl_complete" {
 
 output "composer_environment_name" {
   description = "Cloud Composer environment name"
-  value       = try(google_composer_environment.airflow[0].name, null)
+  value       = google_composer_environment.airflow.name
 }
 
 output "composer_airflow_uri" {
   description = "Airflow web UI URI"
-  value       = try(google_composer_environment.airflow[0].config[0].airflow_uri, null)
+  value       = google_composer_environment.airflow.config[0].airflow_uri
 }
 
 output "composer_dag_gcs_prefix" {
   description = "Cloud Storage prefix to the DAGs folder used by Cloud Composer"
-  value       = try(google_composer_environment.airflow[0].config[0].dag_gcs_prefix, null)
+  value       = google_composer_environment.airflow.config[0].dag_gcs_prefix
 }
 
 output "composer_service_account" {
   description = "Service account email running Cloud Composer workloads"
-  value       = try(google_service_account.composer[0].email, null)
+  value       = google_service_account.composer.email
 }
 
 output "composer_crawl_complete_subscription" {
   description = "Pub/Sub subscription for the crawl_complete Airflow DAG"
-  value       = try(google_pubsub_subscription.airflow_crawl_complete[0].id, null)
+  value       = google_pubsub_subscription.airflow_crawl_complete.id
 }

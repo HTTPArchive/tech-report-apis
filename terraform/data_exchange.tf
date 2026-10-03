@@ -1,5 +1,4 @@
 resource "google_bigquery_analytics_hub_data_exchange" "default" {
-  count                               = var.environment == "prod" ? 1 : 0
   data_exchange_id                    = "httparchive"
   location                            = var.location
   display_name                        = "HTTP Archive"
@@ -13,17 +12,15 @@ resource "google_bigquery_analytics_hub_data_exchange" "default" {
 }
 
 resource "google_bigquery_analytics_hub_data_exchange_iam_member" "member" {
-  count            = var.environment == "prod" ? 1 : 0
   project          = var.project
   location         = var.location
-  data_exchange_id = google_bigquery_analytics_hub_data_exchange.default[0].data_exchange_id
+  data_exchange_id = google_bigquery_analytics_hub_data_exchange.default.data_exchange_id
   role             = "roles/analyticshub.viewer"
   member           = "allUsers"
 }
 
 resource "google_bigquery_analytics_hub_listing" "crawl" {
-  count            = var.environment == "prod" ? 1 : 0
-  data_exchange_id = google_bigquery_analytics_hub_data_exchange.default[0].data_exchange_id
+  data_exchange_id = google_bigquery_analytics_hub_data_exchange.default.data_exchange_id
   listing_id       = "crawl"
   location         = var.location
   project          = var.project
@@ -44,12 +41,12 @@ resource "google_bigquery_analytics_hub_listing" "crawl" {
 }
 
 resource "google_bigquery_analytics_hub_listing_iam_member" "member" {
-  for_each = var.environment == "prod" ? toset(["roles/analyticshub.viewer", "roles/analyticshub.subscriber"]) : []
+  for_each = toset(["roles/analyticshub.viewer", "roles/analyticshub.subscriber"])
 
   project          = var.project
   location         = var.location
-  data_exchange_id = google_bigquery_analytics_hub_data_exchange.default[0].data_exchange_id
-  listing_id       = google_bigquery_analytics_hub_listing.crawl[0].listing_id
+  data_exchange_id = google_bigquery_analytics_hub_data_exchange.default.data_exchange_id
+  listing_id       = google_bigquery_analytics_hub_listing.crawl.listing_id
   role             = each.value
   member           = "allUsers"
 }

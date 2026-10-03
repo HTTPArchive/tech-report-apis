@@ -1,15 +1,18 @@
 .PHONY: *
-ENV ?= dev
 
-tf_plan:
-	cd terraform/ && terraform init -reconfigure -backend-config=backend-$(ENV).hcl -upgrade && terraform fmt -check && terraform validate && terraform plan --var="environment=$(ENV)" $(ARGS)
+TF := terraform -chdir=terraform
 
-tf_apply:
-	cd terraform/ && terraform init -reconfigure -backend-config=backend-$(ENV).hcl && terraform apply -auto-approve --var="environment=$(ENV)" $(ARGS)
+tf_init:
+	$(TF) init
 
+tf_plan: tf_init
+	$(TF) fmt -check && $(TF) validate && $(TF) plan $(ARGS)
 
-tf_import:
-	cd terraform/ && terraform init -reconfigure -backend-config=backend-$(ENV).hcl && terraform import --var="environment=$(ENV)" '$(ADDR)' '$(ID)'
+tf_apply: tf_init
+	$(TF) apply -auto-approve $(ARGS)
+
+tf_import: tf_init
+	$(TF) import '$(ADDR)' '$(ID)'
 
 test_live:
 	chmod +x scripts/run-live-tests.sh

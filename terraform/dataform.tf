@@ -1,5 +1,4 @@
 resource "google_dataform_repository" "crawl_data" {
-  count                                      = var.environment == "prod" ? 1 : 0
   provider                                   = google-beta
   display_name                               = null
   kms_key_name                               = null
@@ -20,12 +19,11 @@ resource "google_dataform_repository" "crawl_data" {
 }
 
 resource "google_dataform_repository_release_config" "crawl_data_production" {
-  count         = var.environment == "prod" ? 1 : 0
   provider      = google-beta
   name          = "production"
   project       = var.project
   region        = var.region
-  repository    = google_dataform_repository.crawl_data[0].name
+  repository    = google_dataform_repository.crawl_data.name
   git_commitish = "main"
   time_zone     = "Etc/UTC"
   cron_schedule = null

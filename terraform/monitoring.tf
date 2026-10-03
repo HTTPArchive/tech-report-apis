@@ -1,5 +1,4 @@
 resource "google_monitoring_alert_policy" "dataform_service_error" {
-  count                 = var.environment == "prod" ? 1 : 0
   combiner              = "OR"
   display_name          = "Dataform Service Error"
   enabled               = true
@@ -31,7 +30,6 @@ EOF
 }
 
 resource "google_monitoring_alert_policy" "bigquery_export_error" {
-  count                 = var.environment == "prod" ? 1 : 0
   combiner              = "OR"
   display_name          = "BigQuery Export Error"
   enabled               = true
@@ -63,7 +61,6 @@ EOF
 }
 
 resource "google_monitoring_alert_policy" "dataform_workflow" {
-  count                 = var.environment == "prod" ? 1 : 0
   combiner              = "OR"
   display_name          = "BigQuery Workflow Failed"
   enabled               = true
@@ -96,7 +93,6 @@ EOF
 }
 
 resource "google_monitoring_alert_policy" "dataform_workflow_complete" {
-  count                 = var.environment == "prod" ? 1 : 0
   combiner              = "OR"
   display_name          = "BigQuery Workflow Complete (CrUX or crawl)"
   enabled               = true
@@ -128,7 +124,6 @@ EOF
 }
 
 resource "google_monitoring_alert_policy" "report_api_endpoint" {
-  count                 = var.environment == "prod" ? 1 : 0
   combiner              = "OR"
   display_name          = "Report API Endpoint"
   enabled               = true
@@ -168,4 +163,5 @@ EOF
     mime_type = "text/markdown"
   }
 }
+
 
