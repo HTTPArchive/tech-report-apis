@@ -1,4 +1,4 @@
-import { firestore, firestoreOld, bigquery, alloydb } from './db.js';
+import { firestore, firestoreOld, bigquery } from './db.js';
 import { convertToArray, parseRankParam } from './helpers.js';
 import {
   getLatestDate,
@@ -278,58 +278,25 @@ ORDER BY
 };
 
 export const queryRanks = async () => {
-  try {
-    const res = await alloydb.query('SELECT rank FROM public.tech_report_ranks ORDER BY mobile_origins DESC;');
-    if (res?.rows?.length > 0) return res.rows;
-  } catch (err) {
-    console.error('AlloyDB queryRanks failed, falling back to Firestore:', err?.message || err);
-  }
-
-  try {
-    const snapshot = await firestore
-      .collection('ranks')
-      .orderBy('mobile_origins', 'desc')
-      .select('rank')
-      .get();
-    const data = [];
-    snapshot.forEach(doc => data.push(doc.data()));
-    if (data.length > 0) return data;
-  } catch (err) {
-    console.error('Firestore queryRanks failed:', err?.message || err);
-  }
-
-  return [
-    { rank: 'ALL' },
-    { rank: 'Top 10M' },
-    { rank: 'Top 1M' },
-    { rank: 'Top 100k' },
-    { rank: 'Top 10k' },
-    { rank: 'Top 1k' }
-  ];
+  const snapshot = await firestore
+    .collection('ranks')
+    .orderBy('mobile_origins', 'desc')
+    .select('rank')
+    .get();
+  const data = [];
+  snapshot.forEach(doc => data.push(doc.data()));
+  return data;
 };
 
 export const queryGeos = async () => {
-  try {
-    const res = await alloydb.query('SELECT geo FROM public.tech_report_geos ORDER BY mobile_origins DESC;');
-    if (res?.rows?.length > 0) return res.rows;
-  } catch (err) {
-    console.error('AlloyDB queryGeos failed, falling back to Firestore:', err?.message || err);
-  }
-
-  try {
-    const snapshot = await firestore
-      .collection('geos')
-      .orderBy('mobile_origins', 'desc')
-      .select('geo')
-      .get();
-    const data = [];
-    snapshot.forEach(doc => data.push(doc.data()));
-    if (data.length > 0) return data;
-  } catch (err) {
-    console.error('Firestore queryGeos failed:', err?.message || err);
-  }
-
-  return [{ geo: 'ALL' }];
+  const snapshot = await firestore
+    .collection('geos')
+    .orderBy('mobile_origins', 'desc')
+    .select('geo')
+    .get();
+  const data = [];
+  snapshot.forEach(doc => data.push(doc.data()));
+  return data;
 };
 
 export const queryVersions = async (params = {}) => {
