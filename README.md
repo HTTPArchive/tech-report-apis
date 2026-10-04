@@ -12,7 +12,7 @@ This workspace is organized into separate applications (`apps/`) and reusable pa
 tech-report-apis/
 ├── apps/
 │   ├── report-api/          # REST and MCP Reporting API for CrUX, Lighthouse, and CWV metrics
-│   ├── dataform-service/    # Triggering and poller service for Dataform compile/release runs
+│   ├── dataform-service/    # Cloud Run service for BigQuery dataset exports to Cloud Storage
 │   └── bigquery-export/     # Cloud Run Job for exporting aggregated dataset results from BigQuery
 ├── packages/
 │   ├── shared/              # Common utility functions, database connectors, and logging modules
@@ -24,101 +24,11 @@ tech-report-apis/
 
 ---
 
-## Pipelines Overview
+## Architecture & Infrastructure
 
-Our data pipelines process the monthly HTTP Archive crawl runs, saving them into Google BigQuery datasets.
+Detailed system architecture diagrams, Google Cloud resource mappings, and pipeline trigger flows are documented in **[Infrastructure Overview](docs/infra.md)**.
 
-### 1. HTTP Archive Crawl
-* **Tag**: `crawl_complete`
-* **Dataset**: `httparchive.crawl.*`
-* **Consumers**: Public dataset and the [BQ Sharing Listing](https://console.cloud.google.com/bigquery/analytics-hub/discovery/projects/httparchive/locations/us/dataExchanges/httparchive/listings/crawl)
-
-### 2. HTTP Archive Technology Report
-* **Tag**: `crux_ready`
-* **Dataset**: `httparchive.reports.cwv_tech_*` and `httparchive.reports.tech_*`
-* **Consumers**: [HTTP Archive Tech Report](https://httparchive.org/reports/techreport/landing)
-
----
-
-## Schedules & Triggering Workflows
-
-Workflows are scheduled and orchestrated automatically using GCP event-driven triggers:
-
-1. **[crawl-complete](https://console.cloud.google.com/cloudpubsub/subscription/detail/dataform-service-crawl-complete?authuser=2&project=httparchive) Pub/Sub Subscription**
-   * **Target Workspace**: `dataform-service`
-   * **Tags Triggered**: `["crawl_complete", "crawl_complete_reports"]`
-
-2. **[bq-poller-crux-ready](https://console.cloud.google.com/cloudscheduler/jobs/edit/us-central1/bq-poller-crux-ready?authuser=7&project=httparchive) Scheduler**
-   * **Target Workspace**: `dataform-service` (Poller Job)
-   * **Tags Triggered**: `["crux_ready", "crux_ready_reports"]`
-
-### Workflow Orchestration
-We use a unified Cloud Run function ([dataform-service](./apps/dataform-service/)) to handle triggers. It performs intermediate state checks, compiles the Dataform configs, and initiates execution configurations.
-
----
-
-## Cloud Resources Overview
-
-The following system architecture diagram illustrates how our monorepo components interface with Google Cloud services:
-
-```mermaid
-graph TB;
-    subgraph Cloud Run
-        dataform-service[dataform-service service]
-        bigquery-export[bigquery-export job]
-    end
-
-    subgraph PubSub
-        crawl-complete[crawl-complete topic]
-        dataform-service-crawl-complete[dataform-service-crawl-complete subscription]
-        crawl-complete --> dataform-service-crawl-complete
-    end
-
-    dataform-service-crawl-complete --> dataform-service
-
-    subgraph Cloud_Scheduler
-        bq-poller-crux-ready[bq-poller-crux-ready Poller Scheduler Job]
-        bq-poller-crux-ready --> dataform-service
-    end
-
-    subgraph Dataform
-        dataform[Dataform Repository]
-        dataform_release_config[dataform Release Configuration]
-        dataform_workflow[dataform Workflow Execution]
-    end
-
-    dataform-service --> dataform[Dataform Repository]
-    dataform --> dataform_release_config
-    dataform_release_config --> dataform_workflow
-
-    subgraph BigQuery
-        bq_jobs[BigQuery jobs]
-        bq_datasets[BigQuery table updates]
-        bq_jobs --> bq_datasets
-    end
-
-    dataform_workflow --> bq_jobs
-
-    bq_jobs --> bigquery-export
-
-    subgraph Monitoring
-        cloud_run_logs[Cloud Run logs]
-        dataform_logs[Dataform logs]
-        bq_logs[BigQuery logs]
-        alerting_policies[Alerting Policies]
-        slack_notifications[Slack notifications]
-
-        cloud_run_logs --> alerting_policies
-        dataform_logs --> alerting_policies
-        bq_logs --> alerting_policies
-        alerting_policies --> slack_notifications
-    end
-
-    dataform-service --> cloud_run_logs
-    dataform_workflow --> dataform_logs
-    bq_jobs --> bq_logs
-    bigquery-export --> cloud_run_logs
-```
+For Dataform batch transformation models, development workspaces, and Apache Airflow DAG definitions, refer to **[`dataform/docs/dataform.md`](../dataform/docs/dataform.md)**.
 
 ---
 
@@ -152,10 +62,10 @@ Run tasks across all applications and workspaces concurrently:
 
 ---
 
-## App Documentation
+## Applications & Infrastructure Documentation
 
-Refer to sub-app documentation for detailed endpoints and service configurations:
+Refer to component documentation for detailed service configurations:
 * [Report API (REST/MCP Endpoints)](./apps/report-api/README.md)
-* [Dataform Service (Triggering & Orchestration)](./apps/dataform-service/README.md)
-* [BigQuery Export (Cloud Run Job Setup)](./apps/bigquery-export/README.md)
+* [Dataform Service (GCS Export)](./terraform/README.md#trigger-data-exports)
+* [BigQuery Export (Cloud Run Job Setup)](./terraform/README.md#cloud-run-job-for-exporting-data)
 * [Terraform Infrastructure-as-Code Configuration](./terraform/README.md)

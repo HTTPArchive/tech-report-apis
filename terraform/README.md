@@ -1,43 +1,6 @@
 # Dataform Service & Infrastructure
 
-A unified [dataform-service](https://console.cloud.google.com/functions/details/us-central1/dataform-service?authuser=7&project=httparchive) Cloud Run service that provides two main endpoints for different operations.
-
-## `/trigger` Trigger Dataform workflows
-
-This service may be triggered by a PubSub message or Cloud Scheduler and invokes a Dataform workflow based on the provided configuration.
-
-Trigger types:
-
-1. `event` - immediately triggers a Dataform workflow using tags provided in configuration.
-
-2. `poller` - first triggers a BigQuery polling query. If the query returns TRUE, the Dataform workflow is triggered using the tags provided in configuration.
-
-Supported Triggers:
-
-- `crux_ready` - polls for Chrome UX Report data availability and triggers processing when conditions are met
-- `crawl_complete` - event-based trigger for when crawl data processing is complete
-
-Request body example:
-
-```json
-{
-  "message": {
-    "name": "crux_ready"
-  }
-}
-```
-
-Request example for local development:
-
-```bash
-curl -X POST http://localhost:8080/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "message": {
-      "name": "crux_ready"
-    }
-  }'
-```
+The [dataform-service](https://console.cloud.google.com/run/detail/us-central1/dataform-service?authuser=7&project=httparchive) Cloud Run service provides BigQuery export capabilities.
 
 ## `/` Trigger data exports
 
@@ -98,12 +61,12 @@ Example values:
 
 ## Monitoring
 
-The issues within the pipeline are being tracked using the following alerts:
+Pipeline and export issues are tracked using Cloud Monitoring alerting policies:
 
-- [Dataform Trigger Function Error](https://console.cloud.google.com/monitoring/alerting/policies/570799173843203905?authuser=2&project=httparchive) policy
-- [Dataform Export Function Error](https://console.cloud.google.com/monitoring/alerting/policies/2588749473925942477?authuser=2&project=httparchive) policy
+- [Dataform Service Error](https://console.cloud.google.com/monitoring/alerting/policies/570799173843203905?authuser=2&project=httparchive)
+- [BigQuery Export Error](https://console.cloud.google.com/monitoring/alerting/policies/2588749473925942477?authuser=2&project=httparchive)
 
-Error notifications are sent to [#10x-infra](https://httparchive.slack.com/archives/C030V4WAVL3) Slack channel.
+Error notifications are sent to the [#10x-infra](https://httparchive.slack.com/archives/C030V4WAVL3) Slack channel.
 
 ## Local development
 
