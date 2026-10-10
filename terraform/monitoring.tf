@@ -147,9 +147,9 @@ resource "google_monitoring_alert_policy" "report_api_endpoint" {
 (resource.type = "cloud_run_revision" AND resource.labels.service_name = "report-api-prod")
 OR logName = "projects/httparchive/logs/requests"
 severity >= WARNING
--httpRequest.status = (400 OR 404 OR 405)
--jsonPayload.statusCode = (400 OR 404 OR 405)
--jsonPayload.statusDetails = ("denied_by_security_policy" OR "handled_by_cloud_armor" OR "response_from_cache" OR "backend_timeout")
+-httpRequest.status = (400 OR 403 OR 404 OR 405)
+-jsonPayload.statusCode = (400 OR 403 OR 404 OR 405)
+-jsonPayload.statusDetails = ("denied_by_security_policy" OR "body_denied_by_security_policy" OR "handled_by_cloud_armor" OR "response_from_cache" OR "backend_timeout" OR "rate_limited")
 -textPayload = "Truncated response body. Usually implies that the request timed out or the application exited before the response was finished."
 -httpRequest.userAgent =~ "(?i)(bot|crawler|spider|slurp|archiver|scraper|research|baiduspider|googlebot|facebookexternalhit|meta-externalagent|mj12bot|petalbot|ccbot|censysinspect|worker|python)"
 -protoPayload.userAgent =~ "(?i)(bot|crawler|spider|slurp|archiver|scraper|research|baiduspider|googlebot|facebookexternalhit|meta-externalagent|mj12bot|petalbot|ccbot|censysinspect|worker|python)"
