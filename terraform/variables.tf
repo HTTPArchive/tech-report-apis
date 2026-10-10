@@ -148,4 +148,14 @@ variable "github_actions_roles" {
   ]
 }
 
+variable "notification_channel_email_id" {
+  description = "GCP monitoring email notification channel ID (max@httparchive.org)"
+  type        = string
+  default     = "2962704572107492637"
+}
 
+variable "report_api_monitoring_service_id" {
+  description = "Cloud Monitoring Service ID for report-api-prod"
+  type        = string
+  default     = "ObpWvlN7Tt-qYzcMbOIkag"
+}
