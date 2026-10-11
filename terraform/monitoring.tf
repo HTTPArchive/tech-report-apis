@@ -214,7 +214,7 @@ resource "google_monitoring_slo" "report_api_windowed_latency" {
   windows_based_sli {
     window_period = "14400s"
     good_total_ratio_threshold {
-      threshold = 0.99
+      threshold = 0.95
       performance {
         good_total_ratio {
           good_service_filter  = "metric.type=\"logging.googleapis.com/user/report_api_fast_requests_count\" resource.type=\"cloud_run_revision\""
@@ -235,7 +235,6 @@ resource "google_monitoring_alert_policy" "report_api_slo_burn_rate" {
   display_name = "Burn rate on 95% - Windowed Latency - Rolling 30 days"
   enabled      = true
   notification_channels = [
-    "projects/${var.project}/notificationChannels/${var.notification_channel_id}",
     "projects/${var.project}/notificationChannels/${var.notification_channel_email_id}",
   ]
   project     = var.project
@@ -251,7 +250,7 @@ resource "google_monitoring_alert_policy" "report_api_slo_burn_rate" {
       filter          = "select_slo_burn_rate(\"${google_monitoring_slo.report_api_windowed_latency.name}\", \"3600s\")"
       comparison      = "COMPARISON_GT"
       threshold_value = 10.0
-      duration        = "0s"
+      duration        = "900s"
       trigger {
         count = 1
       }
