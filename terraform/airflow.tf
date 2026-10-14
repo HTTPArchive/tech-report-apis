@@ -25,6 +25,13 @@ resource "google_project_iam_member" "composer_pipeline_roles" {
   member  = "serviceAccount:${google_service_account.composer.email}"
 }
 
+# Allow Composer service account to act as the Dataform workflow execution service account
+resource "google_service_account_iam_member" "composer_dataform_act_as" {
+  service_account_id = "projects/${var.project}/serviceAccounts/${var.function_identity}"
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${google_service_account.composer.email}"
+}
+
 # BigQuery dataset editor permissions for managed datasets
 resource "google_bigquery_dataset_iam_member" "composer_dataset_editor_role" {
   for_each = toset(var.edit_datasets)
