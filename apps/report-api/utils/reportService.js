@@ -191,7 +191,10 @@ export const queryCWVDistribution = async ({ technology, date, geo = 'ALL', rank
     ANY_VALUE(p75_inp) AS inp,
     ANY_VALUE(p75_cls) AS cls,
     ANY_VALUE(p75_fcp) AS fcp,
-    ANY_VALUE(p75_ttfb) AS ttfb
+    ANY_VALUE(p75_ttfb) AS ttfb,
+    ANY_VALUE(p75_lcp_sn) AS lcp_sn,
+    ANY_VALUE(p75_inp_sn) AS inp_sn,
+    ANY_VALUE(p75_cls_sn) AS cls_sn
   FROM pages AS p,
     \`chrome-ux-report.materialized.device_summary\` d
   WHERE
@@ -215,7 +218,10 @@ export const queryCWVDistribution = async ({ technology, date, geo = 'ALL', rank
     ANY_VALUE(p75_inp) AS inp,
     ANY_VALUE(p75_cls) AS cls,
     ANY_VALUE(p75_fcp) AS fcp,
-    ANY_VALUE(p75_ttfb) AS ttfb
+    ANY_VALUE(p75_ttfb) AS ttfb,
+    ANY_VALUE(p75_lcp_sn) AS lcp_sn,
+    ANY_VALUE(p75_inp_sn) AS inp_sn,
+    ANY_VALUE(p75_cls_sn) AS cls_sn
   FROM pages AS p,
     \`chrome-ux-report.materialized.country_summary\` c
   WHERE
@@ -241,7 +247,10 @@ SELECT
   COUNT(DISTINCT root_page WHERE inp = bucket / 4) AS inp_origins,
   COUNT(DISTINCT root_page WHERE cls = bucket / 2000) AS cls_origins,
   COUNT(DISTINCT root_page WHERE fcp = bucket) AS fcp_origins,
-  COUNT(DISTINCT root_page WHERE ttfb = bucket) AS ttfb_origins
+  COUNT(DISTINCT root_page WHERE ttfb = bucket) AS ttfb_origins,
+  COUNT(DISTINCT root_page WHERE lcp_sn = bucket) AS lcp_sn_origins,
+  COUNT(DISTINCT root_page WHERE inp_sn = bucket / 4) AS inp_sn_origins,
+  COUNT(DISTINCT root_page WHERE cls_sn = bucket / 2000) AS cls_sn_origins
 FROM
   metrics,
   UNNEST(GENERATE_ARRAY(0.0, 10000.0, 100.0)) AS bucket
