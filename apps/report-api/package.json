@@ -23,7 +23,7 @@
     "@httparchive/shared": "*",
     "@modelcontextprotocol/sdk": "1.32.0",
     "pg": "8.23.0",
-    "zod": "4.6.5"
+    "zod": "4.6.6"
   },
   "devDependencies": {
     "@httparchive/eslint-config": "*",
