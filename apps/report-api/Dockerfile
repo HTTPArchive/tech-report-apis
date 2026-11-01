@@ -19,6 +19,7 @@ USER node
 COPY --chown=node:node --from=pruner /app/out/full/ .
 COPY --chown=node:node --from=installer /app/node_modules ./node_modules
 WORKDIR /app/apps/report-api
+ENV NODE_ENV=production
 ENV NODE_NO_WARNINGS=1
 ENV PORT=8080
 ENV IGNORED_ROUTES=""

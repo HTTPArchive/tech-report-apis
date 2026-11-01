@@ -513,6 +513,48 @@ describe('API Routes', () => {
       await expect(queryReport('__proto__')).rejects.toThrow('Unknown report type: __proto__');
       await expect(queryReport('toString')).rejects.toThrow('Unknown report type: toString');
     });
+
+    it('should return 400 JSON and log WARNING (not ERROR) for malformed URL percent-encoding', async () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const res = await request(app).get('/%C0');
+      expect(res.statusCode).toEqual(400);
+      expect(res.headers['content-type']).toContain('application/json');
+      expect(res.body).toHaveProperty('errors');
+      expect(res.body.errors[0].error).toContain('Failed to decode param');
+
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalled();
+      const logPayload = JSON.parse(warnSpy.mock.calls[0][0]);
+      expect(logPayload.severity).toBe('WARNING');
+      expect(logPayload.statusCode).toBe(400);
+
+      warnSpy.mockRestore();
+      errorSpy.mockRestore();
+    });
+
+    it('should return 400 JSON and log WARNING (not ERROR) for malformed JSON request body', async () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const res = await request(app)
+        .post('/index.php?action=conditions/render')
+        .set('Content-Type', 'application/json')
+        .send('{invalid');
+      expect(res.statusCode).toEqual(400);
+      expect(res.headers['content-type']).toContain('application/json');
+      expect(res.body).toHaveProperty('errors');
+
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalled();
+      const logPayload = JSON.parse(warnSpy.mock.calls[0][0]);
+      expect(logPayload.severity).toBe('WARNING');
+      expect(logPayload.statusCode).toBe(400);
+
+      warnSpy.mockRestore();
+      errorSpy.mockRestore();
+    });
   });
 
   describe('Response Headers', () => {
