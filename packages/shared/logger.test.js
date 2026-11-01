@@ -52,6 +52,11 @@ test('logger format includes API sub-errors and status code', () => {
 
   assert.strictEqual(parsed.statusCode, 400)
   assert.strictEqual(parsed.errors[0].reason, 'invalidQuery')
+
+  const statusErr = new URIError('Failed to decode param')
+  statusErr.status = 400
+  const parsedStatus = JSON.parse(logger.format('WARNING', 'Bad URI', statusErr))
+  assert.strictEqual(parsedStatus.statusCode, 400)
 })
 
 test('logger format keeps the primary message when extra has a message key', () => {

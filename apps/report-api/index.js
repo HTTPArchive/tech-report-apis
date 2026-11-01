@@ -1,4 +1,5 @@
 import EventEmitter from 'node:events';
+import http from 'node:http';
 import functions from '@google-cloud/functions-framework';
 import { logger, registerProcessLogging, withTraceContext } from '@httparchive/shared';
 import { sendJSONResponse } from './utils/controllerHelpers.js';
@@ -77,6 +78,44 @@ const setCommonHeaders = (res) => {
   res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=86400');
   res.setHeader('Cache-Tag', 'report-api');
   res.setHeader('Timing-Allow-Origin', '*');
+};
+
+// Centralized error handler for both route errors and pre-handler Express middleware errors
+// (e.g. URIError from router param decoding or SyntaxError from body-parser JSON parsing)
+const handleRequestError = (error, res) => {
+  const statusCode = error?.statusCode || error?.status || (error instanceof URIError || error instanceof SyntaxError ? 400 : 500);
+  if (error instanceof Error && error.statusCode === undefined) {
+    error.statusCode = statusCode;
+  }
+  const log = statusCode < 500 ? logger.warn : logger.error;
+  log('Unhandled Server Error', error instanceof Error ? error : { error, statusCode });
+  if (!res.headersSent) {
+    setCommonHeaders(res);
+    res.statusCode = statusCode;
+  }
+  if (!res.writableEnded) {
+    res.end(JSON.stringify({
+      errors: [{ error: statusCode >= 500 ? 'Internal Server Error' : (error?.message || 'Unknown error occurred') }]
+    }));
+  }
+};
+
+// Intercept Express app registration on http.Server in @google-cloud/functions-framework so
+// middleware errors (such as malformed URL percent-encoding or invalid JSON payloads) pass
+// through handleRequestError instead of Express's default finalhandler (which writes raw
+// stack traces to stderr and triggers Cloud Monitoring ERROR alerts).
+const origServerOn = http.Server.prototype.on;
+http.Server.prototype.on = function (event, listener) {
+  if (event === 'request' && typeof listener === 'function' && typeof listener.handle === 'function') {
+    return origServerOn.call(this, event, (req, res) => {
+      listener(req, res, (err) => {
+        if (err) {
+          withTraceContext(req, () => handleRequestError(err, res));
+        }
+      });
+    });
+  }
+  return origServerOn.call(this, event, listener);
 };
 
 // Route handler function
@@ -191,13 +230,7 @@ const handleRequest = async (req, res) => {
       res.end(JSON.stringify({ error: 'Not Found' }));
     }
   } catch (error) {
-    const statusCode = error.statusCode || error.status || 500;
-    const log = statusCode < 500 ? logger.warn : logger.error;
-    log('Unhandled Server Error', error instanceof Error ? error : { error, statusCode });
-    res.statusCode = statusCode;
-    res.end(JSON.stringify({
-      errors: [{ error: statusCode >= 500 ? 'Internal Server Error' : (error.message || 'Unknown error occurred') }]
-    }));
+    handleRequestError(error, res);
   }
 };
 
