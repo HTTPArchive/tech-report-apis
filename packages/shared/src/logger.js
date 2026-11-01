@@ -67,7 +67,8 @@ function errorFields (error, severity) {
   if (error.code !== undefined) fields.code = error.code
   if (error.details !== undefined) fields.details = error.details
   if (error.reason !== undefined) fields.reason = error.reason
-  if (error.statusCode !== undefined) fields.statusCode = error.statusCode
+  const statusCode = error.statusCode ?? error.status
+  if (statusCode !== undefined) fields.statusCode = statusCode
   // GCP ApiError (BigQuery, GCS) sub-errors with reason/location, or AggregateError members
   if (Array.isArray(error.errors)) fields.errors = error.errors.map(serializeCause)
   if (error.cause !== undefined) fields.cause = serializeCause(error.cause)
