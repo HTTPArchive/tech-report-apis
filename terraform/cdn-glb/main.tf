@@ -31,6 +31,14 @@ resource "google_compute_backend_service" "backend" {
       negative_caching             = var.cdn_negative_caching
       signed_url_cache_max_age_sec = 0
 
+      dynamic "negative_caching_policy" {
+        for_each = var.cdn_negative_caching ? var.cdn_negative_caching_policy : []
+        content {
+          code = negative_caching_policy.value.code
+          ttl  = negative_caching_policy.value.ttl
+        }
+      }
+
       cache_key_policy {
         include_host         = false
         include_protocol     = false

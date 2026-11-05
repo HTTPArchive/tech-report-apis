@@ -48,7 +48,36 @@ variable "cdn_serve_while_stale" {
 variable "cdn_negative_caching" {
   description = "Whether to enable negative caching"
   type        = bool
-  default     = false
+  default     = true
+}
+variable "cdn_negative_caching_policy" {
+  description = "Negative caching policy for status codes and TTLs in seconds"
+  type = list(object({
+    code = number
+    ttl  = number
+  }))
+  default = [
+    {
+      code = 404
+      ttl  = 300 # 5 minutes
+    },
+    {
+      code = 410
+      ttl  = 300 # 5 minutes
+    }
+  ]
+}
+
+# Cloud Armor Rate Limiting Configuration
+variable "static_icons_rate_limit_count" {
+  description = "Rate limit request threshold for static icons within interval_sec"
+  type        = number
+  default     = 600
+}
+variable "static_icons_rate_limit_interval_sec" {
+  description = "Rate limit interval in seconds for static icons"
+  type        = number
+  default     = 60
 }
 
 # Resource naming overrides (for importing existing resources)
