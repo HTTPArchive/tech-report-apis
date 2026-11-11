@@ -303,15 +303,15 @@ resource "google_monitoring_dashboard" "mcp_analytics" {
             title = "Tool Latency (ms) Over Time by Cloud Run Revision (Release Tracking)"
             xyChart = {
               chartOptions = { mode = "COLOR" }
-              yAxis        = { scale = "LINEAR" }
+              yAxis        = { label = "ms", scale = "LINEAR" }
               dataSets = [
                 {
-                  plotType   = "LINE"
+                  plotType   = "STACKED_BAR"
                   targetAxis = "Y1"
                   breakdowns = [
                     {
                       column              = "server_revision"
-                      aggregationFunction = { type = "average" }
+                      aggregationFunction = { type = "count" }
                       limit               = 10
                       sortOrder           = "SORT_ORDER_DESCENDING"
                     }
