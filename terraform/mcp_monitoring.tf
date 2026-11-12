@@ -224,9 +224,9 @@ resource "google_monitoring_dashboard" "mcp_analytics" {
                             COUNT(DISTINCT client_name) AS unique_clients,
                             SAFE_DIVIDE(COUNTIF(action_type = 'tool' AND status = 'success'), COUNTIF(action_type = 'tool')) * 100 AS tool_success_pct,
                             SAFE_DIVIDE(COUNTIF(action_type = 'tool' AND status = 'success' AND empty_result), COUNTIF(action_type = 'tool' AND status = 'success')) * 100 AS empty_result_pct,
-                            APPROX_QUANTILES(IF(action_type = 'tool', duration_ms, NULL) IGNORE NULLS, 100)[SAFE_OFFSET(50)] AS p50_latency_ms,
-                            APPROX_QUANTILES(IF(action_type = 'tool', duration_ms, NULL) IGNORE NULLS, 100)[SAFE_OFFSET(95)] AS p95_latency_ms,
-                            APPROX_QUANTILES(IF(action_type = 'tool', response_size_bytes, NULL) IGNORE NULLS, 100)[SAFE_OFFSET(50)] / 1024 AS median_response_kib
+                            APPROX_QUANTILES(IF(action_type = 'tool', duration_ms, NULL), 100 IGNORE NULLS)[SAFE_OFFSET(50)] AS p50_latency_ms,
+                            APPROX_QUANTILES(IF(action_type = 'tool', duration_ms, NULL), 100 IGNORE NULLS)[SAFE_OFFSET(95)] AS p95_latency_ms,
+                            APPROX_QUANTILES(IF(action_type = 'tool', response_size_bytes, NULL), 100 IGNORE NULLS)[SAFE_OFFSET(50)] / 1024 AS median_response_kib
                           FROM mcp_events
                         ),
                         kpi_rows AS (
@@ -410,9 +410,9 @@ resource "google_monitoring_dashboard" "mcp_analytics" {
                             ROUND(SAFE_DIVIDE(COUNTIF(status = 'success'), COUNT(*)) * 100, 1) AS success_pct,
                             ROUND(SAFE_DIVIDE(COUNTIF(status = 'success' AND empty_result), NULLIF(COUNTIF(status = 'success'), 0)) * 100, 1) AS empty_pct,
                             COUNTIF(status != 'success') AS errors,
-                            ROUND(APPROX_QUANTILES(duration_ms IGNORE NULLS, 100)[SAFE_OFFSET(50)], 1) AS p50_ms,
-                            ROUND(APPROX_QUANTILES(duration_ms IGNORE NULLS, 100)[SAFE_OFFSET(95)], 1) AS p95_ms,
-                            ROUND(APPROX_QUANTILES(response_size_bytes IGNORE NULLS, 100)[SAFE_OFFSET(50)] / 1024, 2) AS median_kib,
+                            ROUND(APPROX_QUANTILES(duration_ms, 100 IGNORE NULLS)[SAFE_OFFSET(50)], 1) AS p50_ms,
+                            ROUND(APPROX_QUANTILES(duration_ms, 100 IGNORE NULLS)[SAFE_OFFSET(95)], 1) AS p95_ms,
+                            ROUND(APPROX_QUANTILES(response_size_bytes, 100 IGNORE NULLS)[SAFE_OFFSET(50)] / 1024, 2) AS median_kib,
                             ROUND(MAX(response_size_bytes) / 1024, 2) AS max_kib
                           FROM mcp_events
                           WHERE action_type = 'tool' AND tool IS NOT NULL
@@ -592,7 +592,7 @@ resource "google_monitoring_dashboard" "mcp_analytics" {
                           COUNT(DISTINCT session_id) AS sessions,
                           COUNTIF(action_type = 'tool') AS tool_calls,
                           ROUND(SAFE_DIVIDE(COUNTIF(action_type = 'tool' AND status = 'success'), NULLIF(COUNTIF(action_type = 'tool'), 0)) * 100, 1) AS success_pct,
-                          ROUND(APPROX_QUANTILES(IF(action_type = 'tool', duration_ms, NULL) IGNORE NULLS, 100)[SAFE_OFFSET(50)], 1) AS p50_ms
+                          ROUND(APPROX_QUANTILES(IF(action_type = 'tool', duration_ms, NULL), 100 IGNORE NULLS)[SAFE_OFFSET(50)], 1) AS p50_ms
                         FROM mcp_events
                         GROUP BY client_name, client_version, mcp_protocol
                         ORDER BY tool_calls DESC, sessions DESC
