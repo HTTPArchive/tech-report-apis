@@ -215,18 +215,34 @@ resource "google_monitoring_dashboard" "mcp_analytics" {
                   timeSeriesQuery = {
                     opsAnalyticsQuery = {
                       sql = <<-SQL
-                        ${local.mcp_base_cte}
-                        SELECT
-                          COUNTIF(action_type = 'tool') AS tool_calls,
-                          COUNTIF(action_type IN ('lifecycle', 'discovery')) AS handshakes_and_lists,
-                          COUNT(DISTINCT session_id) AS unique_sessions,
-                          COUNT(DISTINCT client_name) AS unique_clients,
-                          ROUND(SAFE_DIVIDE(COUNTIF(action_type = 'tool' AND status = 'success'), COUNTIF(action_type = 'tool')) * 100, 2) AS tool_success_pct,
-                          ROUND(SAFE_DIVIDE(COUNTIF(action_type = 'tool' AND status = 'success' AND empty_result), COUNTIF(action_type = 'tool' AND status = 'success')) * 100, 2) AS empty_result_pct,
-                          ROUND(APPROX_QUANTILES(IF(action_type = 'tool', duration_ms, NULL) IGNORE NULLS, 100)[SAFE_OFFSET(50)], 1) AS p50_latency_ms,
-                          ROUND(APPROX_QUANTILES(IF(action_type = 'tool', duration_ms, NULL) IGNORE NULLS, 100)[SAFE_OFFSET(95)], 1) AS p95_latency_ms,
-                          ROUND(APPROX_QUANTILES(IF(action_type = 'tool', response_size_bytes, NULL) IGNORE NULLS, 100)[SAFE_OFFSET(50)] / 1024, 2) AS median_response_kib
-                        FROM mcp_events
+                        ${local.mcp_base_cte},
+                        kpis AS (
+                          SELECT
+                            COUNTIF(action_type = 'tool') AS tool_calls,
+                            COUNTIF(action_type IN ('lifecycle', 'discovery')) AS handshakes_and_lists,
+                            COUNT(DISTINCT session_id) AS unique_sessions,
+                            COUNT(DISTINCT client_name) AS unique_clients,
+                            SAFE_DIVIDE(COUNTIF(action_type = 'tool' AND status = 'success'), COUNTIF(action_type = 'tool')) * 100 AS tool_success_pct,
+                            SAFE_DIVIDE(COUNTIF(action_type = 'tool' AND status = 'success' AND empty_result), COUNTIF(action_type = 'tool' AND status = 'success')) * 100 AS empty_result_pct,
+                            APPROX_QUANTILES(IF(action_type = 'tool', duration_ms, NULL) IGNORE NULLS, 100)[SAFE_OFFSET(50)] AS p50_latency_ms,
+                            APPROX_QUANTILES(IF(action_type = 'tool', duration_ms, NULL) IGNORE NULLS, 100)[SAFE_OFFSET(95)] AS p95_latency_ms,
+                            APPROX_QUANTILES(IF(action_type = 'tool', response_size_bytes, NULL) IGNORE NULLS, 100)[SAFE_OFFSET(50)] / 1024 AS median_response_kib
+                          FROM mcp_events
+                        ),
+                        kpi_rows AS (
+                          SELECT 1 AS ord, 'Tool calls' AS metric, CAST(tool_calls AS FLOAT64) AS value FROM kpis
+                          UNION ALL SELECT 2, 'Handshakes & list calls', CAST(handshakes_and_lists AS FLOAT64) FROM kpis
+                          UNION ALL SELECT 3, 'Unique sessions', CAST(unique_sessions AS FLOAT64) FROM kpis
+                          UNION ALL SELECT 4, 'Unique clients', CAST(unique_clients AS FLOAT64) FROM kpis
+                          UNION ALL SELECT 5, 'Tool success rate (%)', tool_success_pct FROM kpis
+                          UNION ALL SELECT 6, 'Empty-result rate (%)', empty_result_pct FROM kpis
+                          UNION ALL SELECT 7, 'Tool latency p50 (ms)', p50_latency_ms FROM kpis
+                          UNION ALL SELECT 8, 'Tool latency p95 (ms)', p95_latency_ms FROM kpis
+                          UNION ALL SELECT 9, 'Median response size (KiB)', median_response_kib FROM kpis
+                        )
+                        SELECT metric, ROUND(value, 2) AS value
+                        FROM kpi_rows
+                        ORDER BY ord
                       SQL
                     }
                   }
