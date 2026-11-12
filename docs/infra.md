@@ -64,7 +64,8 @@ flowchart TD
 | Report API | Cloud Run (`report-api`) | `tech-report-apis/terraform/run-service/` |
 | CDN / Load Balancer | Cloud CDN + GLB (`cdn.httparchive.org`) | `tech-report-apis/terraform/cdn-glb/` |
 | IAM bindings | Google IAM | `tech-report-apis/terraform/iam.tf` |
-| Alerting | Cloud Monitoring | `tech-report-apis/terraform/monitoring.tf` |
+| Alerting & SLOs | Cloud Monitoring | `tech-report-apis/terraform/monitoring.tf` |
+| MCP Analytics & Dashboard | Cloud Logging + Cloud Monitoring | `tech-report-apis/terraform/mcp_monitoring.tf` |
 
 ## Data Sources per API Endpoint
 

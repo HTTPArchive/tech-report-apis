@@ -141,6 +141,8 @@ variable "github_actions_roles" {
     "roles/firebasehosting.admin",
     "roles/iam.networkAdmin",
     "roles/iam.serviceAccountUser",
+    "roles/logging.configWriter",
+    "roles/monitoring.dashboardEditor",
     "roles/run.admin",
     "roles/serviceusage.serviceUsageConsumer",
     "roles/storage.objectUser",

@@ -2,6 +2,11 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { z } from 'zod';
 import { logger } from '@httparchive/shared';
+import {
+  MCP_SERVER_NAME,
+  MCP_SERVER_VERSION,
+  createMcpAnalyticsSession,
+} from './utils/mcpAnalytics.js';
 
 const agentIntentContext = {
   caption: z.string().optional().describe('Explain the intent or the reasoning behind this request. E.g. "requesting page weight metrics by technology as doing the analysis of top heavy technologies within a defined tech stack"'),
@@ -19,11 +24,22 @@ import {
   queryCWVDistribution,
 } from './utils/reportService.js';
 
-const createMcpServer = () => {
+export const createMcpServer = (analytics = null) => {
   const server = new McpServer({
-    name: 'tech-report',
-    version: '1.0.0',
+    name: MCP_SERVER_NAME,
+    version: MCP_SERVER_VERSION,
   });
+
+  if (analytics) {
+    analytics.instrumentServer(server);
+  }
+
+  const formatToolResult = (data, extra) => {
+    if (analytics) {
+      analytics.recordToolData(extra, data);
+    }
+    return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+  };
 
   server.tool(
     'search_technologies',
@@ -35,9 +51,9 @@ const createMcpServer = () => {
       sort: z.enum(['name']).optional().describe('Sort results by "name" (defaults to popularity)'),
       limit: z.number().optional().describe('Limit the number of results returned'),
     },
-    async ({ technology, category, sort, limit }) => {
+    async ({ technology, category, sort, limit }, extra) => {
       const data = await queryTechnologies({ technology, category, sort, limit });
-      return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+      return formatToolResult(data, extra);
     }
   );
 
@@ -50,9 +66,9 @@ const createMcpServer = () => {
       sort: z.enum(['name']).optional().describe('Sort results by "name" (defaults to popularity)'),
       limit: z.number().optional().describe('Limit the number of results returned'),
     },
-    async ({ category, sort, limit }) => {
+    async ({ category, sort, limit }, extra) => {
       const data = await queryCategories({ category, sort, limit });
-      return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+      return formatToolResult(data, extra);
     }
   );
 
@@ -67,9 +83,9 @@ const createMcpServer = () => {
       start: z.string().optional().describe('Start date in YYYY-MM-DD format, or "latest" for most recent data'),
       end: z.string().optional().describe('End date in YYYY-MM-DD format'),
     },
-    async ({ technology, geo, rank, start, end }) => {
+    async ({ technology, geo, rank, start, end }, extra) => {
       const data = await queryReport('adoption', { technology, geo, rank, start, end });
-      return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+      return formatToolResult(data, extra);
     }
   );
 
@@ -84,9 +100,9 @@ const createMcpServer = () => {
       start: z.string().optional().describe('Start date in YYYY-MM-DD format, or "latest" for most recent data'),
       end: z.string().optional().describe('End date in YYYY-MM-DD format'),
     },
-    async ({ technology, geo, rank, start, end }) => {
+    async ({ technology, geo, rank, start, end }, extra) => {
       const data = await queryReport('cwv', { technology, geo, rank, start, end });
-      return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+      return formatToolResult(data, extra);
     }
   );
 
@@ -101,9 +117,9 @@ const createMcpServer = () => {
       start: z.string().optional().describe('Start date in YYYY-MM-DD format, or "latest" for most recent data'),
       end: z.string().optional().describe('End date in YYYY-MM-DD format'),
     },
-    async ({ technology, geo, rank, start, end }) => {
+    async ({ technology, geo, rank, start, end }, extra) => {
       const data = await queryReport('lighthouse', { technology, geo, rank, start, end });
-      return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+      return formatToolResult(data, extra);
     }
   );
 
@@ -118,9 +134,9 @@ const createMcpServer = () => {
       start: z.string().optional().describe('Start date in YYYY-MM-DD format, or "latest" for most recent data'),
       end: z.string().optional().describe('End date in YYYY-MM-DD format'),
     },
-    async ({ technology, geo, rank, start, end }) => {
+    async ({ technology, geo, rank, start, end }, extra) => {
       const data = await queryReport('pageWeight', { technology, geo, rank, start, end });
-      return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+      return formatToolResult(data, extra);
     }
   );
 
@@ -135,9 +151,9 @@ const createMcpServer = () => {
       start: z.string().optional().describe('Start date in YYYY-MM-DD format, or "latest" for most recent data'),
       end: z.string().optional().describe('End date in YYYY-MM-DD format'),
     },
-    async ({ technology, geo, rank, start, end }) => {
+    async ({ technology, geo, rank, start, end }, extra) => {
       const data = await queryReport('audits', { technology, geo, rank, start, end });
-      return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+      return formatToolResult(data, extra);
     }
   );
 
@@ -150,9 +166,9 @@ const createMcpServer = () => {
       rank: z.string().optional().describe('Traffic rank segment (e.g. "Top 1k", "Top 10k", "Top 100k", "Top 1M", "Top 10M", "ALL"). Call list_ranks to see available options. Defaults to "ALL"'),
       end: z.string().optional().describe('Snapshot date in YYYY-MM-DD format. Defaults to the latest available date'),
     },
-    async ({ technology, rank, end }) => {
+    async ({ technology, rank, end }, extra) => {
       const data = await queryReport('cwv', { crossGeo: true, technology, rank, end });
-      return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+      return formatToolResult(data, extra);
     }
   );
 
@@ -166,9 +182,9 @@ const createMcpServer = () => {
       geo: z.string().optional().describe('Geographic filter — a country name (e.g. "United States of America") or "ALL" for global data. Defaults to "ALL"'),
       rank: z.string().optional().describe('Traffic rank segment (e.g. "Top 1k", "Top 10k", "Top 100k", "Top 1M", "Top 10M", "ALL"). Call list_ranks to see available options. Defaults to "ALL"'),
     },
-    async ({ technology, date, geo, rank }) => {
+    async ({ technology, date, geo, rank }, extra) => {
       const data = await queryCWVDistribution({ technology, date, geo: geo || 'ALL', rank: rank && rank !== 'ALL' ? rank : null });
-      return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+      return formatToolResult(data, extra);
     }
   );
 
@@ -176,9 +192,9 @@ const createMcpServer = () => {
     'list_ranks',
     'List available traffic rank segments for filtering Tech Report data (e.g. "Top 1k", "Top 10k", "Top 100k", "Top 1M", "Top 10M", "ALL").',
     agentIntentContext,
-    async () => {
+    async (_args, extra) => {
       const data = await queryRanks();
-      return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+      return formatToolResult(data, extra);
     }
   );
 
@@ -186,9 +202,9 @@ const createMcpServer = () => {
     'list_geos',
     'List available geographic regions for filtering Tech Report data (e.g. "ALL", "US", "GB", "IN").',
     agentIntentContext,
-    async () => {
+    async (_args, extra) => {
       const data = await queryGeos();
-      return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+      return formatToolResult(data, extra);
     }
   );
 
@@ -200,9 +216,9 @@ const createMcpServer = () => {
       technology: z.string().optional().describe('Comma-separated technology names to filter versions'),
       version: z.string().optional().describe('Exact version string to look up'),
     },
-    async ({ technology, version }) => {
+    async ({ technology, version }, extra) => {
       const data = await queryVersions({ technology, version });
-      return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+      return formatToolResult(data, extra);
     }
   );
 
@@ -235,11 +251,13 @@ export const handleMcp = async (req, res) => {
     }
   }
 
+  const analytics = createMcpAnalyticsSession(req, res);
+
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: undefined, // stateless — safe for Cloud Run
   });
 
-  const server = createMcpServer();
+  const server = createMcpServer(analytics);
   await server.connect(transport);
 
   res.on('close', () => {
@@ -250,34 +268,24 @@ export const handleMcp = async (req, res) => {
     server.close();
   });
 
-  // Log before handleRequest — Cloud Run freezes CPU once the response is sent,
-  // so any log after the await would be silently dropped.
+  // Prepare request metadata & attach response hooks so structured mcp.server.operation
+  // logs are emitted inside transport.send() before Cloud Run closes the response stream.
+  let preparedInfo = null;
+  let usedLiveHooks = false;
   try {
-    if (req.method === 'POST') {
-      let mcpRequest = req.body;
-      if (Buffer.isBuffer(req.body)) {
-        mcpRequest = req.body.toString('utf-8');
-      }
-      if (typeof mcpRequest === 'string') {
-        try { mcpRequest = JSON.parse(mcpRequest); } catch (_e) {} // eslint-disable-line no-empty
-      }
-
-      if (mcpRequest && mcpRequest.method === 'tools/call') {
-        const args = mcpRequest.params?.arguments || {};
-        logger.info(`MCP Tool Call: ${mcpRequest.params?.name}`, {
-          tool: mcpRequest.params?.name,
-          arguments: args,
-          caption: args.caption,
-          conversation_id: args.conversation_id || (req.headers && req.headers['x-conversation-id']),
-          operation_id: args.operation_id || (req.headers && req.headers['x-operation-id']),
-          user_agent: req.headers && req.headers['user-agent'],
-          host: req.headers && req.headers['host'],
-        });
-      }
-    }
+    preparedInfo = analytics.prepareRequestMessages();
+    ({ usedLiveHooks } = analytics.attachTransport(transport, preparedInfo));
   } catch (err) {
     logger.error('Failed to log MCP request', err);
   }
 
   await transport.handleRequest(req, res, req.body);
+
+  if (!usedLiveHooks && preparedInfo) {
+    try {
+      analytics.emitFallbackIfUninstrumented(preparedInfo);
+    } catch (err) {
+      logger.error('Failed to log MCP request', err);
+    }
+  }
 };
