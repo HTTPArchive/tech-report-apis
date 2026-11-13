@@ -27,8 +27,8 @@ The API will be available at <http://localhost:8080>
 ## API Endpoints
 
 - **CORS Enabled**: Cross-origin requests are supported
-- **Cache Headers**: 6-hour cache control for static data
-- **Health Check**: GET `/` returns health status
+- **Cache Headers**: `public, max-age=3600, s-maxage=86400` (1-hour browser cache, 24-hour CDN cache) for API and static responses
+- **Health Check**: `GET /` returns health status
 - **RESTful API**: All endpoints follow REST conventions
 
 ### `GET /`
@@ -37,7 +37,7 @@ Health check endpoint that returns the current status of the API.
 
 ```bash
 curl --request GET \
-  --url 'https://{{HOST}}/v1/health'
+  --url 'https://{{HOST}}/'
 ```
 
 Returns a JSON object with the following schema:
@@ -48,7 +48,7 @@ Returns a JSON object with the following schema:
 }
 ```
 
-### `GET /categories`
+### `GET /v1/categories`
 
 Lists available categories.
 
@@ -62,7 +62,7 @@ Lists available categories.
 
 ```bash
 curl --request GET \
-  --url 'https://d{{HOST}}/v1/categories?category=Domain%20parking%2CCI'
+  --url 'https://{{HOST}}/v1/categories?category=Domain%20parking%2CCI'
 ```
 
 ```json
@@ -112,7 +112,7 @@ curl --request GET \
 ]
 ```
 
-### `GET /technologies`
+### `GET /v1/technologies`
 
 Lists available technologies with optional filtering.
 
@@ -168,7 +168,7 @@ Returns a JSON object with the following schema:
 ]
 ```
 
-### `GET /versions`
+### `GET /v1/versions`
 
 Lists available versions.
 
@@ -202,7 +202,7 @@ Returns a JSON object with the following schema:
 ]
 ```
 
-### `GET /adoption`
+### `GET /v1/adoption`
 
 Provides technology adoption data.
 
@@ -237,7 +237,7 @@ Returns a JSON object with the following schema:
 ]
 ```
 
-### `GET /cwv` (Core Web Vitals)
+### `GET /v1/cwv` (Core Web Vitals)
 
 Provides Core Web Vitals metrics for technologies.
 
@@ -279,7 +279,7 @@ curl --request GET \
 ]
 ```
 
-### `GET /cwv-distribution`
+### `GET /v1/cwv-distribution`
 
 Provides per-bucket CWV metric distribution histograms for technologies, optionally filtered by geo and rank.
 
@@ -325,7 +325,7 @@ Bucket semantics:
 - `cls_bucket`: `loading_bucket / 2000` (CLS scale)
 - `*_origins`: count of distinct origins whose p75 value equals that bucket
 
-### `GET /lighthouse`
+### `GET /v1/lighthouse`
 
 Provides Lighthouse scores for technologies.
 
@@ -370,7 +370,7 @@ curl --request GET \
 ]
 ```
 
-### `GET /page-weight`
+### `GET /v1/page-weight`
 
 Provides Page Weight metrics for technologies.
 
@@ -430,7 +430,7 @@ Returns a JSON object with the following schema:
 ]
 ```
 
-### `GET /audits`
+### `GET /v1/audits`
 
 Provides Lighthouse audits for technologies.
 
@@ -493,7 +493,7 @@ Returns a JSON object with the following schema:
 ]
 ```
 
-### `GET /geo-breakdown`
+### `GET /v1/geo-breakdown`
 
 Provides Core Web Vitals breakdown by geography for a given technology and rank. Returns a single month snapshot of CWV data (LCP, CLS, INP, TTFB) across all geographies.
 
@@ -537,7 +537,7 @@ Returns a JSON array where each element represents CWV data for a technology on 
 ]
 ```
 
-### `GET /ranks`
+### `GET /v1/ranks`
 
 Lists all available ranks.
 
@@ -562,7 +562,7 @@ Returns a JSON object with the following schema:
 ]
 ```
 
-### `GET /geos`
+### `GET /v1/geos`
 
 Lists all available geographic locations.
 
@@ -587,9 +587,52 @@ Returns a JSON object with the following schema:
 ]
 ```
 
-### `GET /static/*`
+### `GET /v1/dates`
 
-Proxy endpoint to serve files from the private Google Cloud Storage bucket. The request path after `/v1/static/` maps directly to the GCS object path.
+Lists available crawl dates from Google Cloud Storage (`YYYY_MM_DD` format, descending).
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/dates'
+```
+
+```json
+{
+    "status": 200,
+    "dates": [
+        "2026_11_01",
+        "2026_10_01"
+    ]
+}
+```
+
+### `GET /v1/metric`
+
+Returns metric configuration metadata from `config/reports.json` and the latest available crawl date for that metric.
+
+#### Metric Parameters
+
+- `id` (required): Metric identifier (e.g. `bytesTotal`)
+
+```bash
+curl --request GET \
+  --url 'https://{{HOST}}/v1/metric?id=bytesTotal'
+```
+
+```json
+{
+    "status": 200,
+    "metric": {
+        "id": "bytesTotal",
+        "name": "Total Kilobytes"
+    },
+    "latest": "2026_11_01"
+}
+```
+
+### `GET /v1/static/*`
+
+Proxy endpoint to serve files from the private Google Cloud Storage bucket. The request path after `/v1/static/` maps directly to the GCS object path. (Legacy `/reports/*` paths are also proxied directly.)
 
 #### Static File Features
 
@@ -626,9 +669,16 @@ Content-Length: 1234
 
 #### Error Responses
 
-- **400 Bad Request**: Invalid file path (e.g., contains `..` or `//`)
+- **400 Bad Request**: Invalid file path (e.g., contains `..` or `//`, or targets `crawls/` / `results/`)
 - **404 Not Found**: File does not exist in the bucket
 - **500 Internal Server Error**: Failed to retrieve or stream the file
+
+### `GET | POST | DELETE /mcp` (and `/v1/mcp`)
+
+Model Context Protocol (MCP) Streamable HTTP endpoint for AI agents and MCP clients to query HTTP Archive Tech Report tools directly.
+
+- Supports `OPTIONS` (CORS preflight) and `HEAD` (health probe, returns `200`).
+- Unsupported HTTP methods return `405 Method Not Allowed`.
 
 ## Testing
 
@@ -642,7 +692,7 @@ npm run test
 
 ## Response Format
 
-All API responses follow this format:
+All REST data endpoints return a JSON array (or object for `/`, `/v1/dates`, `/v1/metric`):
 
 ```json
 [
@@ -650,16 +700,17 @@ All API responses follow this format:
 ]
 ```
 
-Or in case of an error:
+Controller and validation errors return:
 
 ```json
 {
-  "success": false,
   "errors": [
-    {"key": "error message"}
+    {"error": "error message"}
   ]
 }
 ```
+
+Missing routes or resources return `404` with `{"error": "Not Found"}` (or `{"error": "File not found"}` for `/v1/static/*`).
 
 ## Field Selection API Documentation
 
@@ -703,18 +754,16 @@ GET /v1/technologies?fields=technology,category
 Response:
 
 ```json
-{
-  "data": [
-    {
-      "technology": "React",
-      "category": "JavaScript Frameworks"
-    },
-    {
-      "technology": "Angular",
-      "category": "JavaScript Frameworks"
-    }
-  ]
-}
+[
+  {
+    "technology": "React",
+    "category": "JavaScript Frameworks"
+  },
+  {
+    "technology": "Angular",
+    "category": "JavaScript Frameworks"
+  }
+]
 ```
 
 Combine with existing filters:
@@ -738,7 +787,7 @@ GET /v1/versions?fields=technology,version
 Response:
 
 ```json
-{
+[
   {
     "technology": "React",
     "version": "18.2.0"
@@ -746,7 +795,6 @@ Response:
   {
     "technology": "Angular",
     "version": "12.0.0"
-  },
-  ...
-}
+  }
+]
 ```
