@@ -109,7 +109,7 @@ export const proxyReportsFile = async (req, res, filePath) => {
             res.setHeader('Content-Length', metadata.size);
         }
 
-        if (req.destroyed || res.destroyed || res.writableEnded) {
+        if (req.aborted || res.destroyed || res.writableEnded) {
             return;
         }
 
