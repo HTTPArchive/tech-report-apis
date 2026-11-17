@@ -109,10 +109,16 @@ export const proxyReportsFile = async (req, res, filePath) => {
             res.setHeader('Content-Length', metadata.size);
         }
 
-        const readStream = file.createReadStream({ decompress: !isGzipEncoded });
+        if (req.destroyed || res.destroyed || res.writableEnded) {
+            return;
+        }
 
-        // Clean up stream if client aborts or disconnects prematurely
+        const readStream = file.createReadStream({ decompress: !isGzipEncoded });
+        let transferTimer;
+
+        // Clean up stream and timer if client aborts or disconnects prematurely
         const cleanup = () => {
+            clearTimeout(transferTimer);
             if (!res.writableEnded) {
                 readStream.destroy();
             }
@@ -127,22 +133,36 @@ export const proxyReportsFile = async (req, res, filePath) => {
         }
 
         const maxTransferMs = Number(process.env.STATIC_MAX_TRANSFER_MS) || DEFAULT_MAX_TRANSFER_MS;
-        const transferTimer = setTimeout(() => {
+        transferTimer = setTimeout(() => {
             logger.warn('Static file transfer exceeded time limit', { objectPath, maxTransferMs });
             readStream.destroy(new Error('Transfer time limit exceeded'));
         }, maxTransferMs);
         transferTimer.unref();
 
-        pipeline(readStream, res, (err) => {
+        try {
+            pipeline(readStream, res, (err) => {
+                clearTimeout(transferTimer);
+                req.removeListener('close', cleanup);
+                res.removeListener('close', cleanup);
+                const isClientDisconnect = err && (
+                    err.code === 'ERR_STREAM_PREMATURE_CLOSE' ||
+                    err.code === 'ERR_STREAM_UNABLE_TO_PIPE'
+                );
+                if (err && !isClientDisconnect && !res.headersSent) {
+                    logger.error('Error streaming file from GCS', err);
+                    res.statusCode = 500;
+                    res.end(JSON.stringify({ error: 'Failed to read file' }));
+                }
+            });
+        } catch (pipeError) {
             clearTimeout(transferTimer);
             req.removeListener('close', cleanup);
             res.removeListener('close', cleanup);
-            if (err && err.code !== 'ERR_STREAM_PREMATURE_CLOSE' && !res.headersSent) {
-                logger.error('Error streaming file from GCS', err);
-                res.statusCode = 500;
-                res.end(JSON.stringify({ error: 'Failed to read file' }));
+            readStream.destroy();
+            if (pipeError.code !== 'ERR_STREAM_UNABLE_TO_PIPE' && pipeError.code !== 'ERR_STREAM_PREMATURE_CLOSE') {
+                throw pipeError;
             }
-        });
+        }
 
     } catch (error) {
         logger.error('Error proxying GCS file', error);

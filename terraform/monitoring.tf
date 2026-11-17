@@ -135,20 +135,23 @@ resource "google_monitoring_alert_policy" "report_api_endpoint" {
   alert_strategy {
     notification_prompts = ["OPENED"]
     notification_rate_limit {
-      period = "172800s"
+      period = "3600s"
     }
-    auto_close = "604800s"
+    auto_close = "86400s"
   }
 
   conditions {
     display_name = "Log match condition"
     condition_matched_log {
       filter           = <<EOF
-(resource.type = "cloud_run_revision" AND resource.labels.service_name = "report-api-prod")
-OR logName = "projects/httparchive/logs/requests"
+(
+  (resource.type = "cloud_run_revision" AND resource.labels.service_name = "report-api-prod")
+  OR (logName = "projects/httparchive/logs/requests" AND resource.labels.backend_service_name = "report-api")
+)
 severity >= WARNING
--httpRequest.status = (400 OR 403 OR 404 OR 405 OR 406)
--jsonPayload.statusCode = (400 OR 403 OR 404 OR 405 OR 406)
+-httpRequest.status = (400 OR 401 OR 403 OR 404 OR 405 OR 406 OR 408 OR 413 OR 415 OR 429 OR 499)
+-jsonPayload.statusCode = (400 OR 401 OR 403 OR 404 OR 405 OR 406 OR 408 OR 413 OR 415 OR 429 OR 499)
+-jsonPayload.type = "NodeRuntimeWarning"
 -jsonPayload.statusDetails = ("denied_by_security_policy" OR "body_denied_by_security_policy" OR "handled_by_cloud_armor" OR "response_from_cache" OR "backend_timeout" OR "rate_limited")
 -textPayload = "Truncated response body. Usually implies that the request timed out or the application exited before the response was finished."
 -httpRequest.userAgent =~ "(?i)(bot|crawler|spider|slurp|archiver|scraper|research|baiduspider|googlebot|facebookexternalhit|meta-externalagent|mj12bot|petalbot|ccbot|censysinspect|worker|python)"
@@ -159,7 +162,7 @@ EOF
   }
 
   documentation {
-    content   = "https://console.cloud.google.com/run/detail/us-central1/report-api-prod/metrics?authuser=2&inv=1&invt=AbzTCA&project=httparchive"
+    content   = "https://console.cloud.google.com/run/detail/us-central1/report-api-prod/metrics?project=httparchive"
     mime_type = "text/markdown"
   }
 }

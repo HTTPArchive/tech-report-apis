@@ -858,6 +858,45 @@ describe('API Routes', () => {
         expect(stalled.destroyed).toBe(true);
         expect(Date.now() - started).toBeLessThan(5000);
       });
+
+      it('should not leak transfer timer when client disconnects before pipeline starts', async () => {
+        process.env.STATIC_MAX_TRANSFER_MS = '50';
+        const { proxyReportsFile } = await import('../controllers/cdnController.js');
+        const readable = new Readable({ read () {} });
+        const { EventEmitter } = await import('events');
+
+        mockFileExists.mockResolvedValue([true]);
+        mockGetMetadata.mockImplementation(async () => {
+          // Simulate client disconnecting while getMetadata() is in flight
+          res.destroyed = true;
+          return [{
+            contentType: 'application/json',
+            etag: '"abc123"',
+            size: 100
+          }];
+        });
+        mockCreateReadStream.mockReturnValue(readable);
+
+        const req = Object.assign(new EventEmitter(), {
+          url: '/v1/static/reports/data.json',
+          headers: {},
+          destroyed: false
+        });
+        const res = Object.assign(new EventEmitter(), {
+          destroyed: false,
+          writableEnded: false,
+          headersSent: false,
+          statusCode: 200,
+          setHeader: jest.fn(),
+          end: jest.fn()
+        });
+
+        await proxyReportsFile(req, res, 'reports/data.json');
+        await new Promise((resolve) => setTimeout(resolve, 80));
+
+        expect(mockCreateReadStream).not.toHaveBeenCalled();
+        expect(res.end).not.toHaveBeenCalled();
+      });
     });
 
     describe('Error scenarios (GCS failures)', () => {
