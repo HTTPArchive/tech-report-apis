@@ -239,35 +239,101 @@ export const queryCWVDistribution = async ({ technology, date, geo = 'ALL', rank
     ${rankClause}
 ), metrics AS (
   ${metricsQuery}
+), bucketed AS (
+  SELECT
+    geo,
+    client,
+    ${allTechnologies ? "'ALL'" : 'technology'} AS technology,
+    IF(lcp BETWEEN 0 AND 10000 AND MOD(lcp, 100) = 0, CAST(lcp AS FLOAT64), NULL) AS lcp_b,
+    IF(inp BETWEEN 0 AND 2500 AND MOD(inp, 25) = 0, CAST(inp * 4 AS FLOAT64), NULL) AS inp_b,
+    IF(cls BETWEEN 0 AND 5 AND MOD(cls * 2000, 100) = 0, CAST(cls * 2000 AS FLOAT64), NULL) AS cls_b,
+    IF(fcp BETWEEN 0 AND 10000 AND MOD(fcp, 100) = 0, CAST(fcp AS FLOAT64), NULL) AS fcp_b,
+    IF(ttfb BETWEEN 0 AND 10000 AND MOD(ttfb, 100) = 0, CAST(ttfb AS FLOAT64), NULL) AS ttfb_b,
+    IF(lcp_sn BETWEEN 0 AND 10000 AND MOD(lcp_sn, 100) = 0, CAST(lcp_sn AS FLOAT64), NULL) AS lcp_sn_b,
+    IF(inp_sn BETWEEN 0 AND 2500 AND MOD(inp_sn, 25) = 0, CAST(inp_sn * 4 AS FLOAT64), NULL) AS inp_sn_b,
+    IF(cls_sn BETWEEN 0 AND 5 AND MOD(cls_sn * 2000, 100) = 0, CAST(cls_sn * 2000 AS FLOAT64), NULL) AS cls_sn_b
+  FROM metrics
+), metric_buckets AS (
+  SELECT
+    geo,
+    client,
+    technology,
+    b.bucket,
+    COUNTIF(b.metric = 'lcp') AS lcp_origins,
+    COUNTIF(b.metric = 'inp') AS inp_origins,
+    COUNTIF(b.metric = 'cls') AS cls_origins,
+    COUNTIF(b.metric = 'fcp') AS fcp_origins,
+    COUNTIF(b.metric = 'ttfb') AS ttfb_origins,
+    COUNTIF(b.metric = 'lcp_sn') AS lcp_sn_origins,
+    COUNTIF(b.metric = 'inp_sn') AS inp_sn_origins,
+    COUNTIF(b.metric = 'cls_sn') AS cls_sn_origins
+  FROM bucketed,
+  UNNEST([
+    STRUCT('lcp' AS metric, lcp_b AS bucket),
+    STRUCT('inp', inp_b),
+    STRUCT('cls', cls_b),
+    STRUCT('fcp', fcp_b),
+    STRUCT('ttfb', ttfb_b),
+    STRUCT('lcp_sn', lcp_sn_b),
+    STRUCT('inp_sn', inp_sn_b),
+    STRUCT('cls_sn', cls_sn_b),
+    STRUCT('__group', IF(COALESCE(lcp_b, inp_b, cls_b, fcp_b, ttfb_b, lcp_sn_b, inp_sn_b, cls_sn_b) IS NULL, -1.0, NULL))
+  ]) AS b
+  WHERE b.bucket IS NOT NULL
+  GROUP BY
+    geo,
+    client,
+    technology,
+    b.bucket
+), grouped AS (
+  SELECT
+    geo,
+    client,
+    technology,
+    ARRAY_AGG(STRUCT(
+      bucket,
+      lcp_origins,
+      inp_origins,
+      cls_origins,
+      fcp_origins,
+      ttfb_origins,
+      lcp_sn_origins,
+      inp_sn_origins,
+      cls_sn_origins
+    )) AS buckets
+  FROM metric_buckets
+  GROUP BY
+    geo,
+    client,
+    technology
 )
 
 SELECT
-  geo,
-  client,
-  ${allTechnologies ? "'ALL'" : 'technology'} AS technology,
+  g.geo,
+  g.client,
+  g.technology,
   bucket AS loading_bucket,
   bucket / 4 AS inp_bucket,
   bucket / 2000 AS cls_bucket,
-  COUNT(DISTINCT root_page WHERE lcp = bucket) AS lcp_origins,
-  COUNT(DISTINCT root_page WHERE inp = bucket / 4) AS inp_origins,
-  COUNT(DISTINCT root_page WHERE cls = bucket / 2000) AS cls_origins,
-  COUNT(DISTINCT root_page WHERE fcp = bucket) AS fcp_origins,
-  COUNT(DISTINCT root_page WHERE ttfb = bucket) AS ttfb_origins,
-  COUNT(DISTINCT root_page WHERE lcp_sn = bucket) AS lcp_sn_origins,
-  COUNT(DISTINCT root_page WHERE inp_sn = bucket / 4) AS inp_sn_origins,
-  COUNT(DISTINCT root_page WHERE cls_sn = bucket / 2000) AS cls_sn_origins
+  COALESCE(mb.lcp_origins, 0) AS lcp_origins,
+  COALESCE(mb.inp_origins, 0) AS inp_origins,
+  COALESCE(mb.cls_origins, 0) AS cls_origins,
+  COALESCE(mb.fcp_origins, 0) AS fcp_origins,
+  COALESCE(mb.ttfb_origins, 0) AS ttfb_origins,
+  COALESCE(mb.lcp_sn_origins, 0) AS lcp_sn_origins,
+  COALESCE(mb.inp_sn_origins, 0) AS inp_sn_origins,
+  COALESCE(mb.cls_sn_origins, 0) AS cls_sn_origins
 FROM
-  metrics,
+  grouped AS g
+CROSS JOIN
   UNNEST(GENERATE_ARRAY(0.0, 10000.0, 100.0)) AS bucket
-GROUP BY
-  geo,
-  client,
-  ${allTechnologies ? '' : 'technology,'}
-  bucket
+LEFT JOIN
+  UNNEST(g.buckets) AS mb
+  ON mb.bucket = bucket
 ORDER BY
-  geo,
-  client,
-  ${allTechnologies ? '' : 'technology,'}
+  g.geo,
+  g.client,
+  g.technology,
   bucket`;
 
   const [rows] = await bigquery.query({

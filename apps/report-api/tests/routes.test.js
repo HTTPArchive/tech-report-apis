@@ -1140,6 +1140,20 @@ describe('API Routes', () => {
       expect(countryCall.query).not.toContain('chrome-ux-report.materialized.device_summary');
       expect(countryCall.params.geo).toEqual('United States of America');
     });
+
+    it('should reference metrics only once and use single-scan bucket aggregation', async () => {
+      bigquery.query.mockClear();
+      const res = await request(app).get('/v1/cwv-distribution?technology=Wix,WordPress&date=2026-02-01');
+      expect(res.statusCode).toEqual(200);
+      expect(bigquery.query).toHaveBeenCalledTimes(1);
+      const { query } = bigquery.query.mock.calls[0][0];
+      const metricsRefs = query.match(/\bFROM metrics\b/g) || [];
+      expect(metricsRefs).toHaveLength(1);
+      expect(query).toContain('metric_buckets');
+      expect(query).toContain('ARRAY_AGG(');
+      expect(query).toContain('UNNEST(g.buckets)');
+      expect(query).not.toContain('COUNT(DISTINCT root_page');
+    });
   });
 
   describe('GET /v1/dates', () => {
