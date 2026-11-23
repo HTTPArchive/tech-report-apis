@@ -36,7 +36,7 @@ export { firestore, firestoreOld };
 
 // Initialize BigQuery client
 const bigquery = new BigQuery({
-  projectId: process.env.PROJECT
+  projectId: process.env.PROJECT || 'httparchive'
 });
 
 export { bigquery };
