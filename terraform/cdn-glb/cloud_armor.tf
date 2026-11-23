@@ -81,6 +81,32 @@ resource "google_compute_security_policy_rule" "rate_limit" {
   }
 }
 
+# Rate limit BigQuery-backed /v1/cwv-distribution endpoint - priority 900
+resource "google_compute_security_policy_rule" "limit_cwv_distribution" {
+  security_policy = google_compute_security_policy.security_policy.name
+  project         = var.project
+  action          = "throttle"
+  priority        = 900
+  preview         = false
+  description     = "Rate limit BigQuery-backed /v1/cwv-distribution endpoint"
+
+  match {
+    expr {
+      expression = "request.path.startsWith('/v1/cwv-distribution')"
+    }
+  }
+
+  rate_limit_options {
+    conform_action = "allow"
+    exceed_action  = "deny(403)"
+    enforce_on_key = "IP"
+    rate_limit_threshold {
+      count        = var.cwv_distribution_rate_limit_count
+      interval_sec = var.cwv_distribution_rate_limit_interval_sec
+    }
+  }
+}
+
 # Allow traffic for static icons path - priority 1000, rate limited to 600 req/60s
 resource "google_compute_security_policy_rule" "allow_static_icons" {
   security_policy = google_compute_security_policy.security_policy.name

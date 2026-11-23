@@ -79,6 +79,16 @@ variable "static_icons_rate_limit_interval_sec" {
   type        = number
   default     = 60
 }
+variable "cwv_distribution_rate_limit_count" {
+  description = "Rate limit request threshold for /v1/cwv-distribution within interval_sec"
+  type        = number
+  default     = 15
+}
+variable "cwv_distribution_rate_limit_interval_sec" {
+  description = "Rate limit interval in seconds for /v1/cwv-distribution"
+  type        = number
+  default     = 60
+}
 
 # Resource naming overrides (for importing existing resources)
 variable "neg_name" {

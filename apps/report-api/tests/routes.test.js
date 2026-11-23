@@ -96,6 +96,7 @@ jest.unstable_mockModule('../utils/db.js', () => {
 
 // Import app after mocking
 const { app: handleRequest } = await import('../index.js');
+const { bigquery } = await import('../utils/db.js');
 import { getTestServer } from '@google-cloud/functions-framework/testing';
 const app = getTestServer('app');
 
@@ -1100,6 +1101,44 @@ describe('API Routes', () => {
         .set('Access-Control-Request-Method', 'GET');
       expect(res.statusCode).toEqual(204);
       expect(res.headers['access-control-allow-origin']).toEqual('*');
+    });
+
+    it('should return 400 when more than 30 technologies are specified', async () => {
+      const tooManyTechs = Array.from({ length: 31 }, (_, i) => `Tech${i + 1}`).join(',');
+      const res = await request(app).get(`/v1/cwv-distribution?technology=${tooManyTechs}&date=2026-02-01`);
+      expect(res.statusCode).toEqual(400);
+      expect(res.body).toHaveProperty('errors');
+    });
+
+    it('should pass timeoutMs, jobTimeoutMs, maximumBytesBilled, and STRING date param type with DATE(@date) cast to BigQuery', async () => {
+      bigquery.query.mockClear();
+      const res = await request(app).get('/v1/cwv-distribution?technology=Wix&date=2026-02-01');
+      expect(res.statusCode).toEqual(200);
+      expect(bigquery.query).toHaveBeenCalledTimes(1);
+      const queryOptions = bigquery.query.mock.calls[0][0];
+      expect(queryOptions.timeoutMs).toEqual(90000);
+      expect(queryOptions.jobTimeoutMs).toEqual(90000);
+      expect(queryOptions.maximumBytesBilled).toEqual(String(50 * 1024 ** 3));
+      expect(queryOptions.types.date).toEqual('STRING');
+      expect(queryOptions.query).toContain('DATE(@date)');
+    });
+
+    it('should query only device_summary when geo=ALL and only country_summary for a specific geo', async () => {
+      bigquery.query.mockClear();
+      const allGeoRes = await request(app).get('/v1/cwv-distribution?technology=Wix&date=2026-02-01&geo=ALL');
+      expect(allGeoRes.statusCode).toEqual(200);
+      const allGeoCall = bigquery.query.mock.calls[0][0];
+      expect(allGeoCall.query).toContain('chrome-ux-report.materialized.device_summary');
+      expect(allGeoCall.query).not.toContain('chrome-ux-report.materialized.country_summary');
+      expect(allGeoCall.params).not.toHaveProperty('geo');
+
+      bigquery.query.mockClear();
+      const countryRes = await request(app).get('/v1/cwv-distribution?technology=Wix&date=2026-02-01&geo=United%20States%20of%20America');
+      expect(countryRes.statusCode).toEqual(200);
+      const countryCall = bigquery.query.mock.calls[0][0];
+      expect(countryCall.query).toContain('chrome-ux-report.materialized.country_summary');
+      expect(countryCall.query).not.toContain('chrome-ux-report.materialized.device_summary');
+      expect(countryCall.params.geo).toEqual('United States of America');
     });
   });
 

@@ -1,11 +1,16 @@
 import { firestore, firestoreOld, bigquery } from './db.js';
-import { convertToArray, parseRankParam } from './helpers.js';
+import { parseRankParam } from './helpers.js';
 import {
   getLatestDate,
   validateArrayParameter,
   validateTechnologyArray,
   FIRESTORE_IN_LIMIT,
 } from './controllerHelpers.js';
+
+const CWV_DISTRIBUTION_TIMEOUT_MS = Number(process.env.BQ_CWV_TIMEOUT_MS) || 90000;
+const CWV_DISTRIBUTION_MAX_BYTES_BILLED = String(
+  Number(process.env.BQ_CWV_MAX_BYTES_BILLED) || 50 * 1024 ** 3
+);
 
 const REPORT_CONFIGS = new Map([
   ['adoption', { table: 'adoption', dataField: 'adoption' }],
@@ -164,10 +169,61 @@ export const queryCWVDistribution = async ({ technology, date, geo = 'ALL', rank
   }
 
   const allTechnologies = !technology || technology === 'ALL';
-  const technologies = allTechnologies ? [] : convertToArray(technology);
+  const technologies = allTechnologies ? [] : validateArrayParameter(technology, 'technology');
   const techClause = allTechnologies ? '' : 'AND t.technology IN UNNEST(@technologies)';
   const rankParam = parseRankParam(rank);
   const rankClause = rankParam !== null ? 'AND rank <= @rank' : '';
+  const normalizedGeo = geo || 'ALL';
+  const isAllGeo = normalizedGeo === 'ALL';
+  const techColumn = allTechnologies ? '' : 'technology,';
+
+  const metricsQuery = isAllGeo
+    ? `SELECT
+    'ALL' AS geo,
+    client,
+    ${techColumn}
+    root_page,
+    ANY_VALUE(p75_lcp) AS lcp,
+    ANY_VALUE(p75_inp) AS inp,
+    ANY_VALUE(p75_cls) AS cls,
+    ANY_VALUE(p75_fcp) AS fcp,
+    ANY_VALUE(p75_ttfb) AS ttfb,
+    ANY_VALUE(p75_lcp_sn) AS lcp_sn,
+    ANY_VALUE(p75_inp_sn) AS inp_sn,
+    ANY_VALUE(p75_cls_sn) AS cls_sn
+  FROM pages AS p
+  INNER JOIN \`chrome-ux-report.materialized.device_summary\` AS d
+    ON d.date = DATE(@date)
+    AND p.root_page = d.origin || '/'
+    AND IF(d.device = 'desktop', 'desktop', 'mobile') = p.client
+  GROUP BY
+    client,
+    ${techColumn}
+    root_page`
+    : `SELECT
+    \`chrome-ux-report\`.experimental.GET_COUNTRY(country_code) AS geo,
+    client,
+    ${techColumn}
+    root_page,
+    ANY_VALUE(p75_lcp) AS lcp,
+    ANY_VALUE(p75_inp) AS inp,
+    ANY_VALUE(p75_cls) AS cls,
+    ANY_VALUE(p75_fcp) AS fcp,
+    ANY_VALUE(p75_ttfb) AS ttfb,
+    ANY_VALUE(p75_lcp_sn) AS lcp_sn,
+    ANY_VALUE(p75_inp_sn) AS inp_sn,
+    ANY_VALUE(p75_cls_sn) AS cls_sn
+  FROM pages AS p
+  INNER JOIN \`chrome-ux-report.materialized.country_summary\` AS c
+    ON c.yyyymm = CAST(FORMAT_DATE('%Y%m', DATE(@date)) AS INT64)
+    AND p.root_page = c.origin || '/'
+    AND IF(c.device = 'desktop', 'desktop', 'mobile') = p.client
+    AND \`chrome-ux-report\`.experimental.GET_COUNTRY(c.country_code) = @geo
+  GROUP BY
+    geo,
+    client,
+    ${techColumn}
+    root_page`;
 
   const query = `WITH pages AS (
   SELECT DISTINCT
@@ -178,62 +234,11 @@ export const queryCWVDistribution = async ({ technology, date, geo = 'ALL', rank
     httparchive.crawl.pages,
     UNNEST(technologies) AS t
   WHERE
-    date = @date
+    date = DATE(@date)
     ${techClause}
     ${rankClause}
-  ), metrics AS (
-  SELECT
-    'ALL' AS geo,
-    client,
-    ${allTechnologies ? '' : 'technology,'}
-    root_page,
-    ANY_VALUE(p75_lcp) AS lcp,
-    ANY_VALUE(p75_inp) AS inp,
-    ANY_VALUE(p75_cls) AS cls,
-    ANY_VALUE(p75_fcp) AS fcp,
-    ANY_VALUE(p75_ttfb) AS ttfb,
-    ANY_VALUE(p75_lcp_sn) AS lcp_sn,
-    ANY_VALUE(p75_inp_sn) AS inp_sn,
-    ANY_VALUE(p75_cls_sn) AS cls_sn
-  FROM pages AS p,
-    \`chrome-ux-report.materialized.device_summary\` d
-  WHERE
-    d.date = @date AND
-    root_page = origin || '/' AND
-    IF(device = 'desktop', 'desktop', 'mobile') = client AND
-    @geo = 'ALL'
-  GROUP BY
-    client,
-    ${allTechnologies ? '' : 'technology,'}
-    root_page
-
-  UNION ALL
-
-  SELECT
-    \`chrome-ux-report\`.experimental.GET_COUNTRY(country_code) AS geo,
-    client,
-    ${allTechnologies ? '' : 'technology,'}
-    root_page,
-    ANY_VALUE(p75_lcp) AS lcp,
-    ANY_VALUE(p75_inp) AS inp,
-    ANY_VALUE(p75_cls) AS cls,
-    ANY_VALUE(p75_fcp) AS fcp,
-    ANY_VALUE(p75_ttfb) AS ttfb,
-    ANY_VALUE(p75_lcp_sn) AS lcp_sn,
-    ANY_VALUE(p75_inp_sn) AS inp_sn,
-    ANY_VALUE(p75_cls_sn) AS cls_sn
-  FROM pages AS p,
-    \`chrome-ux-report.materialized.country_summary\` c
-  WHERE
-    yyyymm = CAST(FORMAT_DATE('%Y%m', @date) AS INT64) AND
-    root_page = origin || '/' AND
-    IF(device = 'desktop', 'desktop', 'mobile') = client AND
-    \`chrome-ux-report\`.experimental.GET_COUNTRY(country_code) = @geo
-  GROUP BY
-    geo,
-    client,
-    ${allTechnologies ? '' : 'technology,'}
-    root_page
+), metrics AS (
+  ${metricsQuery}
 )
 
 SELECT
@@ -268,16 +273,19 @@ ORDER BY
   const [rows] = await bigquery.query({
     query,
     reservation: 'none',
+    jobTimeoutMs: CWV_DISTRIBUTION_TIMEOUT_MS,
+    timeoutMs: CWV_DISTRIBUTION_TIMEOUT_MS,
+    maximumBytesBilled: CWV_DISTRIBUTION_MAX_BYTES_BILLED,
     params: {
       ...(!allTechnologies && { technologies }),
       date,
-      geo,
+      ...(!isAllGeo && { geo: normalizedGeo }),
       ...(rankParam !== null && { rank: rankParam }),
     },
     types: {
       ...(!allTechnologies && { technologies: ['STRING'] }),
       date: 'STRING',
-      geo: 'STRING',
+      ...(!isAllGeo && { geo: 'STRING' }),
       ...(rankParam !== null && { rank: 'INT64' }),
     },
     labels: { source: 'cwv-distribution' },
