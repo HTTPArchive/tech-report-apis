@@ -62,13 +62,17 @@ EOF
 
 resource "google_monitoring_alert_policy" "dataform_workflow" {
   combiner              = "OR"
-  display_name          = "BigQuery Workflow Failed"
+  display_name          = "BigQuery / Airflow Workflow Failed"
   enabled               = true
   notification_channels = ["projects/${var.project}/notificationChannels/${var.notification_channel_id}"]
   project               = var.project
   severity              = "CRITICAL"
   documentation {
-    content = "Workflows source: https://github.com/HTTPArchive/dataform/tree/main/"
+    content = <<EOF
+Workflows source: https://github.com/HTTPArchive/dataform/tree/main/
+Dataform workflows: https://console.cloud.google.com/bigquery/dataform/locations/${var.region}/repositories/crawl-data/details/workflows?project=${var.project}
+Airflow DAGs: https://console.cloud.google.com/composer/environments/detail/${var.region}/${var.composer_environment_name}/dags?project=${var.project}
+EOF
   }
   user_labels = {}
   alert_strategy {
@@ -82,10 +86,21 @@ resource "google_monitoring_alert_policy" "dataform_workflow" {
     display_name = "Log match condition"
     condition_matched_log {
       filter           = <<EOF
-resource.type="dataform.googleapis.com/Repository"
-jsonPayload.@type="type.googleapis.com/google.cloud.dataform.logging.v1.WorkflowInvocationCompletionLogEntry"
-jsonPayload.terminalState="FAILED"
-resource.labels.repository_id="crawl-data"
+(
+  resource.type="dataform.googleapis.com/Repository"
+  AND jsonPayload.@type="type.googleapis.com/google.cloud.dataform.logging.v1.WorkflowInvocationCompletionLogEntry"
+  AND jsonPayload.terminalState="FAILED"
+  AND resource.labels.repository_id="crawl-data"
+)
+OR (
+  resource.type="cloud_composer_environment"
+  AND resource.labels.environment_name="${var.composer_environment_name}"
+  AND (
+    (log_id("airflow-scheduler") AND textPayload:"DagRun Finished:" AND textPayload:"state=failed")
+    OR (log_id("airflow-scheduler") AND textPayload:"Failed to import:")
+    OR (log_id("dag-processor-manager") AND severity>=ERROR AND -textPayload:"before absl::InitializeLog()")
+  )
+)
 EOF
       label_extractors = {}
     }
