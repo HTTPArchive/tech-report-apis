@@ -38,10 +38,17 @@ provider "docker" {
 }
 
 module "endpoints" {
-  source                = "./run-service"
-  project               = var.project
-  environment           = var.environment
-  source_directory      = "../"
+  source           = "./run-service"
+  project          = var.project
+  environment      = var.environment
+  source_directory = "../"
+  source_hash_paths = [
+    "apps/report-api",
+    "packages/shared",
+    "package.json",
+    "package-lock.json",
+    "turbo.json",
+  ]
   dockerfile            = "apps/report-api/Dockerfile"
   service_name          = "report-api"
   service_account_email = var.service_account_email

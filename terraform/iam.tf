@@ -66,5 +66,18 @@ resource "google_project_iam_member" "github_actions_roles" {
   member  = "serviceAccount:${var.github_actions_service_account_email}"
 }
 
+# Bucket-scoped GCS object access for CI/CD (avoids project-wide write/delete on gs://httparchive)
+resource "google_storage_bucket_iam_member" "github_actions_tfstate_objects" {
+  bucket = "tfstate-httparchive"
+  role   = "roles/storage.objectUser"
+  member = "serviceAccount:${var.github_actions_service_account_email}"
+}
+
+resource "google_storage_bucket_iam_member" "github_actions_composer_dags_objects" {
+  bucket = split("/", trimprefix(google_composer_environment.airflow.config[0].dag_gcs_prefix, "gs://"))[0]
+  role   = "roles/storage.objectUser"
+  member = "serviceAccount:${var.github_actions_service_account_email}"
+}
+
 
 

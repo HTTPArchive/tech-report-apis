@@ -11,7 +11,7 @@ data "external" "source_hash" {
   program = [
     "bash",
     "-c",
-    "cd ${var.source_directory} && echo '{\"hash\":\"'$(git ls-files -s apps/bigquery-export packages/shared | sha1sum | cut -c1-8)'\"}'"
+    "cd ${var.source_directory} && echo '{\"hash\":\"'$(git ls-files -s -- apps/bigquery-export packages/shared package.json package-lock.json turbo.json | sha1sum | cut -c1-8)'\"}'"
   ]
 }
 

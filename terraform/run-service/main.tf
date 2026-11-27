@@ -9,7 +9,11 @@ terraform {
 
 # Calculate hash of source files using git (respects .gitignore)
 data "external" "source_hash" {
-  program = ["bash", "-c", "cd ${var.source_directory} && echo '{\"hash\":\"'$(git ls-files -s | sha1sum | cut -c1-8)'\"}'"]
+  program = [
+    "bash",
+    "-c",
+    "cd ${var.source_directory} && echo '{\"hash\":\"'$(git ls-files -s -- ${join(" ", var.source_hash_paths)} | sha1sum | cut -c1-8)'\"}'"
+  ]
 }
 
 # Manage the Artifact Registry repository with a 30-day image cleanup policy is now handled at root level

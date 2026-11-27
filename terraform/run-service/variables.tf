@@ -73,3 +73,9 @@ variable "artifact_registry_repository_uri" {
   type        = string
 }
 
+variable "source_hash_paths" {
+  description = "Paths relative to source_directory hashed by git ls-files to trigger image rebuilds (empty = all tracked files)"
+  type        = list(string)
+  default     = []
+}
+

@@ -132,13 +132,9 @@ variable "github_actions_roles" {
   description = "IAM roles for GitHub Actions service account"
   type        = list(string)
   default = [
-    "roles/alloydb.admin",
-    "roles/appengine.deployer",
-    "roles/appengine.serviceAdmin",
-    "roles/artifactregistry.admin",
+    "roles/alloydb.editor",
     "roles/artifactregistry.repoAdmin",
     "roles/bigquery.resourceAdmin",
-    "roles/cloudbuild.builds.builder",
     "roles/compute.loadBalancerAdmin",
     "roles/firebasehosting.admin",
     "roles/iam.networkAdmin",
@@ -147,7 +143,6 @@ variable "github_actions_roles" {
     "roles/monitoring.dashboardEditor",
     "roles/run.admin",
     "roles/serviceusage.serviceUsageConsumer",
-    "roles/storage.objectUser",
     "roles/viewer",
   ]
 }
