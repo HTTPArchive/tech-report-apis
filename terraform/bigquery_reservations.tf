@@ -53,6 +53,10 @@ resource "google_bigquery_reservation" "pipeline_s" {
   autoscale {
     max_slots = 1600
   }
+
+  labels = {
+    cost_center = "etl"
+  }
 }
 
 resource "google_bigquery_reservation" "interactive" {
