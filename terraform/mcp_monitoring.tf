@@ -177,8 +177,6 @@ resource "google_monitoring_dashboard" "mcp_analytics" {
         # Row 0: Header & Taxonomy Guide
         # ----------------------------------------------------------------------
         {
-          xPos   = 0
-          yPos   = 0
           width  = 48
           height = 5
           widget = {
@@ -202,7 +200,6 @@ resource "google_monitoring_dashboard" "mcp_analytics" {
         # Row 1: Executive Overview KPIs
         # ----------------------------------------------------------------------
         {
-          xPos   = 0
           yPos   = 5
           width  = 48
           height = 8
@@ -256,7 +253,6 @@ resource "google_monitoring_dashboard" "mcp_analytics" {
         # Row 2: Traffic Outcomes & Release Version Latency
         # ----------------------------------------------------------------------
         {
-          xPos   = 0
           yPos   = 13
           width  = 24
           height = 16
@@ -372,7 +368,6 @@ resource "google_monitoring_dashboard" "mcp_analytics" {
         # Row 3: Tools Inventory (incl. Zero-Call Unused Tools) & Context Size
         # ----------------------------------------------------------------------
         {
-          xPos   = 0
           yPos   = 29
           width  = 30
           height = 18
@@ -499,7 +494,6 @@ resource "google_monitoring_dashboard" "mcp_analytics" {
         # Row 4: Errors, Refused Arguments & "Missing Tools" Inspector
         # ----------------------------------------------------------------------
         {
-          xPos   = 0
           yPos   = 47
           width  = 24
           height = 16
@@ -571,7 +565,6 @@ resource "google_monitoring_dashboard" "mcp_analytics" {
         # Row 5: Clients Breakdown & Top Queried Technologies / Geos
         # ----------------------------------------------------------------------
         {
-          xPos   = 0
           yPos   = 63
           width  = 24
           height = 16
@@ -656,7 +649,6 @@ resource "google_monitoring_dashboard" "mcp_analytics" {
         # Row 6: Sessions, Step-by-Step Journeys & Agent Loop Detector
         # ----------------------------------------------------------------------
         {
-          xPos   = 0
           yPos   = 79
           width  = 22
           height = 18
@@ -749,7 +741,6 @@ resource "google_monitoring_dashboard" "mcp_analytics" {
         # Row 7: Live MCP Server Operation & Agent Intent Logs Panel
         # ----------------------------------------------------------------------
         {
-          xPos   = 0
           yPos   = 97
           width  = 48
           height = 18

@@ -137,6 +137,7 @@ variable "github_actions_roles" {
     "roles/appengine.serviceAdmin",
     "roles/artifactregistry.admin",
     "roles/artifactregistry.repoAdmin",
+    "roles/bigquery.resourceAdmin",
     "roles/cloudbuild.builds.builder",
     "roles/compute.loadBalancerAdmin",
     "roles/firebasehosting.admin",
